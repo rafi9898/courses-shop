@@ -116,10 +116,47 @@ export const dictionaries = {
       savings: "Oszczędzasz",
       includedCourses: "{count} kursów w pakiecie"
     },
+    aboutPage: {
+      eyebrow: "O mnie",
+      titleStart: "Cześć! Jestem",
+      authorName: "Jan Kowalski",
+      lead:
+        "Od ponad 8 lat tworzę kursy online, które pomagają tysiącom osób zdobywać nowe umiejętności i rozwijać się w branży IT.",
+      mission:
+        "Moim celem jest przekazywanie wiedzy w przystępny sposób i wspieranie Cię na każdym etapie nauki.",
+      primaryCta: "Zobacz wszystkie kursy",
+      secondaryCta: "Skontaktuj się ze mną",
+      approachEyebrow: "Moje podejście",
+      approachTitle: "Uczę tego, co praktyczne i naprawdę działa",
+      approachText:
+        "Wierzę, że nauka powinna być praktyczna, ciekawa i dopasowana do realnych potrzeb. Dlatego w moich kursach znajdziesz tylko sprawdzone rozwiązania i konkretne przykłady z życia.",
+      technologiesTitle: "Technologie, których uczę",
+      finalTitle: "Gotowy, by rozwijać swoje umiejętności?",
+      finalText: "Dołącz do tysięcy kursantów i zacznij naukę już dziś.",
+      finalCta: "Zobacz kursy",
+      bullets: ["Praktyczne projekty i zadania", "Zero zbędnej teorii", "Regularne aktualizacje kursów", "Wsparcie i kontakt ze mną"]
+    },
+    faqPage: {
+      title: "Najczęściej zadawane pytania",
+      lead: "Znajdź odpowiedzi na najczęściej zadawane pytania dotyczące kursów, pakietów, płatności, dostępu i faktur.",
+      searchPlaceholder: "Szukaj pytania...",
+      all: "Wszystkie",
+      courses: "Kursy",
+      bundles: "Pakiety",
+      payments: "Płatności",
+      access: "Dostęp",
+      invoices: "Faktury",
+      discounts: "Kody rabatowe",
+      noResults: "Nie znaleziono pytań dla tej frazy.",
+      ctaTitle: "Nie znalazłeś odpowiedzi?",
+      ctaText: "Skontaktuj się z nami, a odpowiemy na Twoje pytania tak szybko jak to możliwe.",
+      ctaButton: "Skontaktuj się z nami"
+    },
     stats: {
       students: "Zadowolonych kursantów",
       rating: "Średnia ocen na Udemy",
-      courses: "Kursów online"
+      courses: "Kursów online",
+      hours: "godzin materiałów"
     },
     benefits: {
       verified: "Sprawdzone i aktualne",
@@ -242,10 +279,47 @@ export const dictionaries = {
       savings: "Du sparst",
       includedCourses: "{count} Kurse im Paket"
     },
+    aboutPage: {
+      eyebrow: "Über mich",
+      titleStart: "Hallo! Ich bin",
+      authorName: "Jan Kowalski",
+      lead:
+        "Seit über 8 Jahren erstelle ich Online-Kurse, die Menschen helfen, neue Fähigkeiten aufzubauen und sich in der IT weiterzuentwickeln.",
+      mission:
+        "Mein Ziel ist es, Wissen verständlich zu vermitteln und dich auf jedem Lernschritt zu unterstützen.",
+      primaryCta: "Alle Kurse ansehen",
+      secondaryCta: "Kontakt aufnehmen",
+      approachEyebrow: "Mein Ansatz",
+      approachTitle: "Ich unterrichte, was praktisch ist und wirklich funktioniert",
+      approachText:
+        "Lernen sollte praktisch, interessant und realitätsnah sein. Deshalb findest du in meinen Kursen geprüfte Lösungen und konkrete Beispiele aus der Praxis.",
+      technologiesTitle: "Technologien, die ich unterrichte",
+      finalTitle: "Bereit, deine Fähigkeiten weiterzuentwickeln?",
+      finalText: "Schließe dich tausenden Lernenden an und starte heute.",
+      finalCta: "Kurse ansehen",
+      bullets: ["Praktische Projekte und Aufgaben", "Keine unnötige Theorie", "Regelmäßige Kursupdates", "Unterstützung und Kontakt"]
+    },
+    faqPage: {
+      title: "Häufig gestellte Fragen",
+      lead: "Finde Antworten auf häufige Fragen zu Kursen, Paketen, Zahlungen, Zugang und Rechnungen.",
+      searchPlaceholder: "Frage suchen...",
+      all: "Alle",
+      courses: "Kurse",
+      bundles: "Pakete",
+      payments: "Zahlungen",
+      access: "Zugang",
+      invoices: "Rechnungen",
+      discounts: "Gutscheine",
+      noResults: "Keine Fragen für diese Suche gefunden.",
+      ctaTitle: "Keine Antwort gefunden?",
+      ctaText: "Kontaktiere uns, und wir beantworten deine Frage so schnell wie möglich.",
+      ctaButton: "Kontakt aufnehmen"
+    },
     stats: {
       students: "zufriedene Teilnehmende",
       rating: "Durchschnittsbewertung",
-      courses: "Online-Kurse"
+      courses: "Online-Kurse",
+      hours: "Stunden Material"
     },
     benefits: {
       verified: "Geprüft und aktuell",
@@ -368,10 +442,47 @@ export const dictionaries = {
       savings: "You save",
       includedCourses: "{count} courses in bundle"
     },
+    aboutPage: {
+      eyebrow: "About",
+      titleStart: "Hi! I am",
+      authorName: "Jan Kowalski",
+      lead:
+        "For over 8 years I have created online courses that help thousands of people gain new skills and grow in IT.",
+      mission:
+        "My goal is to explain knowledge clearly and support you at every stage of learning.",
+      primaryCta: "View all courses",
+      secondaryCta: "Contact me",
+      approachEyebrow: "My approach",
+      approachTitle: "I teach what is practical and actually works",
+      approachText:
+        "Learning should be practical, engaging and connected to real needs. That is why my courses focus on proven solutions and concrete examples.",
+      technologiesTitle: "Technologies I teach",
+      finalTitle: "Ready to grow your skills?",
+      finalText: "Join thousands of students and start learning today.",
+      finalCta: "View courses",
+      bullets: ["Practical projects and tasks", "No unnecessary theory", "Regular course updates", "Support and contact"]
+    },
+    faqPage: {
+      title: "Frequently asked questions",
+      lead: "Find answers to common questions about courses, bundles, payments, access and invoices.",
+      searchPlaceholder: "Search questions...",
+      all: "All",
+      courses: "Courses",
+      bundles: "Bundles",
+      payments: "Payments",
+      access: "Access",
+      invoices: "Invoices",
+      discounts: "Discount codes",
+      noResults: "No questions found for this search.",
+      ctaTitle: "Did not find an answer?",
+      ctaText: "Contact us and we will answer your question as soon as possible.",
+      ctaButton: "Contact us"
+    },
     stats: {
       students: "happy students",
       rating: "average Udemy rating",
-      courses: "online courses"
+      courses: "online courses",
+      hours: "hours of material"
     },
     benefits: {
       verified: "Verified and current",

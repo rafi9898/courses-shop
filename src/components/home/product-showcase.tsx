@@ -40,7 +40,7 @@ export function ProductShowcase({
           <ArrowRight className="h-4 w-4" />
         </ButtonLink>
       </div>
-      <div className="mt-6 grid gap-5 md:grid-cols-2">
+      <div className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
         {bundles.map((bundle) => (
           <BundleCard key={bundle.id} bundle={bundle} locale={locale} dictionary={dictionary} />
         ))}

@@ -430,6 +430,7 @@ export const reviews = [
 
 export const faq = [
   {
+    category: "access",
     question: {
       pl: "Jak otrzymam dostęp do kursu?",
       de: "Wie erhalte ich Zugang zum Kurs?",
@@ -442,6 +443,7 @@ export const faq = [
     }
   },
   {
+    category: "access",
     question: {
       pl: "Czy potrzebuję konta w sklepie?",
       de: "Brauche ich ein Konto im Shop?",
@@ -454,6 +456,7 @@ export const faq = [
     }
   },
   {
+    category: "courses",
     question: {
       pl: "Gdzie będę oglądać kurs?",
       de: "Wo sehe ich den Kurs?",
@@ -463,6 +466,58 @@ export const faq = [
       pl: "Kurs oglądasz na Udemy, korzystając z aktualnego linku z kodem promocyjnym.",
       de: "Du lernst auf Udemy über den aktuellen Link mit Gutscheincode.",
       en: "You watch the course on Udemy using the current promo-code link."
+    }
+  },
+  {
+    category: "bundles",
+    question: {
+      pl: "Czy pakiety zawierają kilka kursów?",
+      de: "Enthalten Pakete mehrere Kurse?",
+      en: "Do bundles include multiple courses?"
+    },
+    answer: {
+      pl: "Tak. Po zakupie pakietu otrzymasz linki Udemy do wszystkich kursów wchodzących w skład zestawu.",
+      de: "Ja. Nach dem Kauf erhältst du Udemy-Links zu allen Kursen im Paket.",
+      en: "Yes. After buying a bundle you receive Udemy links to every course included in it."
+    }
+  },
+  {
+    category: "invoices",
+    question: {
+      pl: "Czy otrzymam fakturę?",
+      de: "Erhalte ich eine Rechnung?",
+      en: "Will I receive an invoice?"
+    },
+    answer: {
+      pl: "Tak. Faktura bez VAT zostanie wygenerowana po płatności i wysłana na adres e-mail.",
+      de: "Ja. Eine Rechnung ohne MwSt. wird nach der Zahlung erstellt und per E-Mail gesendet.",
+      en: "Yes. An invoice without VAT is generated after payment and sent by e-mail."
+    }
+  },
+  {
+    category: "discounts",
+    question: {
+      pl: "Jak działa kod rabatowy?",
+      de: "Wie funktioniert ein Gutscheincode?",
+      en: "How does a discount code work?"
+    },
+    answer: {
+      pl: "Kod rabatowy sklepu obniża cenę zamówienia. Jest niezależny od kodu promocyjnego Udemy.",
+      de: "Ein Shop-Gutscheincode reduziert den Bestellpreis. Er ist unabhängig vom Udemy-Gutscheincode.",
+      en: "A shop discount code lowers the order price. It is separate from the Udemy promo code."
+    }
+  },
+  {
+    category: "payments",
+    question: {
+      pl: "Czy płatność jest bezpieczna?",
+      de: "Ist die Zahlung sicher?",
+      en: "Is payment secure?"
+    },
+    answer: {
+      pl: "Tak. Płatności będą realizowane przez Stripe Checkout, bez własnego formularza karty w sklepie.",
+      de: "Ja. Zahlungen werden über Stripe Checkout abgewickelt, ohne eigenes Kartenformular im Shop.",
+      en: "Yes. Payments will be handled by Stripe Checkout, without a custom card form in the shop."
     }
   }
 ];

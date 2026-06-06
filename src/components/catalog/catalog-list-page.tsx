@@ -24,7 +24,6 @@ export function CatalogListPage({
 }) {
   const [query, setQuery] = useState("");
   const [categoryId, setCategoryId] = useState("all");
-  const [level, setLevel] = useState("all");
   const [sort, setSort] = useState("popular");
 
   const isCourses = kind === "courses";
@@ -34,13 +33,12 @@ export function CatalogListPage({
     const normalized = query.trim().toLowerCase();
     const filtered = source.filter((item) => {
       const matchesCategory = categoryId === "all" || item.categoryId === categoryId;
-      const matchesLevel = !isCourses || level === "all" || ("level" in item && item.level === level);
       const category = categories.find((entry) => entry.id === item.categoryId);
       const matchesQuery =
         !normalized ||
         `${item.title[locale]} ${category?.label[locale] ?? ""}`.toLowerCase().includes(normalized);
 
-      return matchesCategory && matchesLevel && matchesQuery;
+      return matchesCategory && matchesQuery;
     });
 
     return [...filtered].sort((a, b) => {
@@ -48,7 +46,7 @@ export function CatalogListPage({
       if (sort === "price-high") return b.price[locale] - a.price[locale];
       return b.reviews - a.reviews;
     });
-  }, [categoryId, isCourses, level, locale, query, sort, source]);
+  }, [categoryId, locale, query, sort, source]);
 
   const foundText = (isCourses ? dictionary.catalog.foundCourses : dictionary.catalog.foundBundles).replace(
     "{count}",
@@ -58,7 +56,6 @@ export function CatalogListPage({
   function resetFilters() {
     setQuery("");
     setCategoryId("all");
-    setLevel("all");
     setSort("popular");
   }
 
@@ -135,22 +132,6 @@ export function CatalogListPage({
                 })}
               </div>
             </div>
-
-            {isCourses ? (
-              <div className="rounded-xl border border-border bg-white p-5 shadow-[0_10px_26px_rgba(15,23,42,0.04)]">
-                <div className="mb-4 text-lg font-black">{dictionary.catalog.level}</div>
-                <div className="space-y-3">
-                  {[
-                    ["all", dictionary.catalog.all],
-                    ["beginner", dictionary.catalog.beginner],
-                    ["intermediate", dictionary.catalog.intermediate],
-                    ["advanced", dictionary.catalog.advanced]
-                  ].map(([value, label]) => (
-                    <CheckboxRow key={value} label={label} checked={level === value} onChange={() => setLevel(value)} />
-                  ))}
-                </div>
-              </div>
-            ) : null}
 
             <button
               type="button"
