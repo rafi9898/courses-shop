@@ -1,0 +1,70 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 0 0% 100%;
+  --foreground: 235 47% 11%;
+  --muted: 246 64% 97%;
+  --muted-foreground: 228 24% 42%;
+  --border: 229 34% 90%;
+  --primary: 251 91% 48%;
+  --primary-foreground: 0 0% 100%;
+  --primary-soft: 249 100% 96%;
+  --success: 142 72% 41%;
+  --warning: 38 92% 50%;
+  --radius-xl: 14px;
+  --radius-2xl: 18px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  color: hsl(var(--foreground));
+  background:
+    radial-gradient(circle at 78% 4%, rgba(79, 70, 229, 0.08), transparent 30rem),
+    linear-gradient(180deg, #ffffff 0%, #fbfbff 100%);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+::selection {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+
+.container-shell {
+  width: min(100% - 32px, 1200px);
+  margin-inline: auto;
+}
+
+@media (min-width: 768px) {
+  .container-shell {
+    width: min(100% - 64px, 1200px);
+  }
+}
+
+.focus-ring {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+}
+
+.focus-ring:focus-visible {
+  outline-color: hsl(var(--primary));
+}

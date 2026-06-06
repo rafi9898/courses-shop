@@ -1,0 +1,35 @@
+import { notFound } from "next/navigation";
+import { AuthorStrip } from "@/components/home/author-strip";
+import { FaqPreview } from "@/components/home/faq-preview";
+import { HeroSection } from "@/components/home/hero-section";
+import { ProductShowcase } from "@/components/home/product-showcase";
+import { ReviewsSection } from "@/components/home/reviews-section";
+import { SearchPanel } from "@/components/home/search-panel";
+import { isLocale, type Locale } from "@/lib/i18n/config";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+
+export default async function LocaleHomePage({
+  params
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale: rawLocale } = await params;
+
+  if (!isLocale(rawLocale)) {
+    notFound();
+  }
+
+  const locale = rawLocale as Locale;
+  const dictionary = getDictionary(locale);
+
+  return (
+    <div className="overflow-hidden">
+      <HeroSection locale={locale} dictionary={dictionary} />
+      <SearchPanel locale={locale} dictionary={dictionary} />
+      <ProductShowcase locale={locale} dictionary={dictionary} />
+      <ReviewsSection locale={locale} dictionary={dictionary} />
+      <AuthorStrip locale={locale} dictionary={dictionary} />
+      <FaqPreview locale={locale} dictionary={dictionary} />
+    </div>
+  );
+}
