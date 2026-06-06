@@ -1,8 +1,10 @@
 import { Heart, ShoppingCart, Star } from "lucide-react";
+import Link from "next/link";
 import { ButtonLink } from "@/components/ui/button";
 import { categories, type Course } from "@/lib/mock-data";
 import { formatPrice, type Locale } from "@/lib/i18n/config";
 import { type Dictionary } from "@/lib/i18n/dictionaries";
+import { getCoursePath } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
 export function ProductCard({
@@ -15,13 +17,20 @@ export function ProductCard({
   dictionary: Dictionary;
 }) {
   const category = categories.find((item) => item.id === course.categoryId);
+  const href = getCoursePath(course, locale);
 
   return (
     <article className="group overflow-hidden rounded-xl border border-border bg-white shadow-[0_10px_26px_rgba(15,23,42,0.05)] transition duration-200 hover:-translate-y-1 hover:border-primary/40 hover:shadow-card">
-      <Thumbnail title={course.thumbnail.title} subtitle={course.thumbnail.subtitle} variant={course.thumbnail.variant} />
+      <Link href={href} aria-label={course.title[locale]}>
+        <Thumbnail title={course.thumbnail.title} subtitle={course.thumbnail.subtitle} variant={course.thumbnail.variant} showFavorite={false} />
+      </Link>
       <div className="p-4">
         <div className="text-xs font-medium text-muted-foreground">{category?.label[locale]}</div>
-        <h3 className="mt-2 min-h-10 text-base font-black leading-5">{course.title[locale]}</h3>
+        <h3 className="mt-2 min-h-10 text-base font-black leading-5">
+          <Link href={href} className="hover:text-primary">
+            {course.title[locale]}
+          </Link>
+        </h3>
         <div className="mt-3 flex items-center gap-1 text-xs">
           <span className="font-bold">{course.rating}</span>
           <span className="flex text-warning">
@@ -51,12 +60,14 @@ export function Thumbnail({
   title,
   subtitle,
   variant,
-  badge
+  badge,
+  showFavorite = true
 }: {
   title: string;
   subtitle: string;
   variant: "dark" | "blue" | "purple" | "green";
   badge?: string;
+  showFavorite?: boolean;
 }) {
   return (
     <div
@@ -68,7 +79,7 @@ export function Thumbnail({
         variant === "green" && "bg-[linear-gradient(135deg,#064e3b,#059669)]"
       )}
     >
-      {!badge ? (
+      {!badge && showFavorite ? (
         <button
           type="button"
           className="absolute right-3 top-3 grid h-8 w-8 place-items-center rounded-lg bg-white/20 text-white backdrop-blur transition hover:bg-white/30"

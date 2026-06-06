@@ -1,0 +1,405 @@
+import {
+  Award,
+  BookOpen,
+  CheckCircle2,
+  Clock,
+  FileText,
+  Globe2,
+  GraduationCap,
+  Layers,
+  Lock,
+  PlayCircle,
+  ShieldCheck,
+  ShoppingCart,
+  Star,
+  Subtitles
+} from "lucide-react";
+import Link from "next/link";
+import { BundleCard } from "@/components/commerce/bundle-card";
+import { ProductCard, Thumbnail } from "@/components/commerce/product-card";
+import { VideoPreview } from "@/components/product-detail/video-preview";
+import { ButtonLink } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { categories, courses, bundles, type Bundle, type Course } from "@/lib/mock-data";
+import { formatPrice, type Locale } from "@/lib/i18n/config";
+import { type Dictionary } from "@/lib/i18n/dictionaries";
+import { getCoursePath } from "@/lib/routes";
+
+type DetailProduct =
+  | {
+      kind: "course";
+      product: Course;
+    }
+  | {
+      kind: "bundle";
+      product: Bundle;
+    };
+
+export function ProductDetailPage({
+  locale,
+  dictionary,
+  detail
+}: {
+  locale: Locale;
+  dictionary: Dictionary;
+  detail: DetailProduct;
+}) {
+  const { product, kind } = detail;
+  const category = categories.find((item) => item.id === product.categoryId);
+  const isCourse = kind === "course";
+  const title = product.title[locale];
+  const savings = product.regularPrice[locale] - product.price[locale];
+  const bundleCourses = !isCourse ? courses.filter((course) => product.courseIds.includes(course.id)) : [];
+  const recommendedCourses = courses.filter((course) => course.id !== product.id && course.categoryId === product.categoryId).slice(0, 3);
+  const recommendedBundles = bundles.filter((bundle) => bundle.id !== product.id && bundle.categoryId === product.categoryId).slice(0, 2);
+
+  return (
+    <div className="bg-gradient-to-b from-white to-[#fbfaff]">
+      <section className="border-b border-border/70 bg-white">
+        <div className="container-shell py-9 lg:py-12">
+          <nav className="mb-8 flex flex-wrap items-center gap-2 text-sm text-muted-foreground" aria-label="Breadcrumb">
+            <Link href={`/${locale}`} className="hover:text-primary">
+              {dictionary.catalog.breadcrumbsHome}
+            </Link>
+            <span aria-hidden="true">›</span>
+            <Link href={isCourse ? dictionary.routes.courses : dictionary.routes.bundles} className="hover:text-primary">
+              {isCourse ? dictionary.nav.courses : dictionary.nav.bundles}
+            </Link>
+            <span aria-hidden="true">›</span>
+            <span className="font-semibold text-foreground">{title}</span>
+          </nav>
+
+          <div className="grid gap-8 md:grid-cols-2 md:items-start lg:gap-10">
+            <div>
+              <Badge>{category?.label[locale]}</Badge>
+              <h1 className="mt-5 text-4xl font-black leading-[1.08] tracking-normal sm:text-5xl">{title}</h1>
+              <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-600">
+                {isCourse ? product.highlights[locale][0] : product.description[locale]}
+              </p>
+
+              <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-slate-600">
+                <span className="inline-flex items-center gap-2">
+                  <Star className="h-5 w-5 fill-warning text-warning" />
+                  <strong className="text-foreground">{product.rating}</strong> ({product.reviews})
+                </span>
+                <span className="inline-flex items-center gap-2">
+                  <GraduationCap className="h-5 w-5 text-primary" />
+                  {isCourse ? `${product.lessons} ${dictionary.detail.lessons.toLowerCase()}` : dictionary.detail.includedCourses.replace("{count}", String(product.courseCount))}
+                </span>
+              </div>
+
+              {isCourse ? (
+                <ul className="mt-7 grid gap-3">
+                  {product.highlights[locale].map((item) => (
+                    <li key={item} className="flex items-start gap-3 text-sm leading-6 text-slate-600">
+                      <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+
+              <div className="mt-8 w-full max-w-[430px]">
+                <PriceCard
+                  price={product.price[locale]}
+                  regularPrice={product.regularPrice[locale]}
+                  savings={savings}
+                  locale={locale}
+                  dictionary={dictionary}
+                />
+              </div>
+            </div>
+
+            <div>
+              {isCourse ? (
+                <VideoPreview course={product} dictionary={dictionary} locale={locale} />
+              ) : (
+                <div className="overflow-hidden rounded-2xl shadow-card">
+                  <div className="[&>div]:h-[280px] [&>div]:min-h-[280px] md:[&>div]:h-[360px] xl:[&>div]:h-[400px]">
+                    <Thumbnail
+                      title={product.thumbnail.title}
+                      subtitle={product.thumbnail.subtitle}
+                      variant={product.thumbnail.variant}
+                      badge={dictionary.detail.includedCourses.replace("{count}", String(product.courseCount))}
+                      showFavorite={false}
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div className="mt-8 md:-ml-8 lg:-ml-10">
+                <FeatureStrip dictionary={dictionary} />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="container-shell py-10 lg:py-14">
+        <div className="grid gap-8 lg:grid-cols-[1fr_360px] lg:items-start">
+          <div className="space-y-10">
+            <ContentCard title={isCourse ? dictionary.detail.aboutCourse : dictionary.detail.aboutBundle}>
+              <p>{isCourse ? getCourseAboutCopy(title, locale)[0] : product.description[locale]}</p>
+              <p>{isCourse ? getCourseAboutCopy(title, locale)[1] : getBundleAboutCopy(locale)}</p>
+            </ContentCard>
+
+            {isCourse ? (
+              <>
+                <ContentCard title={dictionary.detail.whatYouLearn}>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    {product.outcomes[locale].map((outcome) => (
+                      <div key={outcome} className="flex items-start gap-3 text-sm leading-6 text-slate-600">
+                        <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+                        {outcome}
+                      </div>
+                    ))}
+                  </div>
+                </ContentCard>
+
+                <ContentCard title={dictionary.detail.courseProgram}>
+                  <div className="overflow-hidden rounded-xl border border-border">
+                    {product.agenda[locale].map((item, index) => (
+                      <div key={item.title} className="grid gap-3 border-b border-border px-4 py-4 last:border-b-0 sm:grid-cols-[32px_1fr_auto] sm:items-center">
+                        <span className="text-sm font-bold text-muted-foreground">{index + 1}.</span>
+                        <span className="font-semibold">{item.title}</span>
+                        <span className="text-sm text-muted-foreground">
+                          {item.lessons} {dictionary.detail.lessons.toLowerCase()} · {item.duration}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </ContentCard>
+              </>
+            ) : (
+              <ContentCard title={dictionary.detail.bundleCourses}>
+                <div className="grid gap-4">
+                  {bundleCourses.map((course) => (
+                    <Link
+                      key={course.id}
+                      href={getCoursePath(course, locale)}
+                      className="grid gap-4 rounded-xl border border-border bg-white p-4 transition hover:border-primary/40 hover:shadow-card sm:grid-cols-[150px_1fr_auto] sm:items-center"
+                    >
+                      <Thumbnail title={course.thumbnail.title} subtitle={course.thumbnail.subtitle} variant={course.thumbnail.variant} showFavorite={false} />
+                      <div>
+                        <h3 className="font-black">{course.title[locale]}</h3>
+                        <p className="mt-1 text-sm text-muted-foreground">{categories.find((item) => item.id === course.categoryId)?.label[locale]}</p>
+                      </div>
+                      <span className="text-sm font-black text-primary">{formatPrice(course.price[locale], locale)}</span>
+                    </Link>
+                  ))}
+                </div>
+              </ContentCard>
+            )}
+
+            <div className="rounded-2xl border border-border bg-primary-soft p-6 shadow-soft sm:flex sm:items-center sm:gap-5">
+              <span className="grid h-16 w-16 shrink-0 place-items-center rounded-full bg-white text-primary">
+                <ShieldCheck className="h-8 w-8" />
+              </span>
+              <div className="mt-4 sm:mt-0">
+                <h2 className="text-xl font-black">{dictionary.detail.guaranteeTitle}</h2>
+                <p className="mt-2 text-sm leading-6 text-slate-600">{dictionary.detail.guaranteeText}</p>
+              </div>
+            </div>
+          </div>
+
+          {isCourse ? <MetaCard course={product} locale={locale} dictionary={dictionary} /> : <BundleValueCard bundle={product} locale={locale} dictionary={dictionary} />}
+        </div>
+
+        <section className="mt-14">
+          <h2 className="text-3xl font-black">{dictionary.detail.recommended}</h2>
+          <div className="mt-6 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+            {recommendedCourses.map((course) => (
+              <ProductCard key={course.id} course={course} locale={locale} dictionary={dictionary} />
+            ))}
+            {recommendedBundles.map((bundle) => (
+              <BundleCard key={bundle.id} bundle={bundle} locale={locale} dictionary={dictionary} />
+            ))}
+          </div>
+        </section>
+      </section>
+    </div>
+  );
+}
+
+function PriceCard({
+  price,
+  regularPrice,
+  savings,
+  locale,
+  dictionary
+}: {
+  price: number;
+  regularPrice: number;
+  savings: number;
+  locale: Locale;
+  dictionary: Dictionary;
+}) {
+  return (
+    <aside className="w-full max-w-[430px] rounded-2xl border border-border bg-white p-6 shadow-card">
+      <div className="flex flex-wrap items-end gap-3">
+        <span className="text-4xl font-black">{formatPrice(price, locale)}</span>
+        <span className="pb-1 text-sm text-muted-foreground line-through">{formatPrice(regularPrice, locale)}</span>
+      </div>
+      <div className="mt-3 inline-flex rounded-md bg-primary-soft px-3 py-1 text-sm font-bold text-primary">
+        {dictionary.detail.savings}: {formatPrice(savings, locale)}
+      </div>
+      <ButtonLink href={dictionary.routes.cart} className="mt-6 w-full">
+        <ShoppingCart className="h-5 w-5" />
+        {dictionary.detail.addToCart}
+      </ButtonLink>
+      <ButtonLink href={dictionary.routes.cart} variant="secondary" className="mt-3 w-full">
+        {dictionary.detail.buyNow}
+      </ButtonLink>
+      <p className="mt-5 flex items-center justify-center gap-2 text-sm font-semibold text-slate-600">
+        <ShieldCheck className="h-4 w-4 text-primary" />
+        {dictionary.detail.secureStripe}
+      </p>
+    </aside>
+  );
+}
+
+function FeatureStrip({ dictionary }: { dictionary: Dictionary }) {
+  const features = [
+    { icon: PlayCircle, title: dictionary.detail.instantAccess, text: dictionary.benefits.access },
+    { icon: BookOpen, title: dictionary.detail.udemyCode, text: dictionary.detail.lifetimeAccess },
+    { icon: ShieldCheck, title: dictionary.detail.lifetimeAccess, text: dictionary.detail.unlimited },
+    { icon: FileText, title: dictionary.detail.invoice, text: dictionary.detail.invoice }
+  ];
+
+  return (
+    <div className="grid w-full gap-5 rounded-2xl border border-border bg-white p-6 shadow-soft sm:grid-cols-2 md:grid-cols-4 lg:p-7">
+      {features.map((feature) => (
+        <div key={feature.title} className="min-w-0">
+          <span className="grid h-11 w-11 place-items-center rounded-xl bg-primary-soft text-primary">
+            <feature.icon className="h-5 w-5" />
+          </span>
+          <span className="mt-3 block text-sm font-black leading-5">{feature.title}</span>
+          <span className="mt-2 block text-xs leading-5 text-muted-foreground">{feature.text}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ContentCard({
+  title,
+  children
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="rounded-2xl border border-border bg-white p-6 shadow-[0_10px_26px_rgba(15,23,42,0.04)]">
+      <h2 className="text-2xl font-black">{title}</h2>
+      <div className="mt-4 space-y-4 text-sm leading-7 text-slate-600">{children}</div>
+    </section>
+  );
+}
+
+function MetaCard({
+  course,
+  locale,
+  dictionary
+}: {
+  course: Course;
+  locale: Locale;
+  dictionary: Dictionary;
+}) {
+  const levelLabel = {
+    beginner: dictionary.detail.beginner,
+    intermediate: dictionary.detail.intermediate,
+    advanced: dictionary.detail.advanced
+  }[course.level];
+  const language = locale === "pl" ? dictionary.detail.polish : locale === "de" ? dictionary.detail.german : dictionary.detail.english;
+
+  return (
+    <aside className="rounded-2xl border border-border bg-primary-soft p-6 shadow-soft lg:sticky lg:top-24">
+      <dl className="space-y-4">
+        <MetaRow icon={<Award className="h-5 w-5" />} label={dictionary.detail.level} value={levelLabel} />
+        <MetaRow icon={<Clock className="h-5 w-5" />} label={dictionary.detail.duration} value={`${course.durationHours}h`} />
+        <MetaRow icon={<Layers className="h-5 w-5" />} label={dictionary.detail.lessons} value={String(course.lessons)} />
+        <MetaRow icon={<Globe2 className="h-5 w-5" />} label={dictionary.detail.language} value={language} />
+        <MetaRow icon={<Subtitles className="h-5 w-5" />} label={dictionary.detail.subtitles} value={dictionary.detail.yes} />
+        <MetaRow icon={<Lock className="h-5 w-5" />} label={dictionary.detail.access} value={dictionary.detail.unlimited} />
+      </dl>
+    </aside>
+  );
+}
+
+function BundleValueCard({
+  bundle,
+  locale,
+  dictionary
+}: {
+  bundle: Bundle;
+  locale: Locale;
+  dictionary: Dictionary;
+}) {
+  const totalHours = courses.filter((course) => bundle.courseIds.includes(course.id)).reduce((sum, course) => sum + course.durationHours, 0);
+  const lessons = courses.filter((course) => bundle.courseIds.includes(course.id)).reduce((sum, course) => sum + course.lessons, 0);
+
+  return (
+    <aside className="rounded-2xl border border-border bg-primary-soft p-6 shadow-soft lg:sticky lg:top-24">
+      <dl className="space-y-4">
+        <MetaRow icon={<BookOpen className="h-5 w-5" />} label={dictionary.detail.bundleCourses} value={String(bundle.courseCount)} />
+        <MetaRow icon={<Clock className="h-5 w-5" />} label={dictionary.detail.duration} value={`${totalHours}h`} />
+        <MetaRow icon={<Layers className="h-5 w-5" />} label={dictionary.detail.lessons} value={String(lessons)} />
+        <MetaRow icon={<ShieldCheck className="h-5 w-5" />} label={dictionary.detail.access} value={dictionary.detail.unlimited} />
+        <MetaRow icon={<Award className="h-5 w-5" />} label={dictionary.detail.savings} value={formatPrice(bundle.regularPrice[locale] - bundle.price[locale], locale)} />
+      </dl>
+    </aside>
+  );
+}
+
+function MetaRow({
+  icon,
+  label,
+  value
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-4 text-sm">
+      <dt className="flex items-center gap-3 font-semibold text-slate-600">
+        <span className="text-primary">{icon}</span>
+        {label}
+      </dt>
+      <dd className="text-right font-black">{value}</dd>
+    </div>
+  );
+}
+
+function getCourseAboutCopy(title: string, locale: Locale) {
+  if (locale === "de") {
+    return [
+      `${title} ist eine praktische Einführung, die von den Grundlagen zu realen Arbeitsszenarien führt. Das Material ist so aufgebaut, dass du schnell von Theorie zu Übungen kommst.`,
+      "Nach dem Kauf erhältst du einen aktuellen Udemy-Link mit Gutscheincode. Der Zugang erscheint auf der Erfolgsseite und wird zusätzlich per E-Mail gesendet."
+    ];
+  }
+
+  if (locale === "en") {
+    return [
+      `${title} is a practical introduction that takes you from fundamentals to real working scenarios. The material is organized so you can move quickly from theory to exercises.`,
+      "After purchase you receive the current Udemy link with a promo code. Access appears on the success page and is also sent by e-mail."
+    ];
+  }
+
+  return [
+    `${title} to praktyczne wprowadzenie prowadzące od podstaw do scenariuszy używanych w codziennej pracy. Materiał jest uporządkowany tak, aby szybko przejść od teorii do ćwiczeń.`,
+    "Kupując kurs otrzymujesz aktualny link Udemy z kodem promocyjnym. Dostęp pojawi się na stronie sukcesu i zostanie wysłany e-mailem po płatności."
+  ];
+}
+
+function getBundleAboutCopy(locale: Locale) {
+  if (locale === "de") {
+    return "Nach dem Kauf erhältst du Udemy-Links zu allen Kursen im Paket. Doppelte Kurse werden nicht mehrfach angezeigt.";
+  }
+
+  if (locale === "en") {
+    return "After purchase you receive Udemy links to every course in the bundle. Duplicate course access is not shown twice.";
+  }
+
+  return "Kupując pakiet otrzymujesz linki Udemy do wszystkich kursów w zestawie. System deduplikuje kursy, więc ten sam dostęp nie pojawi się dwa razy.";
+}

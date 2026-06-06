@@ -18,6 +18,11 @@ export type Course = {
   reviews: number;
   price: Record<Locale, number>;
   regularPrice: Record<Locale, number>;
+  durationHours: number;
+  lessons: number;
+  highlights: Record<Locale, string[]>;
+  outcomes: Record<Locale, string[]>;
+  agenda: Record<Locale, { title: string; lessons: number; duration: string }[]>;
   thumbnail: {
     title: string;
     subtitle: string;
@@ -32,6 +37,7 @@ export type Bundle = {
   slug: Record<Locale, string>;
   categoryId: string;
   description: Record<Locale, string>;
+  courseIds: string[];
   courseCount: number;
   rating: number;
   reviews: number;
@@ -121,6 +127,11 @@ export const courses: Course[] = [
     reviews: 1234,
     price: { pl: 39, de: 12.99, en: 9.99 },
     regularPrice: { pl: 59, de: 19.99, en: 14.99 },
+    durationHours: 7,
+    lessons: 65,
+    highlights: courseHighlights("Postman", "Postman", "Postman"),
+    outcomes: courseOutcomes("Postman", "Postman", "Postman"),
+    agenda: courseAgenda("Postman", "Postman", "Postman"),
     thumbnail: { title: "POSTMAN", subtitle: "OD PODSTAW", variant: "dark" }
   },
   {
@@ -134,6 +145,11 @@ export const courses: Course[] = [
     reviews: 987,
     price: { pl: 49, de: 14.99, en: 12.99 },
     regularPrice: { pl: 79, de: 24.99, en: 19.99 },
+    durationHours: 8,
+    lessons: 58,
+    highlights: courseHighlights("Docker", "Docker", "Docker"),
+    outcomes: courseOutcomes("Docker", "Docker", "Docker"),
+    agenda: courseAgenda("Docker", "Docker", "Docker"),
     thumbnail: { title: "docker", subtitle: "DLA POCZĄTKUJĄCYCH", variant: "blue" }
   },
   {
@@ -147,6 +163,11 @@ export const courses: Course[] = [
     reviews: 2341,
     price: { pl: 39, de: 12.99, en: 9.99 },
     regularPrice: { pl: 59, de: 19.99, en: 14.99 },
+    durationHours: 9,
+    lessons: 72,
+    highlights: courseHighlights("Python", "Python", "Python"),
+    outcomes: courseOutcomes("Python", "Python", "Python"),
+    agenda: courseAgenda("Python", "Python", "Python"),
     thumbnail: { title: "python", subtitle: "OD PODSTAW", variant: "dark" }
   },
   {
@@ -160,6 +181,11 @@ export const courses: Course[] = [
     reviews: 1102,
     price: { pl: 44, de: 13.99, en: 11.99 },
     regularPrice: { pl: 69, de: 22.99, en: 17.99 },
+    durationHours: 6,
+    lessons: 48,
+    highlights: courseHighlights("SQL", "SQL", "SQL"),
+    outcomes: courseOutcomes("SQL", "SQL", "SQL"),
+    agenda: courseAgenda("SQL", "SQL", "SQL"),
     thumbnail: { title: "SQL", subtitle: "PRAKTYCZNY KURS", variant: "purple" }
   },
   {
@@ -173,6 +199,11 @@ export const courses: Course[] = [
     reviews: 1789,
     price: { pl: 49, de: 14.99, en: 12.99 },
     regularPrice: { pl: 79, de: 24.99, en: 19.99 },
+    durationHours: 8,
+    lessons: 61,
+    highlights: courseHighlights("JavaScript", "JavaScript", "JavaScript"),
+    outcomes: courseOutcomes("JavaScript", "JavaScript", "JavaScript"),
+    agenda: courseAgenda("JavaScript", "JavaScript", "JavaScript"),
     thumbnail: { title: "JAVASCRIPT", subtitle: "OD PODSTAW", variant: "blue" }
   },
   {
@@ -186,6 +217,11 @@ export const courses: Course[] = [
     reviews: 713,
     price: { pl: 69, de: 19.99, en: 16.99 },
     regularPrice: { pl: 109, de: 34.99, en: 29.99 },
+    durationHours: 5,
+    lessons: 42,
+    highlights: courseHighlights("AI", "KI", "AI"),
+    outcomes: courseOutcomes("AI", "KI", "AI"),
+    agenda: courseAgenda("AI", "KI", "AI"),
     thumbnail: { title: "AI", subtitle: "DLA KAŻDEGO", variant: "purple" }
   },
   {
@@ -199,6 +235,11 @@ export const courses: Course[] = [
     reviews: 743,
     price: { pl: 59, de: 17.99, en: 14.99 },
     regularPrice: { pl: 89, de: 29.99, en: 24.99 },
+    durationHours: 6,
+    lessons: 54,
+    highlights: courseHighlights("API", "API", "API"),
+    outcomes: courseOutcomes("API", "API", "API"),
+    agenda: courseAgenda("API", "API", "API"),
     thumbnail: { title: "API", subtitle: "OD PODSTAW", variant: "green" }
   },
   {
@@ -212,6 +253,11 @@ export const courses: Course[] = [
     reviews: 812,
     price: { pl: 79, de: 22.99, en: 19.99 },
     regularPrice: { pl: 119, de: 39.99, en: 34.99 },
+    durationHours: 7,
+    lessons: 53,
+    highlights: courseHighlights("AWS", "AWS", "AWS"),
+    outcomes: courseOutcomes("AWS", "AWS", "AWS"),
+    agenda: courseAgenda("AWS", "AWS", "AWS"),
     thumbnail: { title: "AWS", subtitle: "PRAKTYCZNIE", variant: "blue" }
   },
   {
@@ -225,6 +271,11 @@ export const courses: Course[] = [
     reviews: 634,
     price: { pl: 69, de: 19.99, en: 16.99 },
     regularPrice: { pl: 99, de: 32.99, en: 27.99 },
+    durationHours: 6,
+    lessons: 47,
+    highlights: courseHighlights("CI/CD", "CI/CD", "CI/CD"),
+    outcomes: courseOutcomes("CI/CD", "CI/CD", "CI/CD"),
+    agenda: courseAgenda("CI/CD", "CI/CD", "CI/CD"),
     thumbnail: { title: "CI/CD", subtitle: "W PRAKTYCE", variant: "green" }
   },
   {
@@ -238,6 +289,11 @@ export const courses: Course[] = [
     reviews: 932,
     price: { pl: 64, de: 18.99, en: 15.99 },
     regularPrice: { pl: 94, de: 29.99, en: 24.99 },
+    durationHours: 6,
+    lessons: 50,
+    highlights: courseHighlights("TypeScript", "TypeScript", "TypeScript"),
+    outcomes: courseOutcomes("TypeScript", "TypeScript", "TypeScript"),
+    agenda: courseAgenda("TypeScript", "TypeScript", "TypeScript"),
     thumbnail: { title: "TYPESCRIPT", subtitle: "OD PODSTAW", variant: "blue" }
   }
 ];
@@ -254,6 +310,7 @@ export const bundles: Bundle[] = [
       de: "Ein komplettes Kurspaket für Testerinnen und Tester auf jedem Niveau.",
       en: "A complete course bundle for testers at every level."
     },
+    courseIds: ["postman", "api", "sql", "python", "typescript"],
     courseCount: 5,
     rating: 4.9,
     reviews: 856,
@@ -272,6 +329,7 @@ export const bundles: Bundle[] = [
       de: "DevOps-Werkzeuge und Praktiken in einem kompletten Paket.",
       en: "DevOps tools and practices in one complete bundle."
     },
+    courseIds: ["docker", "cicd", "aws", "api"],
     courseCount: 4,
     rating: 4.9,
     reviews: 642,
@@ -290,6 +348,7 @@ export const bundles: Bundle[] = [
       de: "Werde Schritt für Schritt sicherer in Python.",
       en: "Become a confident Python developer step by step."
     },
+    courseIds: ["python", "api", "javascript", "typescript", "sql", "aws"],
     courseCount: 6,
     rating: 4.9,
     reviews: 1234,
@@ -308,6 +367,7 @@ export const bundles: Bundle[] = [
       de: "SQL, Datenanalyse und Visualisierung in der Praxis.",
       en: "SQL, data analysis and visualization in practice."
     },
+    courseIds: ["sql", "python", "api", "typescript", "ai"],
     courseCount: 5,
     rating: 4.8,
     reviews: 812,
@@ -326,6 +386,7 @@ export const bundles: Bundle[] = [
       de: "Künstliche Intelligenz von Grundlagen bis Praxis.",
       en: "Artificial intelligence from fundamentals to practical use."
     },
+    courseIds: ["ai", "python", "api", "sql", "typescript"],
     courseCount: 5,
     rating: 4.9,
     reviews: 721,
@@ -405,3 +466,84 @@ export const faq = [
     }
   }
 ];
+
+function courseHighlights(plTopic: string, deTopic: string, enTopic: string): Record<Locale, string[]> {
+  return {
+    pl: [
+      `Ponad 5 godzin praktycznego materiału o ${plTopic}`,
+      "Praktyczne przykłady i ćwiczenia",
+      "Materiały do pobrania",
+      "Certyfikat ukończenia na Udemy",
+      "Dostęp do kursu bezterminowy"
+    ],
+    de: [
+      `Mehr als 5 Stunden praktisches Material zu ${deTopic}`,
+      "Praktische Beispiele und Übungen",
+      "Materialien zum Herunterladen",
+      "Abschlusszertifikat auf Udemy",
+      "Unbefristeter Kurszugang"
+    ],
+    en: [
+      `More than 5 hours of practical ${enTopic} material`,
+      "Practical examples and exercises",
+      "Downloadable materials",
+      "Udemy completion certificate",
+      "Lifetime course access"
+    ]
+  };
+}
+
+function courseOutcomes(plTopic: string, deTopic: string, enTopic: string): Record<Locale, string[]> {
+  return {
+    pl: [
+      `Pracować z ${plTopic} w praktycznych scenariuszach`,
+      "Organizować projekty i środowiska pracy",
+      "Rozwiązywać typowe problemy krok po kroku",
+      "Budować dobre nawyki techniczne",
+      "Używać narzędzi w codziennej pracy",
+      "Przygotować się do kolejnego poziomu nauki"
+    ],
+    de: [
+      `${deTopic} in praktischen Szenarien einsetzen`,
+      "Projekte und Arbeitsumgebungen organisieren",
+      "Typische Probleme Schritt für Schritt lösen",
+      "Gute technische Gewohnheiten aufbauen",
+      "Werkzeuge im Alltag sicher verwenden",
+      "Dich auf die nächste Lernstufe vorbereiten"
+    ],
+    en: [
+      `Use ${enTopic} in practical scenarios`,
+      "Organize projects and working environments",
+      "Solve common problems step by step",
+      "Build solid technical habits",
+      "Use tools in everyday work",
+      "Prepare for the next learning level"
+    ]
+  };
+}
+
+function courseAgenda(plTopic: string, deTopic: string, enTopic: string): Record<Locale, { title: string; lessons: number; duration: string }[]> {
+  return {
+    pl: [
+      { title: `Wprowadzenie do ${plTopic}`, lessons: 6, duration: "35 min" },
+      { title: "Podstawy i konfiguracja", lessons: 10, duration: "1h 10min" },
+      { title: "Praktyczne scenariusze", lessons: 12, duration: "1h 25min" },
+      { title: "Automatyzacja i dobre praktyki", lessons: 14, duration: "1h 45min" },
+      { title: "Podsumowanie i kolejne kroki", lessons: 8, duration: "55 min" }
+    ],
+    de: [
+      { title: `Einführung in ${deTopic}`, lessons: 6, duration: "35 min" },
+      { title: "Grundlagen und Einrichtung", lessons: 10, duration: "1h 10min" },
+      { title: "Praktische Szenarien", lessons: 12, duration: "1h 25min" },
+      { title: "Automatisierung und Best Practices", lessons: 14, duration: "1h 45min" },
+      { title: "Zusammenfassung und nächste Schritte", lessons: 8, duration: "55 min" }
+    ],
+    en: [
+      { title: `Introduction to ${enTopic}`, lessons: 6, duration: "35 min" },
+      { title: "Fundamentals and setup", lessons: 10, duration: "1h 10min" },
+      { title: "Practical scenarios", lessons: 12, duration: "1h 25min" },
+      { title: "Automation and best practices", lessons: 14, duration: "1h 45min" },
+      { title: "Summary and next steps", lessons: 8, duration: "55 min" }
+    ]
+  };
+}
