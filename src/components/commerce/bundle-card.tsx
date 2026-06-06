@@ -22,7 +22,7 @@ export function BundleCard({
         title={bundle.thumbnail.title}
         subtitle={bundle.thumbnail.subtitle}
         variant={bundle.thumbnail.variant}
-        badge={`${bundle.courseCount} kursów`}
+        badge={dictionary.catalog.courseCount.replace("{count}", String(bundle.courseCount))}
       />
       <div className="p-5">
         <h3 className="text-xl font-black">{bundle.title[locale]}</h3>
