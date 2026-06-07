@@ -1,0 +1,111 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  FAILED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  UNPAID
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum ProductType {
+  COURSE
+  BUNDLE
+}
+
+enum InvoiceStatus {
+  DRAFT
+  ISSUED
+  SENT
+}
+
+model Order {
+  id                      String        @id @default(cuid())
+  orderNumber             String        @unique
+  locale                  String
+  currency                String
+  status                  OrderStatus   @default(PENDING)
+  paymentStatus           PaymentStatus @default(UNPAID)
+  regularTotalAmount      Decimal       @db.Decimal(10, 2)
+  subtotalAmount          Decimal       @db.Decimal(10, 2)
+  discountCode            String?
+  discountAmount          Decimal       @default(0) @db.Decimal(10, 2)
+  totalAmount             Decimal       @db.Decimal(10, 2)
+  customerEmail           String?
+  customerName            String?
+  stripeCheckoutSessionId String        @unique
+  stripePaymentIntentId   String?
+  accessEmailSentAt       DateTime?
+  accessEmailError        String?
+  paidAt                  DateTime?
+  createdAt               DateTime      @default(now())
+  updatedAt               DateTime      @updatedAt
+  items                   OrderItem[]
+  invoice                 Invoice?
+
+  @@index([locale])
+  @@index([status])
+  @@index([paymentStatus])
+  @@index([createdAt])
+}
+
+model OrderItem {
+  id                String      @id @default(cuid())
+  orderId           String
+  productId         String
+  productType       ProductType
+  title             String
+  quantity          Int         @default(1)
+  regularUnitAmount Decimal     @db.Decimal(10, 2)
+  unitAmount        Decimal     @db.Decimal(10, 2)
+  lineTotalAmount   Decimal     @db.Decimal(10, 2)
+  createdAt         DateTime    @default(now())
+  order             Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@index([productId, productType])
+}
+
+model Invoice {
+  id                String        @id @default(cuid())
+  orderId           String        @unique
+  invoiceNumber     String        @unique
+  status            InvoiceStatus @default(DRAFT)
+  locale            String
+  currency          String
+  sellerName        String
+  sellerAddress     String
+  sellerTaxId       String?
+  buyerName         String
+  buyerCompany      String?
+  buyerEmail        String
+  buyerCountry      String
+  buyerTaxId        String?
+  buyerAddressLine1 String
+  buyerPostalCode   String
+  buyerCity         String
+  subtotalAmount    Decimal       @db.Decimal(10, 2)
+  discountAmount    Decimal       @default(0) @db.Decimal(10, 2)
+  totalAmount       Decimal       @db.Decimal(10, 2)
+  issuedAt          DateTime      @default(now())
+  pdfUrl            String?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  order             Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([issuedAt])
+}

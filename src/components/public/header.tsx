@@ -3,6 +3,7 @@
 import { ChevronDown, Menu, ShoppingCart, X } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { useCart } from "@/components/cart/cart-provider";
 import { locales, localeMeta, type Locale } from "@/lib/i18n/config";
 import { type Dictionary } from "@/lib/i18n/dictionaries";
 import { cn } from "@/lib/utils";
@@ -117,6 +118,9 @@ function LanguageSwitcher({ locale }: { locale: Locale }) {
 }
 
 function CartLink({ href, label }: { href: string; label: string }) {
+  const { items, hydrated } = useCart();
+  const count = hydrated ? items.length : 0;
+
   return (
     <Link
       href={href}
@@ -124,9 +128,11 @@ function CartLink({ href, label }: { href: string; label: string }) {
       aria-label={label}
     >
       <ShoppingCart className="h-5 w-5" />
-      <span className="absolute right-1 top-0 grid h-5 min-w-5 place-items-center rounded-full bg-primary px-1 text-[11px] font-bold text-white">
-        1
-      </span>
+      {count > 0 ? (
+        <span className="absolute right-1 top-0 grid h-5 min-w-5 place-items-center rounded-full bg-primary px-1 text-[11px] font-bold text-white">
+          {count}
+        </span>
+      ) : null}
     </Link>
   );
 }

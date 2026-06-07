@@ -10,15 +10,14 @@ import {
   Lock,
   PlayCircle,
   ShieldCheck,
-  ShoppingCart,
   Star,
   Subtitles
 } from "lucide-react";
 import Link from "next/link";
+import { AddToCartButton } from "@/components/commerce/add-to-cart-button";
 import { BundleCard } from "@/components/commerce/bundle-card";
 import { ProductCard, Thumbnail } from "@/components/commerce/product-card";
 import { VideoPreview } from "@/components/product-detail/video-preview";
-import { ButtonLink } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { categories, courses, bundles, type Bundle, type Course } from "@/lib/mock-data";
 import { formatPrice, type Locale } from "@/lib/i18n/config";
@@ -101,6 +100,7 @@ export function ProductDetailPage({
 
               <div className="mt-8 w-full max-w-[430px]">
                 <PriceCard
+                  product={product}
                   price={product.price[locale]}
                   regularPrice={product.regularPrice[locale]}
                   savings={savings}
@@ -222,12 +222,14 @@ export function ProductDetailPage({
 }
 
 function PriceCard({
+  product,
   price,
   regularPrice,
   savings,
   locale,
   dictionary
 }: {
+  product: Course | Bundle;
   price: number;
   regularPrice: number;
   savings: number;
@@ -243,13 +245,15 @@ function PriceCard({
       <div className="mt-3 inline-flex rounded-md bg-primary-soft px-3 py-1 text-sm font-bold text-primary">
         {dictionary.detail.savings}: {formatPrice(savings, locale)}
       </div>
-      <ButtonLink href={dictionary.routes.cart} className="mt-6 w-full">
-        <ShoppingCart className="h-5 w-5" />
-        {dictionary.detail.addToCart}
-      </ButtonLink>
-      <ButtonLink href={dictionary.routes.cart} variant="secondary" className="mt-3 w-full">
-        {dictionary.detail.buyNow}
-      </ButtonLink>
+      <AddToCartButton product={product} dictionary={dictionary} label={dictionary.detail.addToCart} className="mt-6 w-full" />
+      <AddToCartButton
+        product={product}
+        dictionary={dictionary}
+        label={dictionary.detail.buyNow}
+        variant="secondary"
+        redirectToCart
+        className="mt-3 w-full"
+      />
       <p className="mt-5 flex items-center justify-center gap-2 text-sm font-semibold text-slate-600">
         <ShieldCheck className="h-4 w-4 text-primary" />
         {dictionary.detail.secureStripe}

@@ -1,6 +1,6 @@
-import { ShoppingCart, Star } from "lucide-react";
+import { Star } from "lucide-react";
 import Link from "next/link";
-import { ButtonLink } from "@/components/ui/button";
+import { AddToCartButton } from "@/components/commerce/add-to-cart-button";
 import { Thumbnail } from "@/components/commerce/product-card";
 import { categories, type Bundle } from "@/lib/mock-data";
 import { formatPrice, type Locale } from "@/lib/i18n/config";
@@ -53,9 +53,7 @@ export function BundleCard({
               {formatPrice(bundle.regularPrice[locale], locale)}
             </span>
           </div>
-          <ButtonLink href={dictionary.routes.cart} className="h-10 w-10 rounded-lg p-0" aria-label={dictionary.home.addToCart}>
-            <ShoppingCart className="h-4 w-4" />
-          </ButtonLink>
+          <AddToCartButton product={bundle} dictionary={dictionary} iconOnly />
         </div>
       </div>
     </article>

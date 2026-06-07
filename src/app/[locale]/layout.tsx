@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { CartProvider } from "@/components/cart/cart-provider";
 import { Footer } from "@/components/public/footer";
 import { Header } from "@/components/public/header";
 import { getDictionary } from "@/lib/i18n/dictionaries";
@@ -25,10 +26,10 @@ export default async function LocaleLayout({
   const dictionary = getDictionary(locale);
 
   return (
-    <>
+    <CartProvider locale={locale}>
       <Header locale={locale} dictionary={dictionary} />
       <main>{children}</main>
       <Footer locale={locale} dictionary={dictionary} />
-    </>
+    </CartProvider>
   );
 }
