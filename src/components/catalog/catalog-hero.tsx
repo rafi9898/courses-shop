@@ -26,6 +26,7 @@ export function CatalogHero({
       : kind === "bundles"
         ? dictionary.catalog.bundlesLead
         : dictionary.catalog.categoriesLead;
+  const stats = getCatalogStats(locale);
 
   return (
     <section className="border-b border-border/70 bg-gradient-to-b from-white to-[#fbfaff]">
@@ -43,8 +44,8 @@ export function CatalogHero({
           </h1>
           <p className="mt-5 max-w-[560px] text-base leading-8 text-slate-600 sm:text-lg">{lead}</p>
           <div className="mt-8 grid gap-4 sm:grid-cols-3">
-            <HeroFact icon={<BookOpen className="h-5 w-5" />} value={kind === "bundles" ? "12+" : "50+"} label={dictionary.stats.courses} />
-            <HeroFact icon={<Star className="h-5 w-5 fill-warning text-warning" />} value="10 000+" label={dictionary.stats.students} />
+            <HeroFact icon={<BookOpen className="h-5 w-5" />} value="70+" label={stats.courses} />
+            <HeroFact icon={<Star className="h-5 w-5 fill-warning text-warning" />} value="70 000+" label={stats.customers} />
             <HeroFact icon={<ShieldCheck className="h-5 w-5" />} value="Instant" label={dictionary.benefits.access} />
           </div>
         </div>
@@ -52,6 +53,27 @@ export function CatalogHero({
       </div>
     </section>
   );
+}
+
+function getCatalogStats(locale: Locale) {
+  if (locale === "de") {
+    return {
+      courses: "Kurse",
+      customers: "zufriedene Kunden"
+    };
+  }
+
+  if (locale === "en") {
+    return {
+      courses: "Courses",
+      customers: "happy customers"
+    };
+  }
+
+  return {
+    courses: "Kursów",
+    customers: "Zadowolonych klientów"
+  };
 }
 
 function HeroFact({
