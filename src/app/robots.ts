@@ -1,4 +1,5 @@
 import { type MetadataRoute } from "next";
+import { adminPublicBasePath } from "@/lib/admin-routes";
 import { getSiteUrl } from "@/lib/seo";
 
 export default function robots(): MetadataRoute.Robots {
@@ -8,6 +9,7 @@ export default function robots(): MetadataRoute.Robots {
       allow: "/",
       disallow: [
         "/admin",
+        adminPublicBasePath,
         "/api",
         "/pl/checkout",
         "/de/checkout",

@@ -9,6 +9,7 @@ const siteName = "Rafał Podraza";
 const defaultTitle = "Rafał Podraza - praktyczne kursy online IT";
 const defaultDescription =
   "Praktyczne kursy online z testowania oprogramowania, programowania, chmury, AI i nowoczesnych narzędzi IT.";
+const defaultSocialImagePath = "/images/social-preview.png";
 
 export const publicPagePaths: Record<PublicPage, Record<Locale, string>> = {
   home: {
@@ -227,6 +228,7 @@ function createMetadata({
   images?: string[];
 }): Metadata {
   const url = getSiteUrl(path);
+  const metadataImages = images?.length ? images : [getSiteUrl(defaultSocialImagePath)];
 
   return {
     title: `${title} | ${siteName}`,
@@ -242,13 +244,13 @@ function createMetadata({
       title: `${title} | ${siteName}`,
       description,
       url,
-      images
+      images: metadataImages
     },
     twitter: {
-      card: images?.length ? "summary_large_image" : "summary",
+      card: "summary_large_image",
       title: `${title} | ${siteName}`,
       description,
-      images
+      images: metadataImages
     }
   };
 }
@@ -282,16 +284,23 @@ export const defaultMetadata: Metadata = {
   authors: [{ name: "Rafał Podraza", url: getSiteUrl("/en/about") }],
   creator: "Rafał Podraza",
   publisher: "Rafał Podraza",
+  icons: {
+    icon: "/icon.svg",
+    shortcut: "/icon.svg",
+    apple: "/icon.svg"
+  },
   openGraph: {
     type: "website",
     siteName,
     title: defaultTitle,
     description: defaultDescription,
-    url: getSiteUrl("/")
+    url: getSiteUrl("/"),
+    images: [getSiteUrl(defaultSocialImagePath)]
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: defaultTitle,
-    description: defaultDescription
+    description: defaultDescription,
+    images: [getSiteUrl(defaultSocialImagePath)]
   }
 };

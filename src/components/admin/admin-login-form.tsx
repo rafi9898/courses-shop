@@ -4,6 +4,7 @@ import { LockKeyhole, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { getAdminPath } from "@/lib/admin-routes";
 
 export function AdminLoginForm() {
   const router = useRouter();
@@ -32,7 +33,7 @@ export function AdminLoginForm() {
       return;
     }
 
-    router.replace("/admin");
+    router.replace(getAdminPath());
     router.refresh();
   }
 

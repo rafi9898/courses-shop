@@ -199,17 +199,19 @@ Angielski:
 Panel admina jest dostępny pod:
 
 ```text
-/admin
+/rp-panel-2026
 ```
+
+Ścieżka `/admin` jest celowo zablokowana przez middleware i zwraca `404`, aby ograniczyć automatyczne próby logowania na standardowy adres panelu.
 
 Wybrane sekcje:
 
-- `/admin/catalog`
-- `/admin/catalog/categories`
-- `/admin/catalog/courses`
-- `/admin/catalog/bundles`
-- `/admin/discounts`
-- `/admin/orders/[orderId]`
+- `/rp-panel-2026/catalog`
+- `/rp-panel-2026/catalog/categories`
+- `/rp-panel-2026/catalog/courses`
+- `/rp-panel-2026/catalog/bundles`
+- `/rp-panel-2026/discounts`
+- `/rp-panel-2026/orders/[orderId]`
 
 Logowanie działa tylko wtedy, gdy ustawione są `ADMIN_USERNAME` i `ADMIN_PASSWORD`.
 

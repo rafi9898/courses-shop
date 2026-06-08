@@ -1,5 +1,6 @@
 import { type Order, type OrderItem } from "@prisma/client";
 import { formatPrice, isLocale, type Locale } from "@/lib/i18n/config";
+import { getAdminPath } from "@/lib/admin-routes";
 import { prisma } from "@/lib/prisma";
 import { getAbsoluteUrl, getOrderAccessPath } from "@/lib/routes";
 
@@ -71,7 +72,7 @@ export async function sendTelegramOrderNotification(orderId: string, options: { 
 function renderTelegramMessage(order: OrderWithItems) {
   const locale = parseLocale(order.locale);
   const accessUrl = getAbsoluteUrl(getOrderAccessPath(locale, order.accessToken));
-  const adminUrl = getAbsoluteUrl(`/admin/orders/${order.id}`);
+  const adminUrl = getAbsoluteUrl(getAdminPath(`/orders/${order.id}`));
   const items = order.items
     .slice(0, 12)
     .map((item) => `• ${escapeHtml(item.title)} x${item.quantity}`)

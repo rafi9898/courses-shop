@@ -8,6 +8,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { isAdminAuthenticated, isAdminConfigured } from "@/lib/admin-auth";
 import { adminCatalogLocales, type AdminCatalogLocale } from "@/lib/admin-catalog-locales";
+import { getAdminPath } from "@/lib/admin-routes";
 import { prisma } from "@/lib/prisma";
 import { sanitizeRichText } from "@/lib/rich-text";
 
@@ -30,7 +31,7 @@ export async function createCategoryAction(formData: FormData) {
   await prisma.category.create({ data });
 
   revalidateCatalog();
-  redirect(`/admin/catalog/categories?locale=${data.locale}`);
+  redirect(getAdminPath(`/catalog/categories?locale=${data.locale}`));
 }
 
 export async function updateCategoryAction(formData: FormData) {
@@ -44,7 +45,7 @@ export async function updateCategoryAction(formData: FormData) {
   });
 
   revalidateCatalog();
-  redirect(`/admin/catalog/categories?locale=${data.locale}`);
+  redirect(getAdminPath(`/catalog/categories?locale=${data.locale}`));
 }
 
 export async function deleteCategoryAction(formData: FormData) {
@@ -55,7 +56,7 @@ export async function deleteCategoryAction(formData: FormData) {
   await prisma.category.delete({ where: { id: categoryId } });
 
   revalidateCatalog();
-  redirect(`/admin/catalog/categories?locale=${locale}`);
+  redirect(getAdminPath(`/catalog/categories?locale=${locale}`));
 }
 
 export async function createCourseAction(formData: FormData) {
@@ -73,7 +74,7 @@ export async function createCourseAction(formData: FormData) {
   });
 
   revalidateCatalog();
-  redirect(`/admin/catalog/courses?locale=${data.locale}`);
+  redirect(getAdminPath(`/catalog/courses?locale=${data.locale}`));
 }
 
 export async function updateCourseAction(formData: FormData) {
@@ -95,7 +96,7 @@ export async function updateCourseAction(formData: FormData) {
   });
 
   revalidateCatalog();
-  redirect(`/admin/catalog/courses?locale=${data.locale}`);
+  redirect(getAdminPath(`/catalog/courses?locale=${data.locale}`));
 }
 
 export async function deleteCourseAction(formData: FormData) {
@@ -106,7 +107,7 @@ export async function deleteCourseAction(formData: FormData) {
   await prisma.course.delete({ where: { id: courseId } });
 
   revalidateCatalog();
-  redirect(`/admin/catalog/courses?locale=${locale}`);
+  redirect(getAdminPath(`/catalog/courses?locale=${locale}`));
 }
 
 export async function createBundleAction(formData: FormData) {
@@ -127,7 +128,7 @@ export async function createBundleAction(formData: FormData) {
   });
 
   revalidateCatalog();
-  redirect(`/admin/catalog/bundles?locale=${data.locale}`);
+  redirect(getAdminPath(`/catalog/bundles?locale=${data.locale}`));
 }
 
 export async function updateBundleAction(formData: FormData) {
@@ -154,7 +155,7 @@ export async function updateBundleAction(formData: FormData) {
   ]);
 
   revalidateCatalog();
-  redirect(`/admin/catalog/bundles?locale=${data.locale}`);
+  redirect(getAdminPath(`/catalog/bundles?locale=${data.locale}`));
 }
 
 export async function deleteBundleAction(formData: FormData) {
@@ -165,7 +166,7 @@ export async function deleteBundleAction(formData: FormData) {
   await prisma.bundle.delete({ where: { id: bundleId } });
 
   revalidateCatalog();
-  redirect(`/admin/catalog/bundles?locale=${locale}`);
+  redirect(getAdminPath(`/catalog/bundles?locale=${locale}`));
 }
 
 async function ensureAdmin() {
@@ -519,6 +520,10 @@ function revalidateCatalog() {
   revalidatePath("/admin/catalog/categories");
   revalidatePath("/admin/catalog/courses");
   revalidatePath("/admin/catalog/bundles");
+  revalidatePath(getAdminPath("/catalog"));
+  revalidatePath(getAdminPath("/catalog/categories"));
+  revalidatePath(getAdminPath("/catalog/courses"));
+  revalidatePath(getAdminPath("/catalog/bundles"));
   revalidatePath("/pl");
   revalidatePath("/pl/kategorie");
   revalidatePath("/pl/kursy");

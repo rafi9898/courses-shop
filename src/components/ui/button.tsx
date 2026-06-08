@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { type ComponentPropsWithoutRef, type ReactNode } from "react";
+import { getPublicAdminHref } from "@/lib/admin-routes";
 import { cn } from "@/lib/utils";
 
 type ButtonProps = ComponentPropsWithoutRef<"button"> & {
@@ -25,11 +26,14 @@ export function ButtonLink({
   className,
   variant = "primary",
   children,
+  href: rawHref,
   ...props
 }: ComponentPropsWithoutRef<typeof Link> & {
   variant?: "primary" | "secondary" | "ghost";
   children: ReactNode;
 }) {
+  const href = typeof rawHref === "string" ? getPublicAdminHref(rawHref) : rawHref;
+
   return (
     <Link
       className={cn(
@@ -39,6 +43,7 @@ export function ButtonLink({
         variant === "ghost" && "bg-transparent text-foreground hover:bg-primary-soft hover:text-primary",
         className
       )}
+      href={href}
       {...props}
     >
       {children}

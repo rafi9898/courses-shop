@@ -4,6 +4,7 @@ import { Check, Copy, LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { getAdminPath } from "@/lib/admin-routes";
 
 export function CopyLinkButton({ value }: { value: string }) {
   const [copied, setCopied] = useState(false);
@@ -29,7 +30,7 @@ export function AdminLogoutButton() {
   async function handleLogout() {
     setIsSubmitting(true);
     await fetch("/api/admin/logout", { method: "POST" });
-    router.replace("/admin");
+    router.replace(getAdminPath());
     router.refresh();
   }
 
