@@ -20,14 +20,7 @@ import { ProductCard, Thumbnail } from "@/components/commerce/product-card";
 import { RichTextContent } from "@/components/product-detail/rich-text-content";
 import { VideoPreview } from "@/components/product-detail/video-preview";
 import { Badge } from "@/components/ui/badge";
-import {
-  categories as fallbackCategories,
-  courses as fallbackCourses,
-  bundles as fallbackBundles,
-  type Bundle,
-  type Category,
-  type Course
-} from "@/lib/mock-data";
+import { type Bundle, type Category, type Course } from "@/lib/mock-data";
 import { formatPrice, type Locale } from "@/lib/i18n/config";
 import { type Dictionary } from "@/lib/i18n/dictionaries";
 import { getCoursePath } from "@/lib/routes";
@@ -46,16 +39,16 @@ export function ProductDetailPage({
   locale,
   dictionary,
   detail,
-  categories = fallbackCategories,
-  courses = fallbackCourses,
-  bundles = fallbackBundles
+  categories,
+  courses,
+  bundles
 }: {
   locale: Locale;
   dictionary: Dictionary;
   detail: DetailProduct;
-  categories?: Category[];
-  courses?: Course[];
-  bundles?: Bundle[];
+  categories: Category[];
+  courses: Course[];
+  bundles: Bundle[];
 }) {
   const { product, kind } = detail;
   const category = categories.find((item) => item.id === product.categoryId);

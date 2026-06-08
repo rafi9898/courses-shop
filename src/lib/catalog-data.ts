@@ -1,6 +1,6 @@
 import { CategoryColor, CourseLevel, ThumbnailVariant, type Bundle as DbBundle, type Category as DbCategory, type Course as DbCourse } from "@prisma/client";
 import { type Locale } from "@/lib/i18n/config";
-import { bundles as fallbackBundles, categories as fallbackCategories, courses as fallbackCourses, type Bundle, type Category, type Course } from "@/lib/mock-data";
+import { type Bundle, type Category, type Course } from "@/lib/mock-data";
 import { prisma } from "@/lib/prisma";
 
 type DbBundleWithCourses = DbBundle & {
@@ -40,17 +40,17 @@ export async function getPublicCatalog(locale: Locale): Promise<PublicCatalog> {
       })
     ]);
 
-    if (!dbCategories.length && !dbCourses.length && !dbBundles.length) {
-      return getFallbackCatalog(locale);
-    }
-
     return {
       categories: dbCategories.map((category) => mapCategory(category, locale)),
       courses: dbCourses.map((course) => mapCourse(course, locale)),
       bundles: dbBundles.map((bundle) => mapBundle(bundle, locale))
     };
   } catch {
-    return getFallbackCatalog(locale);
+    return {
+      categories: [],
+      courses: [],
+      bundles: []
+    };
   }
 }
 
@@ -67,14 +67,6 @@ export async function getPublicBundleBySlug(locale: Locale, slug: string) {
   return {
     catalog,
     bundle: catalog.bundles.find((bundle) => bundle.slug[locale] === slug) ?? null
-  };
-}
-
-function getFallbackCatalog(locale: Locale): PublicCatalog {
-  return {
-    categories: fallbackCategories,
-    courses: fallbackCourses.filter((course) => Boolean(course.title[locale])),
-    bundles: fallbackBundles.filter((bundle) => Boolean(bundle.title[locale]))
   };
 }
 

@@ -109,22 +109,26 @@ export function SearchPanel({
         </form>
 
         <div className="mt-4 flex flex-wrap items-center gap-2">
-          <span className="mr-1 text-sm font-bold">{dictionary.home.popularCategories}</span>
-          {categories.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => setCategory(item.id)}
-              className={cn(
-                "focus-ring rounded-lg border px-4 py-2 text-xs font-semibold transition",
-                category === item.id
-                  ? "border-primary bg-primary text-white"
-                  : "border-border bg-white text-slate-600 hover:border-primary hover:text-primary"
-              )}
-            >
-              {item.label[locale]}
-            </button>
-          ))}
+          {categories.length > 0 ? (
+            <>
+              <span className="mr-1 text-sm font-bold">{dictionary.home.popularCategories}</span>
+              {categories.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setCategory(item.id)}
+                  className={cn(
+                    "focus-ring rounded-lg border px-4 py-2 text-xs font-semibold transition",
+                    category === item.id
+                      ? "border-primary bg-primary text-white"
+                      : "border-border bg-white text-slate-600 hover:border-primary hover:text-primary"
+                  )}
+                >
+                  {item.label[locale]}
+                </button>
+              ))}
+            </>
+          ) : null}
         </div>
 
         {(query || category !== "all") && (

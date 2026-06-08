@@ -20,6 +20,10 @@ export function ProductShowcase({
   courses: Course[];
   bundles: Bundle[];
 }) {
+  if (courses.length === 0 && bundles.length === 0) {
+    return null;
+  }
+
   return (
     <section className="container-shell py-16 lg:py-20">
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">

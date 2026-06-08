@@ -2,7 +2,7 @@ import { Star } from "lucide-react";
 import Link from "next/link";
 import { AddToCartButton } from "@/components/commerce/add-to-cart-button";
 import { Thumbnail } from "@/components/commerce/product-card";
-import { categories as fallbackCategories, type Bundle, type Category } from "@/lib/mock-data";
+import { type Bundle, type Category } from "@/lib/mock-data";
 import { formatPrice, type Locale } from "@/lib/i18n/config";
 import { type Dictionary } from "@/lib/i18n/dictionaries";
 import { getBundlePath } from "@/lib/routes";
@@ -11,7 +11,7 @@ export function BundleCard({
   bundle,
   locale,
   dictionary,
-  categories = fallbackCategories
+  categories = []
 }: {
   bundle: Bundle;
   locale: Locale;

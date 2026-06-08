@@ -57,32 +57,38 @@ export function CategoriesPage({
           </label>
         </div>
 
-        <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredCategories.map((category) => {
-            const Icon = categoryIcons[category.id as keyof typeof categoryIcons] ?? ShieldCheck;
-            const count = courses.filter((course) => course.categoryId === category.id).length;
+        {filteredCategories.length > 0 ? (
+          <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {filteredCategories.map((category) => {
+              const Icon = categoryIcons[category.id as keyof typeof categoryIcons] ?? ShieldCheck;
+              const count = courses.filter((course) => course.categoryId === category.id).length;
 
-            return (
-              <article
-                key={category.id}
-                className="rounded-2xl border border-border bg-white p-6 shadow-[0_10px_26px_rgba(15,23,42,0.05)] transition duration-200 hover:-translate-y-1 hover:border-primary/40 hover:shadow-card"
-              >
-                <div className="grid h-20 w-20 place-items-center rounded-2xl bg-primary-soft text-primary">
-                  <Icon className="h-10 w-10" />
-                </div>
-                <h2 className="mt-8 text-2xl font-black leading-tight">{category.label[locale]}</h2>
-                <p className="mt-3 min-h-16 text-sm leading-7 text-slate-600">{category.description[locale]}</p>
-                <div className="mt-5 text-sm font-semibold text-muted-foreground">
-                  {dictionary.catalog.courseCount.replace("{count}", String(count))}
-                </div>
-                <ButtonLink href={dictionary.routes.courses} variant="secondary" className="mt-6 w-full">
-                  {dictionary.catalog.viewCourses}
-                  <ArrowRight className="h-4 w-4" />
-                </ButtonLink>
-              </article>
-            );
-          })}
-        </div>
+              return (
+                <article
+                  key={category.id}
+                  className="rounded-2xl border border-border bg-white p-6 shadow-[0_10px_26px_rgba(15,23,42,0.05)] transition duration-200 hover:-translate-y-1 hover:border-primary/40 hover:shadow-card"
+                >
+                  <div className="grid h-20 w-20 place-items-center rounded-2xl bg-primary-soft text-primary">
+                    <Icon className="h-10 w-10" />
+                  </div>
+                  <h2 className="mt-8 text-2xl font-black leading-tight">{category.label[locale]}</h2>
+                  <p className="mt-3 min-h-16 text-sm leading-7 text-slate-600">{category.description[locale]}</p>
+                  <div className="mt-5 text-sm font-semibold text-muted-foreground">
+                    {dictionary.catalog.courseCount.replace("{count}", String(count))}
+                  </div>
+                  <ButtonLink href={dictionary.routes.courses} variant="secondary" className="mt-6 w-full">
+                    {dictionary.catalog.viewCourses}
+                    <ArrowRight className="h-4 w-4" />
+                  </ButtonLink>
+                </article>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="mt-8 rounded-2xl border border-dashed border-border bg-white p-10 text-center text-muted-foreground">
+            {dictionary.catalog.empty}
+          </div>
+        )}
 
         <CatalogCta
           title={dictionary.catalog.categoriesCtaTitle}

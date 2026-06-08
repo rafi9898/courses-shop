@@ -2,7 +2,7 @@ import { Heart, Star } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { AddToCartButton } from "@/components/commerce/add-to-cart-button";
-import { categories as fallbackCategories, type Category, type Course } from "@/lib/mock-data";
+import { type Category, type Course } from "@/lib/mock-data";
 import { formatPrice, type Locale } from "@/lib/i18n/config";
 import { type Dictionary } from "@/lib/i18n/dictionaries";
 import { getCoursePath } from "@/lib/routes";
@@ -12,7 +12,7 @@ export function ProductCard({
   course,
   locale,
   dictionary,
-  categories = fallbackCategories
+  categories = []
 }: {
   course: Course;
   locale: Locale;

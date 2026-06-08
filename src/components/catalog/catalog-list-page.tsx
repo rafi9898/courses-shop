@@ -6,14 +6,7 @@ import { BundleCard } from "@/components/commerce/bundle-card";
 import { ProductCard } from "@/components/commerce/product-card";
 import { CatalogCta } from "@/components/catalog/catalog-cta";
 import { CatalogHero } from "@/components/catalog/catalog-hero";
-import {
-  bundles as fallbackBundles,
-  categories as fallbackCategories,
-  courses as fallbackCourses,
-  type Bundle,
-  type Category,
-  type Course
-} from "@/lib/mock-data";
+import { type Bundle, type Category, type Course } from "@/lib/mock-data";
 import { type Locale } from "@/lib/i18n/config";
 import { type Dictionary } from "@/lib/i18n/dictionaries";
 import { cn } from "@/lib/utils";
@@ -27,18 +20,18 @@ export function CatalogListPage({
   kind,
   initialCategoryId = "all",
   initialQuery = "",
-  categories = fallbackCategories,
-  courses = fallbackCourses,
-  bundles = fallbackBundles
+  categories,
+  courses,
+  bundles
 }: {
   locale: Locale;
   dictionary: Dictionary;
   kind: ProductKind;
   initialCategoryId?: string;
   initialQuery?: string;
-  categories?: Category[];
-  courses?: Course[];
-  bundles?: Bundle[];
+  categories: Category[];
+  courses: Course[];
+  bundles: Bundle[];
 }) {
   const [query, setQuery] = useState(initialQuery);
   const [categoryId, setCategoryId] = useState(initialCategoryId);
@@ -134,17 +127,19 @@ export function CatalogListPage({
               {dictionary.home.searchButton}
             </button>
           </div>
-          <div className="mt-4 flex flex-wrap items-center gap-2">
-            <span className="mr-1 text-sm font-bold">{dictionary.home.popularCategories}</span>
-            <FilterPill active={categoryId === "all"} onClick={() => setCategoryId("all")}>
-              {dictionary.catalog.all}
-            </FilterPill>
-            {categories.map((category) => (
-              <FilterPill key={category.id} active={categoryId === category.id} onClick={() => setCategoryId(category.id)}>
-                {category.label[locale]}
+          {categories.length > 0 ? (
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              <span className="mr-1 text-sm font-bold">{dictionary.home.popularCategories}</span>
+              <FilterPill active={categoryId === "all"} onClick={() => setCategoryId("all")}>
+                {dictionary.catalog.all}
               </FilterPill>
-            ))}
-          </div>
+              {categories.map((category) => (
+                <FilterPill key={category.id} active={categoryId === category.id} onClick={() => setCategoryId(category.id)}>
+                  {category.label[locale]}
+                </FilterPill>
+              ))}
+            </div>
+          ) : null}
         </div>
 
         <div className="mt-8 grid gap-7 lg:grid-cols-[260px_1fr]">
