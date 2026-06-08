@@ -27,6 +27,7 @@ export function CheckoutPage({
   bundles: Bundle[];
 }) {
   const { items, hydrated, removeItem, appliedDiscountCode, discounts } = useCart();
+  const [customerEmail, setCustomerEmail] = useState("");
   const [invoiceRequested, setInvoiceRequested] = useState(false);
   const [invoiceData, setInvoiceData] = useState<InvoiceData>(emptyInvoiceData);
   const products: Product[] = useMemo(() => [...courses, ...bundles], [bundles, courses]);
@@ -52,6 +53,7 @@ export function CheckoutPage({
     productType: product.type
   }));
   const totals = calculateCartTotals(checkoutProducts, locale, appliedDiscountCode, discountPool);
+  const customerEmailComplete = isEmailLike(customerEmail);
   const invoiceComplete = !invoiceRequested || isInvoiceDataComplete(invoiceData);
 
   return (
@@ -96,6 +98,7 @@ export function CheckoutPage({
                   <CheckoutProductRow key={`${product.type}:${product.id}`} product={product} locale={locale} dictionary={dictionary} />
                 ))}
               </div>
+              <ContactDetailsForm customerEmail={customerEmail} onCustomerEmailChange={setCustomerEmail} dictionary={dictionary} />
               <InvoiceDetailsForm
                 invoiceData={invoiceData}
                 invoiceRequested={invoiceRequested}
@@ -135,10 +138,12 @@ export function CheckoutPage({
                   items={checkoutItems}
                   dictionary={dictionary}
                   discountCode={appliedDiscountCode}
+                  customerEmail={customerEmail}
                   invoiceRequested={invoiceRequested}
                   invoiceData={invoiceData}
-                  disabled={!invoiceComplete}
+                  disabled={!customerEmailComplete || !invoiceComplete}
                 />
+                {!customerEmailComplete ? <p className="mt-3 text-sm font-semibold text-slate-500">{dictionary.checkoutPage.customerEmailRequired}</p> : null}
                 {!invoiceComplete ? <p className="mt-3 text-sm font-semibold text-slate-500">{dictionary.checkoutPage.invoiceRequired}</p> : null}
               </div>
             </aside>
@@ -146,6 +151,28 @@ export function CheckoutPage({
         )}
       </section>
     </div>
+  );
+}
+
+function ContactDetailsForm({
+  customerEmail,
+  onCustomerEmailChange,
+  dictionary
+}: {
+  customerEmail: string;
+  onCustomerEmailChange: (value: string) => void;
+  dictionary: Dictionary;
+}) {
+  return (
+    <section className="mt-6 rounded-2xl border border-border bg-white p-6 shadow-[0_10px_26px_rgba(15,23,42,0.04)]">
+      <div>
+        <h2 className="text-xl font-black">{dictionary.checkoutPage.customerEmailTitle}</h2>
+        <p className="mt-2 text-sm leading-6 text-slate-600">{dictionary.checkoutPage.customerEmailLead}</p>
+      </div>
+      <div className="mt-5 max-w-xl">
+        <TextField label={dictionary.checkoutPage.customerEmail} value={customerEmail} onChange={onCustomerEmailChange} type="email" required />
+      </div>
+    </section>
   );
 }
 
@@ -200,6 +227,10 @@ function InvoiceDetailsForm({
       ) : null}
     </section>
   );
+}
+
+function isEmailLike(value: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 }
 
 function TextField({

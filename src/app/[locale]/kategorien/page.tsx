@@ -3,11 +3,16 @@ import { CategoriesPage } from "@/components/catalog/categories-page";
 import { getPublicCatalog } from "@/lib/catalog-data";
 import { isLocale, type Locale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionaries";
+import { getPublicPageMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
 export function generateStaticParams() {
   return [{ locale: "de" }];
+}
+
+export function generateMetadata() {
+  return getPublicPageMetadata("de", "categories");
 }
 
 export default async function CategoriesDePage({

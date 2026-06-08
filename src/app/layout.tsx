@@ -1,10 +1,8 @@
 import type { Metadata } from "next";
+import { defaultMetadata } from "@/lib/seo";
 import "./globals.css";
 
-export const metadata: Metadata = {
-  title: "Rafał Podraza Online Courses",
-  description: "Minimalistyczny sklep z praktycznymi kursami online dostępnymi przez Udemy."
-};
+export const metadata: Metadata = defaultMetadata;
 
 export default function RootLayout({
   children

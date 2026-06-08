@@ -3,8 +3,30 @@ import { ProductDetailPage } from "@/components/product-detail/product-detail-pa
 import { getPublicCourseBySlug } from "@/lib/catalog-data";
 import { isLocale, type Locale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionaries";
+import { getCoursePath } from "@/lib/routes";
+import { getProductMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata({
+  params
+}: {
+  params: Promise<{ locale: string; slug: string }>;
+}) {
+  const { locale: rawLocale, slug } = await params;
+  if (!isLocale(rawLocale) || rawLocale !== "pl") return {};
+
+  const { course } = await getPublicCourseBySlug(rawLocale, slug);
+  if (!course) return {};
+
+  return getProductMetadata({
+    locale: rawLocale,
+    path: getCoursePath(course, rawLocale),
+    title: course.title[rawLocale],
+    description: course.subtitle?.[rawLocale] || course.highlights[rawLocale][0] || course.title[rawLocale],
+    imageUrl: course.thumbnailImageUrl
+  });
+}
 
 export default async function CourseDetailPlPage({
   params

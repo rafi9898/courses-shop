@@ -39,7 +39,7 @@ export function HeroSection({
             </ButtonLink>
           </div>
 
-          <div className="mt-12 grid gap-6 sm:grid-cols-3">
+          <div className="mt-12 grid max-w-[640px] gap-6 sm:grid-cols-2 xl:grid-cols-3">
             <HeroBenefit icon={<GraduationCap className="h-5 w-5" />} title={dictionary.home.badge} text={dictionary.benefits.verified} />
             <HeroBenefit icon={<Ticket className="h-5 w-5" />} title={benefits.pricesTitle} text={dictionary.benefits.prices} />
             <HeroBenefit icon={<ShieldCheck className="h-5 w-5" />} title={benefits.accessTitle} text={dictionary.benefits.access} />
@@ -67,7 +67,7 @@ function HeroBenefit({
         {icon}
       </div>
       <div className="min-w-0">
-        <div className="whitespace-nowrap text-sm font-bold text-foreground">{title}</div>
+        <div className="text-sm font-bold leading-5 text-foreground">{title}</div>
         <div className="mt-1 text-xs leading-5 text-muted-foreground">{text}</div>
       </div>
     </div>
