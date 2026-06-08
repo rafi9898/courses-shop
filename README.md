@@ -80,6 +80,9 @@ SITE_URL=""
 RESEND_API_KEY=""
 EMAIL_FROM=""
 
+TELEGRAM_BOT_TOKEN=""
+TELEGRAM_CHAT_ID=""
+
 SELLER_NAME=""
 SELLER_ADDRESS=""
 SELLER_TAX_ID=""
@@ -95,6 +98,7 @@ Uwagi:
 - `STRIPE_SECRET_KEY` jest wymagany do tworzenia sesji checkout.
 - `STRIPE_WEBHOOK_SECRET` jest wymagany do obsługi webhooków Stripe.
 - `RESEND_API_KEY` i `EMAIL_FROM` są potrzebne do wysyłki maili z dostępem.
+- `TELEGRAM_BOT_TOKEN` i `TELEGRAM_CHAT_ID` włączają powiadomienia Telegram o nowych zamówieniach.
 - `NEXT_PUBLIC_APP_URL` jest używany do budowania adresów absolutnych, np. w mailach i Stripe.
 - Pliki `.env*` nie powinny trafiać do repozytorium.
 
@@ -264,6 +268,17 @@ EMAIL_FROM=""
 
 Jeśli te zmienne nie są ustawione, aplikacja nie wyśle wiadomości, ale zamówienie może nadal istnieć w bazie.
 
+## Telegram
+
+Powiadomienia Telegram o nowych zamówieniach są wysyłane po obsłużeniu zdarzenia `checkout.session.completed` ze Stripe. Do działania wymagane są:
+
+```env
+TELEGRAM_BOT_TOKEN=""
+TELEGRAM_CHAT_ID=""
+```
+
+Jeśli zmienne nie są ustawione, aplikacja pomija wysyłkę powiadomienia Telegram i nie blokuje zapisu zamówienia ani wysyłki e-maila.
+
 ## Faktury
 
 Faktury PDF są generowane przy użyciu PDFKit. Dane sprzedawcy pochodzą ze zmiennych:
@@ -291,6 +306,57 @@ public/uploads/bundle-thumbnails
 ```
 
 Repozytorium zawiera pliki `.gitkeep`, aby katalogi istniały po klonowaniu.
+
+## Produkcja na VPS
+
+Aktualna produkcja działa na VPS OVH z Ubuntu 24.04.
+
+Podstawowy układ:
+
+```text
+/opt/courses-shop/app
+  repozytorium aplikacji
+  .env.production
+  docker-compose.prod.yml
+  Caddyfile
+  public/uploads
+    course-thumbnails
+    bundle-thumbnails
+  storage
+    invoices
+```
+
+Usługi produkcyjne są uruchamiane przez `docker compose` z pliku `docker-compose.prod.yml`:
+
+- `db` - PostgreSQL 16, dane w wolumenie `postgres_data`.
+- `app` - aplikacja Next.js zbudowana z lokalnego `Dockerfile`, port wewnętrzny `3000`.
+- `caddy` - reverse proxy i automatyczne certyfikaty HTTPS dla domeny.
+
+Wolumeny i trwałe dane:
+
+- `postgres_data` - baza PostgreSQL.
+- `caddy_data` - certyfikaty i dane Caddy.
+- `caddy_config` - konfiguracja Caddy.
+- `./public/uploads:/app/public/uploads` - uploady miniaturek.
+- `./storage:/app/storage` - wygenerowane faktury PDF.
+
+Kontenery mają ustawione `restart: unless-stopped`, więc po restarcie VPS aplikacja, baza i Caddy uruchamiają się automatycznie.
+
+Najważniejsze komendy produkcyjne:
+
+```bash
+cd /opt/courses-shop/app
+
+sudo docker compose --env-file .env.production -f docker-compose.prod.yml ps
+sudo docker compose --env-file .env.production -f docker-compose.prod.yml logs -f app
+sudo docker compose --env-file .env.production -f docker-compose.prod.yml up -d
+sudo docker compose --env-file .env.production -f docker-compose.prod.yml build app
+sudo docker compose --env-file .env.production -f docker-compose.prod.yml run --rm app npm run prisma:migrate:deploy
+```
+
+Deploy produkcyjny jest obsługiwany przez GitHub Actions po merge do `main`. Workflow wykonuje preflight (`lint`, `typecheck`, `build`), pobiera najnowszy kod na VPS, buduje obraz aplikacji, uruchamia migracje Prisma i restartuje kontenery.
+
+Plik `.env.production` jest przechowywany tylko na VPS i nie powinien być commitowany do repozytorium.
 
 ## Znane zachowania
 
