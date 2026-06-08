@@ -328,7 +328,7 @@ function RecommendedProductCard({
   const category = categories.find((item) => item.id === product.categoryId);
 
   return (
-    <article className="grid gap-4 rounded-2xl border border-border bg-white p-4 shadow-[0_10px_26px_rgba(15,23,42,0.04)] sm:grid-cols-[180px_1fr_auto] sm:items-center">
+    <article className="grid gap-4 rounded-2xl border border-border bg-white p-4 shadow-[0_10px_26px_rgba(15,23,42,0.04)] lg:grid-cols-[160px_1fr_auto] lg:items-center xl:grid-cols-[180px_1fr_auto]">
       <Link href={href} aria-label={product.title[locale]} className="overflow-hidden rounded-xl">
         <Thumbnail
           title={product.thumbnail.title}

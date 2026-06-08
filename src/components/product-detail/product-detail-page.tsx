@@ -84,7 +84,7 @@ export function ProductDetailPage({
           </nav>
 
           <div className="grid gap-8 md:grid-cols-2 md:items-start lg:gap-10">
-            <div>
+            <div className="min-w-0">
               <Badge>{category?.label[locale]}</Badge>
               <h1 className="mt-5 text-4xl font-black leading-[1.08] tracking-normal sm:text-5xl">{title}</h1>
               {heroSubtitle ? <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-600">{heroSubtitle}</p> : null}
@@ -112,7 +112,7 @@ export function ProductDetailPage({
               </div>
             </div>
 
-            <div>
+            <div className="min-w-0">
               {isCourse ? (
                 <VideoPreview course={product} dictionary={dictionary} locale={locale} />
               ) : (
@@ -266,7 +266,7 @@ function PriceCard({
   dictionary: Dictionary;
 }) {
   return (
-    <aside className="w-full max-w-[430px] rounded-2xl border border-border bg-white p-6 shadow-card">
+    <aside className="w-full min-w-0 max-w-[430px] rounded-2xl border border-border bg-white p-6 shadow-card">
       <div className="flex flex-wrap items-end gap-3">
         <span className="text-4xl font-black">{formatPrice(price, locale)}</span>
         <span className="pb-1 text-sm text-muted-foreground line-through">{formatPrice(regularPrice, locale)}</span>

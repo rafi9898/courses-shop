@@ -66,7 +66,7 @@ export function Header({
           open ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
         )}
       >
-        <div className="overflow-hidden">
+        <div className={cn(open ? "overflow-visible" : "overflow-hidden")}>
           <nav className="container-shell flex flex-col gap-2 py-4">
             {navItems.map((item) => (
               <Link
@@ -97,7 +97,7 @@ function LanguageSwitcher({ locale }: { locale: Locale }) {
         {localeMeta[locale].label}
         <ChevronDown className="h-3.5 w-3.5 transition group-open:rotate-180" />
       </summary>
-      <div className="absolute right-0 top-12 z-20 min-w-28 rounded-xl border border-border bg-white p-1 shadow-card">
+      <div className="z-20 mt-2 min-w-28 rounded-xl border border-border bg-white p-1 shadow-card lg:absolute lg:left-auto lg:right-0 lg:top-12 lg:mt-0">
         {locales.map((item) => (
           <Link
             key={item}
