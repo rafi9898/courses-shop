@@ -63,10 +63,10 @@ jobs:
             cd /opt/courses-shop/app
             git fetch origin main
             git reset --hard origin/main
-            sudo docker compose --env-file .env.production -f docker-compose.prod.yml build app
+            sudo docker compose --env-file .env.production -f docker-compose.prod.yml build --no-cache app
             sudo docker compose --env-file .env.production -f docker-compose.prod.yml up -d db
             sudo docker compose --env-file .env.production -f docker-compose.prod.yml run --rm app npm run prisma:migrate:deploy
-            sudo docker compose --env-file .env.production -f docker-compose.prod.yml up -d
+            sudo docker compose --env-file .env.production -f docker-compose.prod.yml up -d --force-recreate app caddy
             sudo docker image prune -f
           REMOTE
 
@@ -74,7 +74,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          for path in /pl /en /de /pl/kursy /pl/pakiety /pl/kategorie; do
+          for path in /pl /en /de /pl/kursy /pl/pakiety /pl/kategorie /robots.txt /sitemap.xml; do
             status="$(curl -L -s -o /dev/null -w '%{http_code}' "https://rafalpodraza.com${path}")"
             if [ "$status" -lt 200 ] || [ "$status" -ge 400 ]; then
               echo "Smoke test failed for ${path}: HTTP ${status}"
