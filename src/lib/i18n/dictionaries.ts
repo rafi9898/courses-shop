@@ -38,10 +38,10 @@ export const dictionaries = {
       coursesTitle: "Popularne kursy",
       bundlesTitle: "Popularne pakiety",
       reviewsTitle: "Opinie kursantów",
-      authorTitle: "Cześć! Jestem autor kursów i książek.",
+      authorTitle: "Cześć, jestem Rafał Podraza",
       authorText:
-        "Tworzę praktyczne materiały, które pomagają rozwijać realne umiejętności i osiągać cele zawodowe.",
-      authorCta: "Dowiedz się więcej o mnie",
+        "Tworzę praktyczne kursy i książki, które pomagają zdobywać nowe umiejętności i rozwijać karierę w IT.",
+      authorCta: "Poznaj mnie lepiej",
       faqTitle: "Najczęściej zadawane pytania",
       addToCart: "Dodaj do koszyka",
       viewCourse: "Zobacz kurs",
@@ -214,22 +214,47 @@ export const dictionaries = {
     aboutPage: {
       eyebrow: "O mnie",
       titleStart: "Cześć! Jestem",
-      authorName: "Jan Kowalski",
+      authorName: "Rafał Podraza",
       lead:
-        "Od ponad 8 lat tworzę kursy online, które pomagają tysiącom osób zdobywać nowe umiejętności i rozwijać się w branży IT.",
+        "Tworzę praktyczne kursy online z zakresu testowania oprogramowania, programowania, chmury, sztucznej inteligencji i nowoczesnych narzędzi IT.",
       mission:
-        "Moim celem jest przekazywanie wiedzy w przystępny sposób i wspieranie Cię na każdym etapie nauki.",
+        "Opublikowałem już ponad 70 kursów w 3 językach, z których skorzystało ponad 70 000 kursantów. Moją misją jest tłumaczenie trudnych tematów w prosty, konkretny i możliwy do wykorzystania w praktyce sposób.",
       primaryCta: "Zobacz wszystkie kursy",
       secondaryCta: "Skontaktuj się ze mną",
       approachEyebrow: "Moje podejście",
-      approachTitle: "Uczę tego, co praktyczne i naprawdę działa",
-      approachText:
-        "Wierzę, że nauka powinna być praktyczna, ciekawa i dopasowana do realnych potrzeb. Dlatego w moich kursach znajdziesz tylko sprawdzone rozwiązania i konkretne przykłady z życia.",
-      technologiesTitle: "Technologie, których uczę",
-      finalTitle: "Gotowy, by rozwijać swoje umiejętności?",
-      finalText: "Dołącz do tysięcy kursantów i zacznij naukę już dziś.",
-      finalCta: "Zobacz kursy",
-      bullets: ["Praktyczne projekty i zadania", "Zero zbędnej teorii", "Regularne aktualizacje kursów", "Wsparcie i kontakt ze mną"]
+      approachTitle: "Uczę tego, co sam wykorzystuję w praktyce",
+      approachText: [
+        "W moich kursach nie znajdziesz teorii oderwanej od rzeczywistości. Pokazuję konkretne narzędzia, procesy i rozwiązania, z których korzysta się w codziennej pracy w IT.",
+        "Stawiam na jasne wyjaśnienia, praktyczne przykłady i materiały, do których można wracać również po zakończeniu kursu."
+      ],
+      technologiesTitle: "Obszary, w których tworzę kursy",
+      topics: [
+        "Testowanie oprogramowania",
+        "Automatyzacja testów",
+        "JavaScript i TypeScript",
+        "API i Postman",
+        "DevOps i CI/CD",
+        "AWS i chmura",
+        "SQL i analiza danych",
+        "AI w pracy specjalistów IT",
+        "Cyberbezpieczeństwo"
+      ],
+      stats: [
+        { value: "70+", label: "Kursów online" },
+        { value: "70 000+", label: "Kursantów" },
+        { value: "3 języki", label: "Publikowanych materiałów" },
+        { value: "Bestsellery", label: "Na platformie Udemy" }
+      ],
+      finalTitle: "Gotowy, aby rozwinąć swoje umiejętności?",
+      finalText:
+        "Wybierz kurs dopasowany do swoich celów i ucz się we własnym tempie, korzystając z praktycznych materiałów przygotowanych na podstawie mojego doświadczenia.",
+      finalCta: "Przeglądaj kursy",
+      bullets: [
+        "Praktyczne projekty i rzeczywiste przykłady",
+        "Wiedza przekazywana prostym językiem",
+        "Regularnie rozwijane i aktualizowane materiały",
+        "Możliwość zadawania pytań i kontaktu z autorem"
+      ]
     },
     faqPage: {
       title: "Najczęściej zadawane pytania",
@@ -472,22 +497,47 @@ export const dictionaries = {
     aboutPage: {
       eyebrow: "Über mich",
       titleStart: "Hallo! Ich bin",
-      authorName: "Jan Kowalski",
+      authorName: "Rafał Podraza",
       lead:
-        "Seit über 8 Jahren erstelle ich Online-Kurse, die Menschen helfen, neue Fähigkeiten aufzubauen und sich in der IT weiterzuentwickeln.",
+        "Ich erstelle praxisnahe Online-Kurse zu Softwaretests, Programmierung, Cloud, künstlicher Intelligenz und modernen IT-Tools.",
       mission:
-        "Mein Ziel ist es, Wissen verständlich zu vermitteln und dich auf jedem Lernschritt zu unterstützen.",
+        "Ich habe bereits über 70 Kurse in 3 Sprachen veröffentlicht, mit denen mehr als 70.000 Lernende gearbeitet haben. Meine Mission ist es, schwierige Themen einfach, konkret und praxisnah zu erklären.",
       primaryCta: "Alle Kurse ansehen",
       secondaryCta: "Kontakt aufnehmen",
       approachEyebrow: "Mein Ansatz",
-      approachTitle: "Ich unterrichte, was praktisch ist und wirklich funktioniert",
-      approachText:
-        "Lernen sollte praktisch, interessant und realitätsnah sein. Deshalb findest du in meinen Kursen geprüfte Lösungen und konkrete Beispiele aus der Praxis.",
-      technologiesTitle: "Technologien, die ich unterrichte",
+      approachTitle: "Ich unterrichte, was ich selbst in der Praxis nutze",
+      approachText: [
+        "In meinen Kursen findest du keine Theorie, die von der Realität abgekoppelt ist. Ich zeige konkrete Tools, Prozesse und Lösungen, die im IT-Alltag genutzt werden.",
+        "Ich setze auf klare Erklärungen, praktische Beispiele und Materialien, zu denen du auch nach dem Kurs zurückkehren kannst."
+      ],
+      technologiesTitle: "Bereiche, in denen ich Kurse erstelle",
+      topics: [
+        "Softwaretests",
+        "Testautomatisierung",
+        "JavaScript und TypeScript",
+        "API und Postman",
+        "DevOps und CI/CD",
+        "AWS und Cloud",
+        "SQL und Datenanalyse",
+        "KI in der Arbeit von IT-Fachleuten",
+        "Cybersicherheit"
+      ],
+      stats: [
+        { value: "70+", label: "Online-Kurse" },
+        { value: "70.000+", label: "Lernende" },
+        { value: "3 Sprachen", label: "Veröffentlichte Materialien" },
+        { value: "Bestseller", label: "Auf der Udemy-Plattform" }
+      ],
       finalTitle: "Bereit, deine Fähigkeiten weiterzuentwickeln?",
-      finalText: "Schließe dich tausenden Lernenden an und starte heute.",
-      finalCta: "Kurse ansehen",
-      bullets: ["Praktische Projekte und Aufgaben", "Keine unnötige Theorie", "Regelmäßige Kursupdates", "Unterstützung und Kontakt"]
+      finalText:
+        "Wähle einen Kurs, der zu deinen Zielen passt, und lerne in deinem eigenen Tempo mit praktischen Materialien aus meiner Erfahrung.",
+      finalCta: "Kurse durchsuchen",
+      bullets: [
+        "Praktische Projekte und reale Beispiele",
+        "Wissen in einfacher Sprache vermittelt",
+        "Regelmäßig weiterentwickelte und aktualisierte Materialien",
+        "Möglichkeit, Fragen zu stellen und den Autor zu kontaktieren"
+      ]
     },
     faqPage: {
       title: "Häufig gestellte Fragen",
@@ -730,22 +780,47 @@ export const dictionaries = {
     aboutPage: {
       eyebrow: "About",
       titleStart: "Hi! I am",
-      authorName: "Jan Kowalski",
+      authorName: "Rafał Podraza",
       lead:
-        "For over 8 years I have created online courses that help thousands of people gain new skills and grow in IT.",
+        "I create practical online courses on software testing, programming, cloud, artificial intelligence and modern IT tools.",
       mission:
-        "My goal is to explain knowledge clearly and support you at every stage of learning.",
+        "I have already published more than 70 courses in 3 languages, used by over 70,000 students. My mission is to explain difficult topics in a simple, concrete and practical way.",
       primaryCta: "View all courses",
       secondaryCta: "Contact me",
       approachEyebrow: "My approach",
-      approachTitle: "I teach what is practical and actually works",
-      approachText:
-        "Learning should be practical, engaging and connected to real needs. That is why my courses focus on proven solutions and concrete examples.",
-      technologiesTitle: "Technologies I teach",
+      approachTitle: "I teach what I use in practice myself",
+      approachText: [
+        "In my courses you will not find theory detached from reality. I show concrete tools, processes and solutions used in everyday IT work.",
+        "I focus on clear explanations, practical examples and materials you can return to after finishing the course."
+      ],
+      technologiesTitle: "Areas where I create courses",
+      topics: [
+        "Software testing",
+        "Test automation",
+        "JavaScript and TypeScript",
+        "API and Postman",
+        "DevOps and CI/CD",
+        "AWS and cloud",
+        "SQL and data analysis",
+        "AI in the work of IT specialists",
+        "Cybersecurity"
+      ],
+      stats: [
+        { value: "70+", label: "Online courses" },
+        { value: "70,000+", label: "Students" },
+        { value: "3 languages", label: "Published materials" },
+        { value: "Bestsellers", label: "On the Udemy platform" }
+      ],
       finalTitle: "Ready to grow your skills?",
-      finalText: "Join thousands of students and start learning today.",
-      finalCta: "View courses",
-      bullets: ["Practical projects and tasks", "No unnecessary theory", "Regular course updates", "Support and contact"]
+      finalText:
+        "Choose a course aligned with your goals and learn at your own pace using practical materials based on my experience.",
+      finalCta: "Browse courses",
+      bullets: [
+        "Practical projects and real examples",
+        "Knowledge explained in simple language",
+        "Regularly expanded and updated materials",
+        "Ability to ask questions and contact the author"
+      ]
     },
     faqPage: {
       title: "Frequently asked questions",

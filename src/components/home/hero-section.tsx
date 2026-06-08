@@ -126,13 +126,13 @@ function StatCard({
   label: string;
 }) {
   return (
-    <div className="flex w-48 rounded-xl border border-border bg-white/95 p-5 shadow-card">
+    <div className="flex w-64 rounded-xl border border-border bg-white/95 p-5 shadow-card">
       <div className="mr-4 grid h-11 w-11 shrink-0 place-items-center rounded-full bg-primary-soft text-primary">
         {icon}
       </div>
-      <div>
+      <div className="min-w-0">
         <div className="text-lg font-black">{value}</div>
-        <div className="mt-1 text-xs leading-5 text-muted-foreground">{label}</div>
+        <div className="mt-1 break-words text-xs leading-5 text-muted-foreground">{label}</div>
       </div>
     </div>
   );

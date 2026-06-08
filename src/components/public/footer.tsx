@@ -23,10 +23,10 @@ export function Footer({
     <footer className="border-t border-border bg-white">
       <div className="container-shell flex flex-col gap-8 py-8 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <Link href={`/${locale}`} aria-label="PROJECT_NAME home">
+          <Link href={`/${locale}`} aria-label="Rafał Podraza home">
             <Logo />
           </Link>
-          <p className="mt-4 text-xs text-muted-foreground">© 2024 PROJECT_NAME. Wszelkie prawa zastrzeżone.</p>
+          <p className="mt-4 text-xs text-muted-foreground">© 2024 Rafał Podraza. Wszelkie prawa zastrzeżone.</p>
         </div>
 
         <nav className="flex flex-wrap gap-x-8 gap-y-3 text-sm text-slate-600" aria-label="Footer navigation">

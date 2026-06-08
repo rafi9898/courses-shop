@@ -160,7 +160,7 @@ export function FaqPage({
           )}
         </div>
 
-        <div className="mt-10 grid gap-6 rounded-2xl border border-border bg-primary-soft p-7 shadow-soft lg:grid-cols-[220px_1fr_auto] lg:items-center">
+        <div id="kontakt" className="mt-10 grid scroll-mt-24 gap-6 rounded-2xl border border-border bg-primary-soft p-7 shadow-soft lg:grid-cols-[220px_1fr_auto] lg:items-center">
           <div className="relative hidden h-28 lg:block">
             <div className="absolute left-10 top-2 grid h-24 w-24 place-items-center rounded-full bg-white text-primary shadow-soft">
               <BookOpen className="h-12 w-12" />

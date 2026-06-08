@@ -28,7 +28,7 @@ export function Header({
   return (
     <header className="sticky top-0 z-50 border-b border-border/80 bg-white/92 backdrop-blur-xl">
       <div className="container-shell flex h-[72px] items-center justify-between gap-4">
-        <Link href={`/${locale}`} aria-label="PROJECT_NAME home">
+        <Link href={`/${locale}`} aria-label="Rafał Podraza home">
           <Logo />
         </Link>
 
