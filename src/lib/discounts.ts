@@ -9,7 +9,7 @@ export type Discount = {
   validUntil?: string | null;
 };
 
-const fallbackDiscounts: Discount[] = [
+export const fallbackDiscounts: Discount[] = [
   {
     code: "START10",
     percentage: 10
