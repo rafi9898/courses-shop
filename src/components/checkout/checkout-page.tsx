@@ -30,6 +30,7 @@ export function CheckoutPage({
   const [customerEmail, setCustomerEmail] = useState("");
   const [invoiceRequested, setInvoiceRequested] = useState(false);
   const [invoiceData, setInvoiceData] = useState<InvoiceData>(emptyInvoiceData);
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const products: Product[] = useMemo(() => [...courses, ...bundles], [bundles, courses]);
   const discountPool = discounts.length > 0 ? discounts : undefined;
   const checkoutProducts = items
@@ -55,6 +56,7 @@ export function CheckoutPage({
   const totals = calculateCartTotals(checkoutProducts, locale, appliedDiscountCode, discountPool);
   const customerEmailComplete = isEmailLike(customerEmail);
   const invoiceComplete = !invoiceRequested || isInvoiceDataComplete(invoiceData);
+  const checkoutReady = customerEmailComplete && invoiceComplete && termsAccepted;
 
   return (
     <div className="bg-gradient-to-b from-white to-[#fbfaff]">
@@ -133,6 +135,11 @@ export function CheckoutPage({
                 </div>
               </div>
               <div className="mt-6">
+                <LegalAcceptance
+                  dictionary={dictionary}
+                  accepted={termsAccepted}
+                  onAcceptedChange={setTermsAccepted}
+                />
                 <StripeCheckoutButton
                   locale={locale}
                   items={checkoutItems}
@@ -141,15 +148,55 @@ export function CheckoutPage({
                   customerEmail={customerEmail}
                   invoiceRequested={invoiceRequested}
                   invoiceData={invoiceData}
-                  disabled={!customerEmailComplete || !invoiceComplete}
+                  termsAccepted={termsAccepted}
+                  disabled={!checkoutReady}
                 />
                 {!customerEmailComplete ? <p className="mt-3 text-sm font-semibold text-slate-500">{dictionary.checkoutPage.customerEmailRequired}</p> : null}
                 {!invoiceComplete ? <p className="mt-3 text-sm font-semibold text-slate-500">{dictionary.checkoutPage.invoiceRequired}</p> : null}
+                {!termsAccepted ? <p className="mt-3 text-sm font-semibold text-slate-500">{dictionary.checkoutPage.termsRequired}</p> : null}
               </div>
             </aside>
           </div>
         )}
       </section>
+    </div>
+  );
+}
+
+function LegalAcceptance({
+  dictionary,
+  accepted,
+  onAcceptedChange
+}: {
+  dictionary: Dictionary;
+  accepted: boolean;
+  onAcceptedChange: (value: boolean) => void;
+}) {
+  return (
+    <div className="mb-5 rounded-xl border border-border bg-slate-50 p-4">
+      <label className="flex cursor-pointer items-start gap-3">
+        <input
+          type="checkbox"
+          checked={accepted}
+          required
+          onChange={(event) => onAcceptedChange(event.target.checked)}
+          className="mt-1 h-5 w-5 shrink-0 rounded border-border text-primary"
+        />
+        <span className="text-sm font-semibold leading-6 text-slate-700">
+          {dictionary.checkoutPage.termsBeforeLink}
+          <Link href={dictionary.routes.terms} className="text-primary underline-offset-4 hover:underline">
+            {dictionary.checkoutPage.termsLinkLabel}
+          </Link>
+          {dictionary.checkoutPage.termsAfterLink}
+        </span>
+      </label>
+      <p className="mt-3 pl-8 text-xs leading-5 text-slate-500">
+        {dictionary.checkoutPage.privacyBeforeLink}
+        <Link href={dictionary.routes.privacy} className="font-semibold text-primary underline-offset-4 hover:underline">
+          {dictionary.checkoutPage.privacyLinkLabel}
+        </Link>
+        {dictionary.checkoutPage.privacyAfterLink}
+      </p>
     </div>
   );
 }

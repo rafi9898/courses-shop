@@ -16,6 +16,7 @@ export function StripeCheckoutButton({
   customerEmail,
   invoiceRequested = false,
   invoiceData,
+  termsAccepted,
   disabled = false
 }: {
   locale: Locale;
@@ -25,6 +26,7 @@ export function StripeCheckoutButton({
   customerEmail: string;
   invoiceRequested?: boolean;
   invoiceData?: InvoiceData;
+  termsAccepted: boolean;
   disabled?: boolean;
 }) {
   const [loading, setLoading] = useState(false);
@@ -38,7 +40,7 @@ export function StripeCheckoutButton({
       const response = await fetch("/api/checkout/session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ locale, items, discountCode, customerEmail, invoiceRequested, invoiceData: invoiceRequested ? invoiceData : undefined })
+        body: JSON.stringify({ locale, items, discountCode, customerEmail, invoiceRequested, invoiceData: invoiceRequested ? invoiceData : undefined, termsAccepted })
       });
       const data = (await response.json()) as { url?: string; error?: string };
 
@@ -47,8 +49,8 @@ export function StripeCheckoutButton({
       }
 
       window.location.assign(data.url);
-    } catch {
-      setError(dictionary.checkoutPage.unavailable);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : dictionary.checkoutPage.unavailable);
       setLoading(false);
     }
   }

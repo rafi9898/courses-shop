@@ -19,7 +19,9 @@ export const dictionaries = {
       cart: "/pl/koszyk",
       checkout: "/pl/checkout",
       checkoutSuccess: "/pl/podziekowanie",
-      checkoutCancel: "/pl/platnosc-anulowana"
+      checkoutCancel: "/pl/platnosc-anulowana",
+      terms: "/pl/regulamin",
+      privacy: "/pl/polityka-prywatnosci"
     },
     home: {
       badge: "Kursy z Udemy",
@@ -161,7 +163,7 @@ export const dictionaries = {
       lead: "Potwierdź zamówienie i przejdź do bezpiecznej płatności Stripe.",
       backToCart: "Wróć do koszyka",
       selectedProducts: "Wybrane produkty",
-      payWithStripe: "Zapłać przez Stripe",
+      payWithStripe: "Kupuję i płacę",
       preparing: "Przygotowujemy płatność...",
       unavailable: "Nie udało się utworzyć płatności. Sprawdź konfigurację Stripe.",
       emptyTitle: "Brak produktów do opłacenia",
@@ -185,7 +187,18 @@ export const dictionaries = {
       buyerCity: "Miasto",
       optional: "opcjonalnie",
       customerEmailRequired: "Podaj poprawny adres e-mail, aby przejść do płatności.",
-      invoiceRequired: "Uzupełnij wymagane dane do faktury, aby przejść do płatności."
+      invoiceRequired: "Uzupełnij wymagane dane do faktury, aby przejść do płatności.",
+      termsBeforeLink: "Zapoznałem się z ",
+      termsLinkLabel: "Regulaminem",
+      termsAfterLink: " sklepu i akceptuję jego postanowienia.",
+      privacyBeforeLink: "Informacje o przetwarzaniu danych osobowych znajdziesz w ",
+      privacyLinkLabel: "Polityce prywatności",
+      privacyAfterLink: ".",
+      termsRequired: "Aby złożyć zamówienie, zaakceptuj Regulamin."
+    },
+    legal: {
+      termsLabel: "Regulamin",
+      privacyLabel: "Polityka prywatności"
     },
     checkoutStatus: {
       successTitle: "Dziękujemy za zakup",
@@ -316,7 +329,9 @@ export const dictionaries = {
       cart: "/de/warenkorb",
       checkout: "/de/checkout",
       checkoutSuccess: "/de/danke",
-      checkoutCancel: "/de/zahlung-abgebrochen"
+      checkoutCancel: "/de/zahlung-abgebrochen",
+      terms: "/de/agb",
+      privacy: "/de/datenschutz"
     },
     home: {
       badge: "Udemy-Kurse",
@@ -458,7 +473,7 @@ export const dictionaries = {
       lead: "Bestätige deine Bestellung und gehe zur sicheren Stripe-Zahlung.",
       backToCart: "Zurück zum Warenkorb",
       selectedProducts: "Ausgewählte Produkte",
-      payWithStripe: "Mit Stripe bezahlen",
+      payWithStripe: "Zahlungspflichtig bestellen",
       preparing: "Zahlung wird vorbereitet...",
       unavailable: "Die Zahlung konnte nicht erstellt werden. Prüfe die Stripe-Konfiguration.",
       emptyTitle: "Keine Produkte zur Zahlung",
@@ -482,7 +497,18 @@ export const dictionaries = {
       buyerCity: "Stadt",
       optional: "optional",
       customerEmailRequired: "Gib eine gültige E-Mail-Adresse ein, um zur Zahlung zu gehen.",
-      invoiceRequired: "Fülle die erforderlichen Rechnungsdaten aus, um zur Zahlung zu gehen."
+      invoiceRequired: "Fülle die erforderlichen Rechnungsdaten aus, um zur Zahlung zu gehen.",
+      termsBeforeLink: "Ich habe die ",
+      termsLinkLabel: "Allgemeinen Geschäftsbedingungen",
+      termsAfterLink: " gelesen und akzeptiere sie.",
+      privacyBeforeLink: "Informationen zur Verarbeitung personenbezogener Daten finden Sie in der ",
+      privacyLinkLabel: "Datenschutzerklärung",
+      privacyAfterLink: ".",
+      termsRequired: "Um die Bestellung aufzugeben, müssen Sie die AGB akzeptieren."
+    },
+    legal: {
+      termsLabel: "AGB",
+      privacyLabel: "Datenschutzerklärung"
     },
     checkoutStatus: {
       successTitle: "Danke für deinen Kauf",
@@ -613,7 +639,9 @@ export const dictionaries = {
       cart: "/en/cart",
       checkout: "/en/checkout",
       checkoutSuccess: "/en/thank-you",
-      checkoutCancel: "/en/checkout-cancelled"
+      checkoutCancel: "/en/checkout-cancelled",
+      terms: "/en/terms",
+      privacy: "/en/privacy-policy"
     },
     home: {
       badge: "Udemy courses",
@@ -755,7 +783,7 @@ export const dictionaries = {
       lead: "Confirm your order and continue to secure Stripe payment.",
       backToCart: "Back to cart",
       selectedProducts: "Selected products",
-      payWithStripe: "Pay with Stripe",
+      payWithStripe: "Buy and pay",
       preparing: "Preparing payment...",
       unavailable: "Could not create payment. Check the Stripe configuration.",
       emptyTitle: "No products to pay for",
@@ -779,7 +807,18 @@ export const dictionaries = {
       buyerCity: "City",
       optional: "optional",
       customerEmailRequired: "Enter a valid e-mail address to continue to payment.",
-      invoiceRequired: "Complete the required invoice details to continue to payment."
+      invoiceRequired: "Complete the required invoice details to continue to payment.",
+      termsBeforeLink: "I have read and accept the ",
+      termsLinkLabel: "Terms and Conditions",
+      termsAfterLink: ".",
+      privacyBeforeLink: "Information about the processing of personal data can be found in the ",
+      privacyLinkLabel: "Privacy Policy",
+      privacyAfterLink: ".",
+      termsRequired: "You must accept the Terms and Conditions to place the order."
+    },
+    legal: {
+      termsLabel: "Terms and Conditions",
+      privacyLabel: "Privacy Policy"
     },
     checkoutStatus: {
       successTitle: "Thank you for your purchase",

@@ -1,9 +1,10 @@
 import { type Metadata } from "next";
 import { locales, type Locale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionaries";
+import { legalDocuments, legalPagePaths } from "@/lib/legal-pages";
 import { getAbsoluteUrl } from "@/lib/routes";
 
-type PublicPage = "home" | "courses" | "bundles" | "categories" | "about" | "faq";
+type PublicPage = "home" | "courses" | "bundles" | "categories" | "about" | "faq" | "terms" | "privacy";
 
 const siteName = "Rafał Podraza";
 const defaultTitle = "Rafał Podraza - praktyczne kursy online IT";
@@ -41,7 +42,9 @@ export const publicPagePaths: Record<PublicPage, Record<Locale, string>> = {
     pl: "/pl/faq",
     de: "/de/faq",
     en: "/en/faq"
-  }
+  },
+  terms: legalPagePaths.terms,
+  privacy: legalPagePaths.privacy
 };
 
 const localeNames: Record<Locale, string> = {
@@ -80,6 +83,16 @@ const publicPageTitles: Record<PublicPage, Record<Locale, string>> = {
     pl: "FAQ",
     de: "FAQ",
     en: "FAQ"
+  },
+  terms: {
+    pl: legalDocuments.pl.terms.title,
+    de: legalDocuments.de.terms.title,
+    en: legalDocuments.en.terms.title
+  },
+  privacy: {
+    pl: legalDocuments.pl.privacy.title,
+    de: legalDocuments.de.privacy.title,
+    en: legalDocuments.en.privacy.title
   }
 };
 
@@ -269,6 +282,8 @@ function getPublicPageDescription(locale: Locale, page: PublicPage, dictionary: 
   if (page === "categories") return dictionary.catalog.categoriesLead;
   if (page === "about") return dictionary.aboutPage.mission;
   if (page === "faq") return dictionary.faqPage.lead;
+  if (page === "terms") return legalDocuments[locale].terms.description;
+  if (page === "privacy") return legalDocuments[locale].privacy.description;
 
   return locale === "pl" ? defaultDescription : defaultDescription;
 }

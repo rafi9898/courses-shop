@@ -5,6 +5,7 @@ import { getPublicCatalog } from "@/lib/catalog-data";
 import { getActiveDiscountCodes } from "@/lib/discount-code-data";
 import { calculateCartTotals, getDiscount, getDiscountedUnitAmount } from "@/lib/discounts";
 import { isLocale, localeMeta } from "@/lib/i18n/config";
+import { getDictionary } from "@/lib/i18n/dictionaries";
 import { parseInvoiceData } from "@/lib/invoice";
 import { type Product } from "@/lib/mock-data";
 import { getCheckoutCancelPath, getCheckoutSuccessPath } from "@/lib/routes";
@@ -16,6 +17,7 @@ type CheckoutRequestBody = {
   customerEmail?: unknown;
   invoiceRequested?: unknown;
   invoiceData?: unknown;
+  termsAccepted?: unknown;
 };
 
 export async function POST(request: NextRequest) {
@@ -31,9 +33,14 @@ export async function POST(request: NextRequest) {
   const customerEmail = parseEmail(body?.customerEmail);
   const invoiceRequested = body?.invoiceRequested === true;
   const invoiceData = invoiceRequested ? parseInvoiceData(body?.invoiceData) : null;
+  const termsAccepted = body?.termsAccepted === true;
 
   if (!locale || items.length === 0 || !customerEmail || (invoiceRequested && !invoiceData)) {
     return NextResponse.json({ error: "Invalid checkout payload." }, { status: 400 });
+  }
+
+  if (!termsAccepted) {
+    return NextResponse.json({ error: getDictionary(locale).checkoutPage.termsRequired }, { status: 400 });
   }
 
   const catalog = await getPublicCatalog(locale);
@@ -74,6 +81,7 @@ export async function POST(request: NextRequest) {
       discount_amount: String(totals.discountAmount),
       total: String(totals.total),
       invoice_requested: invoiceRequested ? "true" : "false",
+      terms_accepted: "true",
       invoice_buyer_name: invoiceData?.buyerName ?? "",
       invoice_buyer_company: invoiceData?.buyerCompany ?? "",
       invoice_buyer_email: invoiceData?.buyerEmail ?? "",
