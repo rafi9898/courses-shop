@@ -272,6 +272,16 @@ export const dictionaries = {
       ctaText: "Skontaktuj się z nami, a odpowiemy na Twoje pytania tak szybko jak to możliwe.",
       ctaButton: "Skontaktuj się z nami"
     },
+    notFoundPage: {
+      eyebrow: "Nie znaleziono strony",
+      title: "Ta strona nie istnieje",
+      lead: "Adres mógł się zmienić albo strona została przeniesiona. Wróć na stronę główną lub przejdź do listy kursów.",
+      homeCta: "Strona główna",
+      coursesCta: "Przeglądaj kursy",
+      codeLabel: "Kod błędu",
+      suggestionTitle: "Szukasz kursu?",
+      suggestionText: "Najłatwiej zacząć od katalogu, gdzie znajdziesz wszystkie aktualnie dostępne materiały."
+    },
     stats: {
       students: "Zadowolonych kursantów",
       rating: "Średnia ocen na Udemy",
@@ -555,6 +565,16 @@ export const dictionaries = {
       ctaText: "Kontaktiere uns, und wir beantworten deine Frage so schnell wie möglich.",
       ctaButton: "Kontakt aufnehmen"
     },
+    notFoundPage: {
+      eyebrow: "Seite nicht gefunden",
+      title: "Diese Seite existiert nicht",
+      lead: "Die Adresse wurde möglicherweise geändert oder die Seite wurde verschoben. Kehre zur Startseite zurück oder öffne die Kursübersicht.",
+      homeCta: "Startseite",
+      coursesCta: "Kurse ansehen",
+      codeLabel: "Fehlercode",
+      suggestionTitle: "Suchst du einen Kurs?",
+      suggestionText: "Der einfachste Einstieg ist der Katalog mit allen aktuell verfügbaren Materialien."
+    },
     stats: {
       students: "zufriedene Teilnehmende",
       rating: "Durchschnittsbewertung",
@@ -837,6 +857,16 @@ export const dictionaries = {
       ctaTitle: "Did not find an answer?",
       ctaText: "Contact us and we will answer your question as soon as possible.",
       ctaButton: "Contact us"
+    },
+    notFoundPage: {
+      eyebrow: "Page not found",
+      title: "This page does not exist",
+      lead: "The address may have changed or the page may have been moved. Go back to the homepage or open the course catalog.",
+      homeCta: "Homepage",
+      coursesCta: "Browse courses",
+      codeLabel: "Error code",
+      suggestionTitle: "Looking for a course?",
+      suggestionText: "The easiest place to start is the catalog with all currently available materials."
     },
     stats: {
       students: "happy students",

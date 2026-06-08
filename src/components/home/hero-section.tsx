@@ -97,7 +97,7 @@ function getBenefitCopy(locale: Locale) {
 
 function HeroVisual({ dictionary }: { dictionary: Dictionary }) {
   return (
-    <div className="relative mx-auto h-[380px] w-full max-w-[540px] sm:h-[460px] lg:h-[560px]" aria-hidden="true">
+    <div className="relative mx-auto hidden h-[560px] w-full max-w-[540px] lg:block" aria-hidden="true">
       <div className="absolute inset-x-8 bottom-4 top-20 rounded-full bg-primary-soft blur-3xl" />
       <Image
         src="/images/hero-instructor.png"
@@ -105,7 +105,7 @@ function HeroVisual({ dictionary }: { dictionary: Dictionary }) {
         fill
         priority
         sizes="(min-width: 1024px) 45vw, 100vw"
-        className="-translate-x-5 object-contain object-bottom sm:-translate-x-8"
+        className="-translate-x-5 object-contain object-bottom sm:-translate-x-16 lg:-translate-x-24"
       />
       <div className="absolute right-0 top-10 hidden flex-col gap-4 sm:flex">
         <StatCard icon={<Users className="h-6 w-6" />} value="70 000+" label={dictionary.stats.students} />

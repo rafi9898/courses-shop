@@ -20,6 +20,8 @@ const categoryIcons = {
 
 type FaqCategory = keyof typeof categoryIcons;
 
+const contactEmailHref = "mailto:contact@rafalpodraza.com";
+
 export function FaqPage({
   locale,
   dictionary
@@ -170,7 +172,7 @@ export function FaqPage({
             <h2 className="text-2xl font-black">{dictionary.faqPage.ctaTitle}</h2>
             <p className="mt-2 max-w-2xl text-sm leading-7 text-slate-600">{dictionary.faqPage.ctaText}</p>
           </div>
-          <ButtonLink href={dictionary.routes.about} className="w-full lg:w-auto">
+          <ButtonLink href={contactEmailHref} className="w-full lg:w-auto">
             {dictionary.faqPage.ctaButton}
             <ArrowRight className="h-4 w-4" />
           </ButtonLink>
