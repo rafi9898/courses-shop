@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, Clock, ExternalLink, Loader2, Mail, Ticket } from "lucide-react";
+import { CheckCircle2, Clock, Download, ExternalLink, Loader2, Mail, Ticket } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ButtonLink } from "@/components/ui/button";
 import { type Locale } from "@/lib/i18n/config";
@@ -21,6 +21,7 @@ type OrderResponse = {
     customerEmail: string | null;
     accessEmailSentAt: string | null;
     invoice: {
+      id: string;
       invoiceNumber: string;
       status: string;
       buyerEmail: string;
@@ -36,35 +37,40 @@ type FetchState = "loading" | "processing" | "ready" | "error" | "missing-sessio
 
 export function OrderAccessPanel({
   sessionId,
+  accessToken,
   locale,
   dictionary
 }: {
   sessionId?: string;
+  accessToken?: string;
   locale: Locale;
   dictionary: Dictionary;
 }) {
-  const [state, setState] = useState<FetchState>(sessionId ? "loading" : "missing-session");
+  const [state, setState] = useState<FetchState>(sessionId || accessToken ? "loading" : "missing-session");
   const [order, setOrder] = useState<OrderResponse["order"]>(null);
 
   useEffect(() => {
-    if (!sessionId) return;
+    if (!sessionId && !accessToken) return;
 
     let cancelled = false;
     let attempts = 0;
-    const currentSessionId = sessionId;
+    const lookupUrl = sessionId
+      ? `/api/orders/session/${encodeURIComponent(sessionId)}`
+      : `/api/orders/access/${encodeURIComponent(accessToken ?? "")}`;
+    const shouldRetry = Boolean(sessionId);
 
     async function loadOrder() {
       attempts += 1;
 
       try {
-        const response = await fetch(`/api/orders/session/${encodeURIComponent(currentSessionId)}`, {
+        const response = await fetch(lookupUrl, {
           cache: "no-store"
         });
 
         if (response.status === 404) {
-          if (!cancelled) setState("processing");
+          if (!cancelled) setState(shouldRetry ? "processing" : "error");
 
-          if (attempts < 8) {
+          if (shouldRetry && attempts < 8) {
             window.setTimeout(loadOrder, 1500);
           }
           return;
@@ -90,7 +96,7 @@ export function OrderAccessPanel({
     return () => {
       cancelled = true;
     };
-  }, [sessionId]);
+  }, [sessionId, accessToken]);
 
   if (state === "missing-session") {
     return <StatusPanel icon={<Clock className="h-6 w-6" />} title={dictionary.checkoutStatus.processingTitle} text={dictionary.checkoutStatus.missingSession} />;
@@ -107,7 +113,7 @@ export function OrderAccessPanel({
   }
 
   if (state === "error" || !order) {
-    return <StatusPanel icon={<Clock className="h-6 w-6" />} title={dictionary.checkoutStatus.processingTitle} text={dictionary.checkoutStatus.lookupUnavailable} />;
+    return <StatusPanel icon={<Clock className="h-6 w-6" />} title={dictionary.checkoutStatus.unavailableTitle} text={dictionary.checkoutStatus.lookupUnavailable} />;
   }
 
   return (
@@ -132,9 +138,15 @@ export function OrderAccessPanel({
           ) : null}
         </div>
         {order.invoice ? (
-          <p className="mt-4 rounded-xl bg-primary-soft px-4 py-3 text-sm font-semibold text-primary">
-            {dictionary.checkoutStatus.invoicePrepared}
-          </p>
+          <div className="mt-4 flex flex-col gap-3 rounded-xl bg-primary-soft px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm font-semibold text-primary">{dictionary.checkoutStatus.invoicePrepared}</p>
+            {order.invoice.pdfUrl ? (
+              <ButtonLink href={order.invoice.pdfUrl} variant="secondary" className="h-10 shrink-0 bg-white">
+                <Download className="h-4 w-4" />
+                {dictionary.checkoutStatus.downloadInvoice}
+              </ButtonLink>
+            ) : null}
+          </div>
         ) : null}
         {order.accessEmailSentAt ? (
           <p className="mt-4 rounded-xl bg-primary-soft px-4 py-3 text-sm font-semibold text-primary">

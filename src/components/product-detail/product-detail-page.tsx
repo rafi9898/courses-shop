@@ -19,7 +19,14 @@ import { BundleCard } from "@/components/commerce/bundle-card";
 import { ProductCard, Thumbnail } from "@/components/commerce/product-card";
 import { VideoPreview } from "@/components/product-detail/video-preview";
 import { Badge } from "@/components/ui/badge";
-import { categories, courses, bundles, type Bundle, type Course } from "@/lib/mock-data";
+import {
+  categories as fallbackCategories,
+  courses as fallbackCourses,
+  bundles as fallbackBundles,
+  type Bundle,
+  type Category,
+  type Course
+} from "@/lib/mock-data";
 import { formatPrice, type Locale } from "@/lib/i18n/config";
 import { type Dictionary } from "@/lib/i18n/dictionaries";
 import { getCoursePath } from "@/lib/routes";
@@ -37,16 +44,23 @@ type DetailProduct =
 export function ProductDetailPage({
   locale,
   dictionary,
-  detail
+  detail,
+  categories = fallbackCategories,
+  courses = fallbackCourses,
+  bundles = fallbackBundles
 }: {
   locale: Locale;
   dictionary: Dictionary;
   detail: DetailProduct;
+  categories?: Category[];
+  courses?: Course[];
+  bundles?: Bundle[];
 }) {
   const { product, kind } = detail;
   const category = categories.find((item) => item.id === product.categoryId);
   const isCourse = kind === "course";
   const title = product.title[locale];
+  const heroSubtitle = isCourse ? product.subtitle?.[locale] : product.description[locale];
   const savings = product.regularPrice[locale] - product.price[locale];
   const bundleCourses = !isCourse ? courses.filter((course) => product.courseIds.includes(course.id)) : [];
   const recommendedCourses = courses.filter((course) => course.id !== product.id && course.categoryId === product.categoryId).slice(0, 3);
@@ -72,9 +86,7 @@ export function ProductDetailPage({
             <div>
               <Badge>{category?.label[locale]}</Badge>
               <h1 className="mt-5 text-4xl font-black leading-[1.08] tracking-normal sm:text-5xl">{title}</h1>
-              <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-600">
-                {isCourse ? product.highlights[locale][0] : product.description[locale]}
-              </p>
+              {heroSubtitle ? <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-600">{heroSubtitle}</p> : null}
 
               <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-slate-600">
                 <span className="inline-flex items-center gap-2">
@@ -86,17 +98,6 @@ export function ProductDetailPage({
                   {isCourse ? `${product.lessons} ${dictionary.detail.lessons.toLowerCase()}` : dictionary.detail.includedCourses.replace("{count}", String(product.courseCount))}
                 </span>
               </div>
-
-              {isCourse ? (
-                <ul className="mt-7 grid gap-3">
-                  {product.highlights[locale].map((item) => (
-                    <li key={item} className="flex items-start gap-3 text-sm leading-6 text-slate-600">
-                      <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
 
               <div className="mt-8 w-full max-w-[430px]">
                 <PriceCard
@@ -139,8 +140,14 @@ export function ProductDetailPage({
         <div className="grid gap-8 lg:grid-cols-[1fr_360px] lg:items-start">
           <div className="space-y-10">
             <ContentCard title={isCourse ? dictionary.detail.aboutCourse : dictionary.detail.aboutBundle}>
-              <p>{isCourse ? getCourseAboutCopy(title, locale)[0] : product.description[locale]}</p>
-              <p>{isCourse ? getCourseAboutCopy(title, locale)[1] : getBundleAboutCopy(locale)}</p>
+              {isCourse ? (
+                product.highlights[locale].map((item) => <p key={item}>{item}</p>)
+              ) : (
+                <>
+                  <p>{product.description[locale]}</p>
+                  <p>{getBundleAboutCopy(locale)}</p>
+                </>
+              )}
             </ContentCard>
 
             {isCourse ? (
@@ -163,7 +170,8 @@ export function ProductDetailPage({
                         <span className="text-sm font-bold text-muted-foreground">{index + 1}.</span>
                         <span className="font-semibold">{item.title}</span>
                         <span className="text-sm text-muted-foreground">
-                          {item.lessons} {dictionary.detail.lessons.toLowerCase()} · {item.duration}
+                          {item.lessons} {dictionary.detail.lessons.toLowerCase()}
+                          {item.duration ? ` · ${item.duration}` : ""}
                         </span>
                       </div>
                     ))}
@@ -179,7 +187,13 @@ export function ProductDetailPage({
                       href={getCoursePath(course, locale)}
                       className="grid gap-4 rounded-xl border border-border bg-white p-4 transition hover:border-primary/40 hover:shadow-card sm:grid-cols-[150px_1fr_auto] sm:items-center"
                     >
-                      <Thumbnail title={course.thumbnail.title} subtitle={course.thumbnail.subtitle} variant={course.thumbnail.variant} showFavorite={false} />
+                      <Thumbnail
+                        title={course.thumbnail.title}
+                        subtitle={course.thumbnail.subtitle}
+                        variant={course.thumbnail.variant}
+                        imageUrl={course.thumbnailImageUrl}
+                        showFavorite={false}
+                      />
                       <div>
                         <h3 className="font-black">{course.title[locale]}</h3>
                         <p className="mt-1 text-sm text-muted-foreground">{categories.find((item) => item.id === course.categoryId)?.label[locale]}</p>
@@ -202,17 +216,21 @@ export function ProductDetailPage({
             </div>
           </div>
 
-          {isCourse ? <MetaCard course={product} locale={locale} dictionary={dictionary} /> : <BundleValueCard bundle={product} locale={locale} dictionary={dictionary} />}
+          {isCourse ? (
+            <MetaCard course={product} locale={locale} dictionary={dictionary} />
+          ) : (
+            <BundleValueCard bundle={product} courses={courses} locale={locale} dictionary={dictionary} />
+          )}
         </div>
 
         <section className="mt-14">
           <h2 className="text-3xl font-black">{dictionary.detail.recommended}</h2>
           <div className="mt-6 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
             {recommendedCourses.map((course) => (
-              <ProductCard key={course.id} course={course} locale={locale} dictionary={dictionary} />
+              <ProductCard key={course.id} course={course} locale={locale} dictionary={dictionary} categories={categories} />
             ))}
             {recommendedBundles.map((bundle) => (
-              <BundleCard key={bundle.id} bundle={bundle} locale={locale} dictionary={dictionary} />
+              <BundleCard key={bundle.id} bundle={bundle} locale={locale} dictionary={dictionary} categories={categories} />
             ))}
           </div>
         </section>
@@ -310,6 +328,7 @@ function MetaCard({
   dictionary: Dictionary;
 }) {
   const levelLabel = {
+    all_levels: locale === "pl" ? "Wszystkie poziomy" : locale === "de" ? "Alle Niveaus" : "All levels",
     beginner: dictionary.detail.beginner,
     intermediate: dictionary.detail.intermediate,
     advanced: dictionary.detail.advanced
@@ -332,10 +351,12 @@ function MetaCard({
 
 function BundleValueCard({
   bundle,
+  courses,
   locale,
   dictionary
 }: {
   bundle: Bundle;
+  courses: Course[];
   locale: Locale;
   dictionary: Dictionary;
 }) {
@@ -373,27 +394,6 @@ function MetaRow({
       <dd className="text-right font-black">{value}</dd>
     </div>
   );
-}
-
-function getCourseAboutCopy(title: string, locale: Locale) {
-  if (locale === "de") {
-    return [
-      `${title} ist eine praktische Einführung, die von den Grundlagen zu realen Arbeitsszenarien führt. Das Material ist so aufgebaut, dass du schnell von Theorie zu Übungen kommst.`,
-      "Nach dem Kauf erhältst du einen aktuellen Udemy-Link mit Gutscheincode. Der Zugang erscheint auf der Erfolgsseite und wird zusätzlich per E-Mail gesendet."
-    ];
-  }
-
-  if (locale === "en") {
-    return [
-      `${title} is a practical introduction that takes you from fundamentals to real working scenarios. The material is organized so you can move quickly from theory to exercises.`,
-      "After purchase you receive the current Udemy link with a promo code. Access appears on the success page and is also sent by e-mail."
-    ];
-  }
-
-  return [
-    `${title} to praktyczne wprowadzenie prowadzące od podstaw do scenariuszy używanych w codziennej pracy. Materiał jest uporządkowany tak, aby szybko przejść od teorii do ćwiczeń.`,
-    "Kupując kurs otrzymujesz aktualny link Udemy z kodem promocyjnym. Dostęp pojawi się na stronie sukcesu i zostanie wysłany e-mailem po płatności."
-  ];
 }
 
 function getBundleAboutCopy(locale: Locale) {

@@ -3,16 +3,22 @@ import Link from "next/link";
 import { BundleCard } from "@/components/commerce/bundle-card";
 import { ProductCard } from "@/components/commerce/product-card";
 import { ButtonLink } from "@/components/ui/button";
-import { bundles, courses } from "@/lib/mock-data";
+import { type Bundle, type Category, type Course } from "@/lib/mock-data";
 import { type Locale } from "@/lib/i18n/config";
 import { type Dictionary } from "@/lib/i18n/dictionaries";
 
 export function ProductShowcase({
   locale,
-  dictionary
+  dictionary,
+  categories,
+  courses,
+  bundles
 }: {
   locale: Locale;
   dictionary: Dictionary;
+  categories: Category[];
+  courses: Course[];
+  bundles: Bundle[];
 }) {
   return (
     <section className="container-shell py-16 lg:py-20">
@@ -29,7 +35,7 @@ export function ProductShowcase({
 
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {courses.slice(0, 4).map((course) => (
-          <ProductCard key={course.id} course={course} locale={locale} dictionary={dictionary} />
+          <ProductCard key={course.id} course={course} locale={locale} dictionary={dictionary} categories={categories} />
         ))}
       </div>
 
@@ -42,7 +48,7 @@ export function ProductShowcase({
       </div>
       <div className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
         {bundles.map((bundle) => (
-          <BundleCard key={bundle.id} bundle={bundle} locale={locale} dictionary={dictionary} />
+          <BundleCard key={bundle.id} bundle={bundle} locale={locale} dictionary={dictionary} categories={categories} />
         ))}
       </div>
     </section>

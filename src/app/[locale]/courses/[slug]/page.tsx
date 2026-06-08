@@ -1,12 +1,10 @@
 import { notFound } from "next/navigation";
 import { ProductDetailPage } from "@/components/product-detail/product-detail-page";
+import { getPublicCourseBySlug } from "@/lib/catalog-data";
 import { isLocale, type Locale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionaries";
-import { courses } from "@/lib/mock-data";
 
-export function generateStaticParams() {
-  return courses.map((course) => ({ locale: "en", slug: course.slug.en }));
-}
+export const dynamic = "force-dynamic";
 
 export default async function CourseDetailEnPage({
   params
@@ -17,8 +15,8 @@ export default async function CourseDetailEnPage({
   if (!isLocale(rawLocale) || rawLocale !== "en") notFound();
 
   const locale = rawLocale as Locale;
-  const course = courses.find((item) => item.slug[locale] === slug);
+  const { catalog, course } = await getPublicCourseBySlug(locale, slug);
   if (!course) notFound();
 
-  return <ProductDetailPage locale={locale} dictionary={getDictionary(locale)} detail={{ kind: "course", product: course }} />;
+  return <ProductDetailPage locale={locale} dictionary={getDictionary(locale)} detail={{ kind: "course", product: course }} {...catalog} />;
 }

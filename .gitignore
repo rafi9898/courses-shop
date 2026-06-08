@@ -3,6 +3,9 @@ node_modules
 out
 dist
 coverage
+storage/invoices/*.pdf
+public/uploads/course-thumbnails/*
+!public/uploads/course-thumbnails/.gitkeep
 .env
 .env*.local
 next-env.d.ts

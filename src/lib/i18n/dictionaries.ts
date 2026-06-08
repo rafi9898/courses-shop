@@ -170,6 +170,8 @@ export const dictionaries = {
       securePayment: "Bezpieczna płatność",
       invoiceTitle: "Dane do faktury",
       invoiceLead: "Uzupełnij dane kupującego. Na tym etapie zapiszemy rekord faktury, a PDF dodamy w kolejnym kroku.",
+      invoiceToggle: "Chcę otrzymać fakturę",
+      invoiceToggleText: "Dane do faktury są potrzebne tylko wtedy, gdy chcesz otrzymać fakturę do zamówienia.",
       buyerName: "Imię i nazwisko",
       buyerCompany: "Nazwa firmy",
       buyerEmail: "E-mail do faktury",
@@ -184,6 +186,8 @@ export const dictionaries = {
     checkoutStatus: {
       successTitle: "Dziękujemy za zakup",
       successLead: "Płatność została zakończona. Przygotowujemy szczegóły dostępu do kursów.",
+      privateOrderTitle: "Twoje zamówienie",
+      privateOrderLead: "Ten prywatny link daje dostęp do zakupionych kursów Udemy i faktury, jeśli została wystawiona.",
       cancelTitle: "Płatność anulowana",
       cancelLead: "Twoje produkty nadal są w koszyku. Możesz wrócić do płatności w dowolnym momencie.",
       goToCourses: "Zobacz kursy",
@@ -194,6 +198,7 @@ export const dictionaries = {
       accessTitle: "Twoje linki Udemy",
       accessLead: "Poniżej znajdziesz aktywne linki do zakupionych kursów. Jeśli kupujesz pakiet, pokazujemy każdy kurs osobno.",
       processingTitle: "Zamówienie jeszcze się przetwarza",
+      unavailableTitle: "Nie możemy wyświetlić zamówienia",
       processingText: "Stripe zakończył płatność, ale webhook może potrzebować chwili na zapis zamówienia. Odświeżymy dane automatycznie.",
       missingSession: "Brakuje identyfikatora sesji Stripe. Wróć do koszyka lub sprawdź zamówienie w panelu Stripe.",
       lookupUnavailable: "Nie udało się pobrać zamówienia. Sprawdź połączenie z bazą danych i konfigurację webhooka.",
@@ -203,7 +208,8 @@ export const dictionaries = {
       sentToEmail: "Linki zostaną też wysłane na e-mail po wdrożeniu wysyłki wiadomości.",
       noAccessLinks: "Nie znaleziono aktywnych linków Udemy dla tego zamówienia.",
       invoicePrepared: "Faktura została przygotowana",
-      invoiceNumber: "Numer faktury"
+      invoiceNumber: "Numer faktury",
+      downloadInvoice: "Pobierz fakturę PDF"
     },
     aboutPage: {
       eyebrow: "O mnie",
@@ -422,6 +428,8 @@ export const dictionaries = {
       securePayment: "Sichere Zahlung",
       invoiceTitle: "Rechnungsdaten",
       invoiceLead: "Gib die Käuferdaten ein. In diesem Schritt speichern wir den Rechnungsdatensatz, das PDF folgt später.",
+      invoiceToggle: "Ich möchte eine Rechnung erhalten",
+      invoiceToggleText: "Rechnungsdaten sind nur erforderlich, wenn du eine Rechnung für die Bestellung erhalten möchtest.",
       buyerName: "Vor- und Nachname",
       buyerCompany: "Firmenname",
       buyerEmail: "E-Mail für Rechnung",
@@ -436,6 +444,8 @@ export const dictionaries = {
     checkoutStatus: {
       successTitle: "Danke für deinen Kauf",
       successLead: "Die Zahlung wurde abgeschlossen. Wir bereiten deine Zugangsdaten zu den Kursen vor.",
+      privateOrderTitle: "Deine Bestellung",
+      privateOrderLead: "Dieser private Link gibt Zugriff auf deine gekauften Udemy-Kurse und die Rechnung, falls sie erstellt wurde.",
       cancelTitle: "Zahlung abgebrochen",
       cancelLead: "Deine Produkte bleiben im Warenkorb. Du kannst die Zahlung jederzeit erneut starten.",
       goToCourses: "Kurse ansehen",
@@ -446,6 +456,7 @@ export const dictionaries = {
       accessTitle: "Deine Udemy-Links",
       accessLead: "Hier findest du aktive Links zu den gekauften Kursen. Bei Paketen zeigen wir jeden Kurs einzeln.",
       processingTitle: "Die Bestellung wird noch verarbeitet",
+      unavailableTitle: "Wir können die Bestellung nicht anzeigen",
       processingText: "Stripe hat die Zahlung abgeschlossen, aber der Webhook kann kurz brauchen, um die Bestellung zu speichern. Wir aktualisieren die Daten automatisch.",
       missingSession: "Die Stripe-Sitzungs-ID fehlt. Gehe zurück zum Warenkorb oder prüfe die Bestellung in Stripe.",
       lookupUnavailable: "Die Bestellung konnte nicht geladen werden. Prüfe Datenbankverbindung und Webhook-Konfiguration.",
@@ -455,7 +466,8 @@ export const dictionaries = {
       sentToEmail: "Die Links werden nach der E-Mail-Integration auch per E-Mail gesendet.",
       noAccessLinks: "Für diese Bestellung wurden keine aktiven Udemy-Links gefunden.",
       invoicePrepared: "Die Rechnung wurde vorbereitet",
-      invoiceNumber: "Rechnungsnummer"
+      invoiceNumber: "Rechnungsnummer",
+      downloadInvoice: "PDF-Rechnung herunterladen"
     },
     aboutPage: {
       eyebrow: "Über mich",
@@ -674,6 +686,8 @@ export const dictionaries = {
       securePayment: "Secure payment",
       invoiceTitle: "Invoice details",
       invoiceLead: "Enter buyer details. At this stage we save the invoice record; PDF generation comes next.",
+      invoiceToggle: "I want to receive an invoice",
+      invoiceToggleText: "Invoice details are required only if you want an invoice for this order.",
       buyerName: "Full name",
       buyerCompany: "Company name",
       buyerEmail: "Invoice e-mail",
@@ -688,6 +702,8 @@ export const dictionaries = {
     checkoutStatus: {
       successTitle: "Thank you for your purchase",
       successLead: "Payment is complete. We are preparing your course access details.",
+      privateOrderTitle: "Your order",
+      privateOrderLead: "This private link gives you access to your purchased Udemy courses and invoice, if one was issued.",
       cancelTitle: "Payment cancelled",
       cancelLead: "Your products are still in the cart. You can return to payment anytime.",
       goToCourses: "View courses",
@@ -698,6 +714,7 @@ export const dictionaries = {
       accessTitle: "Your Udemy links",
       accessLead: "Below are active links to purchased courses. If you bought a bundle, each course is shown separately.",
       processingTitle: "Your order is still processing",
+      unavailableTitle: "We cannot display this order",
       processingText: "Stripe completed payment, but the webhook may need a moment to save the order. We will refresh automatically.",
       missingSession: "The Stripe session id is missing. Return to cart or check the order in Stripe.",
       lookupUnavailable: "Could not load the order. Check the database connection and webhook configuration.",
@@ -707,7 +724,8 @@ export const dictionaries = {
       sentToEmail: "Links will also be sent by e-mail after e-mail delivery is connected.",
       noAccessLinks: "No active Udemy links were found for this order.",
       invoicePrepared: "Invoice has been prepared",
-      invoiceNumber: "Invoice number"
+      invoiceNumber: "Invoice number",
+      downloadInvoice: "Download invoice PDF"
     },
     aboutPage: {
       eyebrow: "About",

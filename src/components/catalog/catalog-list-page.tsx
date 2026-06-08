@@ -6,7 +6,14 @@ import { BundleCard } from "@/components/commerce/bundle-card";
 import { ProductCard } from "@/components/commerce/product-card";
 import { CatalogCta } from "@/components/catalog/catalog-cta";
 import { CatalogHero } from "@/components/catalog/catalog-hero";
-import { categories, bundles, courses } from "@/lib/mock-data";
+import {
+  bundles as fallbackBundles,
+  categories as fallbackCategories,
+  courses as fallbackCourses,
+  type Bundle,
+  type Category,
+  type Course
+} from "@/lib/mock-data";
 import { type Locale } from "@/lib/i18n/config";
 import { type Dictionary } from "@/lib/i18n/dictionaries";
 import { cn } from "@/lib/utils";
@@ -16,11 +23,17 @@ type ProductKind = "courses" | "bundles";
 export function CatalogListPage({
   locale,
   dictionary,
-  kind
+  kind,
+  categories = fallbackCategories,
+  courses = fallbackCourses,
+  bundles = fallbackBundles
 }: {
   locale: Locale;
   dictionary: Dictionary;
   kind: ProductKind;
+  categories?: Category[];
+  courses?: Course[];
+  bundles?: Bundle[];
 }) {
   const [query, setQuery] = useState("");
   const [categoryId, setCategoryId] = useState("all");
@@ -46,7 +59,7 @@ export function CatalogListPage({
       if (sort === "price-high") return b.price[locale] - a.price[locale];
       return b.reviews - a.reviews;
     });
-  }, [categoryId, locale, query, sort, source]);
+  }, [categories, categoryId, locale, query, sort, source]);
 
   const foundText = (isCourses ? dictionary.catalog.foundCourses : dictionary.catalog.foundBundles).replace(
     "{count}",
@@ -164,9 +177,9 @@ export function CatalogListPage({
               <div className={cn("grid gap-5", isCourses ? "sm:grid-cols-2 xl:grid-cols-3" : "md:grid-cols-2 xl:grid-cols-3")}>
                 {filteredItems.map((item) =>
                   item.type === "course" ? (
-                    <ProductCard key={item.id} course={item} locale={locale} dictionary={dictionary} />
+                    <ProductCard key={item.id} course={item} locale={locale} dictionary={dictionary} categories={categories} />
                   ) : (
-                    <BundleCard key={item.id} bundle={item} locale={locale} dictionary={dictionary} />
+                    <BundleCard key={item.id} bundle={item} locale={locale} dictionary={dictionary} categories={categories} />
                   )
                 )}
               </div>

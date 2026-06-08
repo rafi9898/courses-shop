@@ -24,3 +24,17 @@ export function getCheckoutCancelPath(locale: Locale) {
   const base = locale === "pl" ? "platnosc-anulowana" : locale === "de" ? "zahlung-abgebrochen" : "checkout-cancelled";
   return `/${locale}/${base}`;
 }
+
+export function getOrderAccessPath(locale: Locale, token: string) {
+  const base = locale === "pl" ? "zamowienie" : locale === "de" ? "bestellung" : "order";
+  return `/${locale}/${base}/${token}`;
+}
+
+export function getInvoiceDownloadPath(invoiceId: string, orderAccessToken: string) {
+  return `/api/invoices/${invoiceId}/pdf?token=${encodeURIComponent(orderAccessToken)}`;
+}
+
+export function getAbsoluteUrl(path: string) {
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || "http://localhost:3000";
+  return `${baseUrl.replace(/\/$/, "")}${path}`;
+}

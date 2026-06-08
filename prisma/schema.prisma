@@ -32,9 +32,128 @@ enum InvoiceStatus {
   SENT
 }
 
+enum CourseLevel {
+  ALL_LEVELS
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum CategoryColor {
+  VIOLET
+  BLUE
+  EMERALD
+  AMBER
+  SLATE
+}
+
+enum ThumbnailVariant {
+  DARK
+  BLUE
+  PURPLE
+  GREEN
+}
+
+model Category {
+  id            String        @id @default(cuid())
+  locale        String
+  catalogKey    String
+  label         String
+  slug          String
+  description   String
+  color         CategoryColor @default(VIOLET)
+  sortOrder     Int           @default(0)
+  isActive      Boolean       @default(true)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  courses       Course[]
+  bundles       Bundle[]
+
+  @@unique([locale, slug])
+  @@index([locale, catalogKey])
+  @@index([isActive, sortOrder])
+}
+
+model Course {
+  id                String           @id @default(cuid())
+  locale            String
+  catalogKey        String
+  categoryId        String
+  title             String
+  subtitle          String?
+  slug              String
+  level             CourseLevel
+  rating            Decimal          @db.Decimal(3, 2)
+  reviews           Int
+  price             Decimal          @db.Decimal(10, 2)
+  regularPrice      Decimal          @db.Decimal(10, 2)
+  currency          String
+  durationHours     Int
+  lessons           Int
+  highlights        Json
+  outcomes          Json
+  agenda            Json
+  thumbnailImageUrl String?
+  trailerYoutubeUrl String?
+  sortOrder         Int              @default(0)
+  isActive          Boolean          @default(true)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  category          Category         @relation(fields: [categoryId], references: [id])
+  bundleCourses     BundleCourse[]
+
+  @@unique([locale, slug])
+  @@index([locale, catalogKey])
+  @@index([categoryId])
+  @@index([isActive, sortOrder])
+}
+
+model Bundle {
+  id                String           @id @default(cuid())
+  locale            String
+  catalogKey        String
+  categoryId        String
+  title             String
+  slug              String
+  description       String
+  courseCount       Int
+  rating            Decimal          @db.Decimal(3, 2)
+  reviews           Int
+  price             Decimal          @db.Decimal(10, 2)
+  regularPrice      Decimal          @db.Decimal(10, 2)
+  currency          String
+  thumbnailTitle    String
+  thumbnailSubtitle String
+  thumbnailVariant  ThumbnailVariant
+  sortOrder         Int              @default(0)
+  isActive          Boolean          @default(true)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  category          Category         @relation(fields: [categoryId], references: [id])
+  courses           BundleCourse[]
+
+  @@unique([locale, slug])
+  @@index([locale, catalogKey])
+  @@index([categoryId])
+  @@index([isActive, sortOrder])
+}
+
+model BundleCourse {
+  bundleId  String
+  courseId  String
+  position  Int      @default(0)
+  createdAt DateTime @default(now())
+  bundle    Bundle   @relation(fields: [bundleId], references: [id], onDelete: Cascade)
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@id([bundleId, courseId])
+  @@index([courseId])
+}
+
 model Order {
   id                      String        @id @default(cuid())
   orderNumber             String        @unique
+  accessToken             String        @unique
   locale                  String
   currency                String
   status                  OrderStatus   @default(PENDING)
@@ -108,4 +227,21 @@ model Invoice {
 
   @@index([status])
   @@index([issuedAt])
+}
+
+model UdemyCoupon {
+  id          String   @id @default(cuid())
+  courseId    String
+  locale      String   @default("pl")
+  courseTitle String?
+  udemyUrl    String
+  couponCode  String
+  validUntil  DateTime
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([courseId, locale, couponCode])
+  @@index([courseId, locale, isActive])
+  @@index([validUntil])
 }

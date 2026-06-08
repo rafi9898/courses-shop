@@ -1,20 +1,20 @@
 import { NextResponse, type NextRequest } from "next/server";
 import Stripe from "stripe";
 import { type CheckoutCartItemInput, getCartItemKey } from "@/lib/cart";
+import { getPublicCatalog } from "@/lib/catalog-data";
 import { calculateCartTotals, getDiscount, getDiscountedUnitAmount } from "@/lib/discounts";
 import { isLocale, localeMeta } from "@/lib/i18n/config";
 import { parseInvoiceData } from "@/lib/invoice";
-import { bundles, courses, type Product } from "@/lib/mock-data";
+import { type Product } from "@/lib/mock-data";
 import { getCheckoutCancelPath, getCheckoutSuccessPath } from "@/lib/routes";
 
 type CheckoutRequestBody = {
   locale?: unknown;
   items?: unknown;
   discountCode?: unknown;
+  invoiceRequested?: unknown;
   invoiceData?: unknown;
 };
-
-const products: Product[] = [...courses, ...bundles];
 
 export async function POST(request: NextRequest) {
   const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
@@ -27,12 +27,15 @@ export async function POST(request: NextRequest) {
   const locale = typeof body?.locale === "string" && isLocale(body.locale) ? body.locale : null;
   const items = parseItems(body?.items);
   const discountCode = typeof body?.discountCode === "string" && getDiscount(body.discountCode) ? getDiscount(body.discountCode)?.code : null;
-  const invoiceData = parseInvoiceData(body?.invoiceData);
+  const invoiceRequested = body?.invoiceRequested === true;
+  const invoiceData = invoiceRequested ? parseInvoiceData(body?.invoiceData) : null;
 
-  if (!locale || items.length === 0 || !invoiceData) {
+  if (!locale || items.length === 0 || (invoiceRequested && !invoiceData)) {
     return NextResponse.json({ error: "Invalid checkout payload." }, { status: 400 });
   }
 
+  const catalog = await getPublicCatalog(locale);
+  const products: Product[] = [...catalog.courses, ...catalog.bundles];
   const checkoutProducts = items
     .map((item) => products.find((product) => product.type === item.productType && product.id === item.productId))
     .filter((product): product is Product => Boolean(product));
@@ -53,7 +56,7 @@ export async function POST(request: NextRequest) {
     cancel_url: cancelUrl,
     billing_address_collection: "auto",
     customer_creation: "if_required",
-    customer_email: invoiceData.buyerEmail,
+    customer_email: invoiceData?.buyerEmail,
     metadata: {
       locale,
       currency: localeMeta[locale].currency,
@@ -64,14 +67,15 @@ export async function POST(request: NextRequest) {
       subtotal: String(totals.subtotal),
       discount_amount: String(totals.discountAmount),
       total: String(totals.total),
-      invoice_buyer_name: invoiceData.buyerName,
-      invoice_buyer_company: invoiceData.buyerCompany,
-      invoice_buyer_email: invoiceData.buyerEmail,
-      invoice_buyer_country: invoiceData.buyerCountry,
-      invoice_buyer_tax_id: invoiceData.buyerTaxId,
-      invoice_buyer_address_line1: invoiceData.buyerAddressLine1,
-      invoice_buyer_postal_code: invoiceData.buyerPostalCode,
-      invoice_buyer_city: invoiceData.buyerCity
+      invoice_requested: invoiceRequested ? "true" : "false",
+      invoice_buyer_name: invoiceData?.buyerName ?? "",
+      invoice_buyer_company: invoiceData?.buyerCompany ?? "",
+      invoice_buyer_email: invoiceData?.buyerEmail ?? "",
+      invoice_buyer_country: invoiceData?.buyerCountry ?? "",
+      invoice_buyer_tax_id: invoiceData?.buyerTaxId ?? "",
+      invoice_buyer_address_line1: invoiceData?.buyerAddressLine1 ?? "",
+      invoice_buyer_postal_code: invoiceData?.buyerPostalCode ?? "",
+      invoice_buyer_city: invoiceData?.buyerCity ?? ""
     },
     line_items: checkoutProducts.map((product) => ({
       quantity: 1,

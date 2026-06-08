@@ -1,5 +1,6 @@
 import { isLocale, type Locale } from "@/lib/i18n/config";
 import { bundles, courses, type Product } from "@/lib/mock-data";
+import { prisma } from "@/lib/prisma";
 
 type PurchasedProduct = {
   productId: string;
@@ -27,8 +28,55 @@ const activeUdemyCoupons: Record<string, { couponCode: string; validUntil: strin
   typescript: { couponCode: "TS2026", validUntil: "2026-06-30" }
 };
 
-export function getUdemyAccessLinks(purchasedProducts: PurchasedProduct[], localeValue: string): UdemyAccessLink[] {
+export async function getUdemyAccessLinks(purchasedProducts: PurchasedProduct[], localeValue: string): Promise<UdemyAccessLink[]> {
   const locale: Locale = isLocale(localeValue) ? localeValue : "pl";
+  const courseIds = getPurchasedCourseIds(purchasedProducts);
+  const now = new Date();
+
+  try {
+    const coupons = await prisma.udemyCoupon.findMany({
+      where: {
+        courseId: {
+          in: Array.from(courseIds)
+        },
+        locale,
+        isActive: true,
+        validUntil: {
+          gte: now
+        }
+      },
+      orderBy: [{ validUntil: "desc" }, { updatedAt: "desc" }]
+    });
+
+    const couponByCourseId = new Map<string, (typeof coupons)[number]>();
+    coupons.forEach((coupon) => {
+      if (!couponByCourseId.has(coupon.courseId)) {
+        couponByCourseId.set(coupon.courseId, coupon);
+      }
+    });
+
+    return Array.from(courseIds)
+      .map((courseId) => {
+        const course = courses.find((item) => item.id === courseId);
+        const coupon = couponByCourseId.get(courseId);
+
+        if (!course || !coupon) return null;
+
+        return {
+          courseId,
+          title: coupon.courseTitle || course.title[locale],
+          url: createUdemyCouponUrl(coupon.udemyUrl, coupon.couponCode),
+          couponCode: coupon.couponCode,
+          validUntil: coupon.validUntil.toISOString()
+        };
+      })
+      .filter((item): item is UdemyAccessLink => Boolean(item));
+  } catch {
+    return getStaticUdemyAccessLinks(courseIds, locale);
+  }
+}
+
+function getPurchasedCourseIds(purchasedProducts: PurchasedProduct[]) {
   const courseIds = new Set<string>();
 
   for (const product of purchasedProducts) {
@@ -44,6 +92,10 @@ export function getUdemyAccessLinks(purchasedProducts: PurchasedProduct[], local
     }
   }
 
+  return courseIds;
+}
+
+function getStaticUdemyAccessLinks(courseIds: Set<string>, locale: Locale) {
   return Array.from(courseIds)
     .map((courseId) => {
       const course = courses.find((item) => item.id === courseId);
@@ -60,4 +112,10 @@ export function getUdemyAccessLinks(purchasedProducts: PurchasedProduct[], local
       };
     })
     .filter((item): item is UdemyAccessLink => Boolean(item));
+}
+
+function createUdemyCouponUrl(udemyUrl: string, couponCode: string) {
+  const url = new URL(udemyUrl);
+  url.searchParams.set("couponCode", couponCode);
+  return url.toString();
 }

@@ -1,8 +1,10 @@
+import { randomBytes } from "node:crypto";
 import { InvoiceStatus, PaymentStatus, Prisma, ProductType } from "@prisma/client";
 import Stripe from "stripe";
 import { calculateCartTotals, getDiscountedUnitAmount } from "@/lib/discounts";
 import { isLocale, localeMeta, type Locale } from "@/lib/i18n/config";
 import { parseInvoiceData } from "@/lib/invoice";
+import { generateInvoicePdf } from "@/lib/invoices/pdf";
 import { bundles, courses, type Product } from "@/lib/mock-data";
 import { prisma } from "@/lib/prisma";
 
@@ -40,6 +42,7 @@ export async function savePaidOrderFromCheckoutSession(session: Stripe.Checkout.
     },
     create: {
       orderNumber: createOrderNumber(),
+      accessToken: createOrderAccessToken(),
       locale,
       currency: localeMeta[locale].currency,
       status: "PAID",
@@ -75,7 +78,9 @@ export async function savePaidOrderFromCheckoutSession(session: Stripe.Checkout.
     }
   });
 
-  await createInvoiceForOrder(order.id, session);
+  if (session.metadata?.invoice_requested === "true") {
+    await createInvoiceForOrder(order.id, session);
+  }
 
   return prisma.order.findUniqueOrThrow({
     where: { id: order.id },
@@ -105,41 +110,78 @@ async function createInvoiceForOrder(orderId: string, session: Stripe.Checkout.S
     where: { id: orderId }
   });
 
-  await prisma.invoice.upsert({
-    where: { orderId },
-    update: {
-      buyerName: invoiceData.buyerName,
-      buyerCompany: invoiceData.buyerCompany || null,
-      buyerEmail: invoiceData.buyerEmail,
-      buyerCountry: invoiceData.buyerCountry,
-      buyerTaxId: invoiceData.buyerTaxId || null,
-      buyerAddressLine1: invoiceData.buyerAddressLine1,
-      buyerPostalCode: invoiceData.buyerPostalCode,
-      buyerCity: invoiceData.buyerCity,
-      subtotalAmount: order.subtotalAmount,
-      discountAmount: order.discountAmount,
-      totalAmount: order.totalAmount
-    },
-    create: {
-      orderId,
-      invoiceNumber: createInvoiceNumber(),
-      status: InvoiceStatus.DRAFT,
-      locale: order.locale,
-      currency: order.currency,
-      sellerName: process.env.SELLER_NAME || "PROJECT_NAME",
-      sellerAddress: process.env.SELLER_ADDRESS || "Seller address not configured",
-      sellerTaxId: process.env.SELLER_TAX_ID || null,
-      buyerName: invoiceData.buyerName,
-      buyerCompany: invoiceData.buyerCompany || null,
-      buyerEmail: invoiceData.buyerEmail,
-      buyerCountry: invoiceData.buyerCountry,
-      buyerTaxId: invoiceData.buyerTaxId || null,
-      buyerAddressLine1: invoiceData.buyerAddressLine1,
-      buyerPostalCode: invoiceData.buyerPostalCode,
-      buyerCity: invoiceData.buyerCity,
-      subtotalAmount: order.subtotalAmount,
-      discountAmount: order.discountAmount,
-      totalAmount: order.totalAmount
+  let invoice = null;
+
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    try {
+      invoice = await prisma.invoice.upsert({
+        where: { orderId },
+        update: {
+          buyerName: invoiceData.buyerName,
+          buyerCompany: invoiceData.buyerCompany || null,
+          buyerEmail: invoiceData.buyerEmail,
+          buyerCountry: invoiceData.buyerCountry,
+          buyerTaxId: invoiceData.buyerTaxId || null,
+          buyerAddressLine1: invoiceData.buyerAddressLine1,
+          buyerPostalCode: invoiceData.buyerPostalCode,
+          buyerCity: invoiceData.buyerCity,
+          subtotalAmount: order.subtotalAmount,
+          discountAmount: order.discountAmount,
+          totalAmount: order.totalAmount
+        },
+        create: {
+          orderId,
+          invoiceNumber: await createInvoiceNumber(attempt),
+          status: InvoiceStatus.ISSUED,
+          locale: order.locale,
+          currency: order.currency,
+          sellerName: process.env.SELLER_NAME || "PROJECT_NAME",
+          sellerAddress: process.env.SELLER_ADDRESS || "Seller address not configured",
+          sellerTaxId: process.env.SELLER_TAX_ID || null,
+          buyerName: invoiceData.buyerName,
+          buyerCompany: invoiceData.buyerCompany || null,
+          buyerEmail: invoiceData.buyerEmail,
+          buyerCountry: invoiceData.buyerCountry,
+          buyerTaxId: invoiceData.buyerTaxId || null,
+          buyerAddressLine1: invoiceData.buyerAddressLine1,
+          buyerPostalCode: invoiceData.buyerPostalCode,
+          buyerCity: invoiceData.buyerCity,
+          subtotalAmount: order.subtotalAmount,
+          discountAmount: order.discountAmount,
+          totalAmount: order.totalAmount
+        }
+      });
+      break;
+    } catch (error) {
+      const isInvoiceNumberCollision =
+        error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002" && String(error.meta?.target).includes("invoiceNumber");
+
+      if (!isInvoiceNumberCollision || attempt === 4) {
+        throw error;
+      }
+    }
+  }
+
+  if (!invoice) {
+    throw new Error(`Cannot create invoice for checkout session ${session.id}: invoice number generation failed.`);
+  }
+
+  const invoiceForPdf = await prisma.invoice.findUniqueOrThrow({
+    where: { id: invoice.id },
+    include: {
+      order: {
+        include: {
+          items: true
+        }
+      }
+    }
+  });
+  const pdf = await generateInvoicePdf(invoiceForPdf);
+
+  await prisma.invoice.update({
+    where: { id: invoice.id },
+    data: {
+      pdfUrl: pdf.pdfUrl
     }
   });
 }
@@ -186,10 +228,25 @@ function createOrderNumber() {
   return `ORD-${timestamp}-${suffix}`;
 }
 
-function createInvoiceNumber() {
+function createOrderAccessToken() {
+  return randomBytes(32).toString("hex");
+}
+
+async function createInvoiceNumber(sequenceOffset = 0) {
   const date = new Date();
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
-  const suffix = Math.random().toString(36).slice(2, 8).toUpperCase();
-  return `FV/${year}/${month}/${suffix}`;
+  const periodStart = new Date(year, date.getMonth(), 1);
+  const periodEnd = new Date(year, date.getMonth() + 1, 1);
+  const invoicesThisMonth = await prisma.invoice.count({
+    where: {
+      issuedAt: {
+        gte: periodStart,
+        lt: periodEnd
+      }
+    }
+  });
+  const sequence = String(invoicesThisMonth + 1 + sequenceOffset).padStart(3, "0");
+
+  return `FV/${year}/${month}/${sequence}`;
 }

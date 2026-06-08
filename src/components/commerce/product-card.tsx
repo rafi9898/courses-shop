@@ -1,7 +1,8 @@
 import { Heart, Star } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { AddToCartButton } from "@/components/commerce/add-to-cart-button";
-import { categories, type Course } from "@/lib/mock-data";
+import { categories as fallbackCategories, type Category, type Course } from "@/lib/mock-data";
 import { formatPrice, type Locale } from "@/lib/i18n/config";
 import { type Dictionary } from "@/lib/i18n/dictionaries";
 import { getCoursePath } from "@/lib/routes";
@@ -10,11 +11,13 @@ import { cn } from "@/lib/utils";
 export function ProductCard({
   course,
   locale,
-  dictionary
+  dictionary,
+  categories = fallbackCategories
 }: {
   course: Course;
   locale: Locale;
   dictionary: Dictionary;
+  categories?: Category[];
 }) {
   const category = categories.find((item) => item.id === course.categoryId);
   const href = getCoursePath(course, locale);
@@ -22,7 +25,13 @@ export function ProductCard({
   return (
     <article className="group overflow-hidden rounded-xl border border-border bg-white shadow-[0_10px_26px_rgba(15,23,42,0.05)] transition duration-200 hover:-translate-y-1 hover:border-primary/40 hover:shadow-card">
       <Link href={href} aria-label={course.title[locale]}>
-        <Thumbnail title={course.thumbnail.title} subtitle={course.thumbnail.subtitle} variant={course.thumbnail.variant} showFavorite={false} />
+        <Thumbnail
+          title={course.thumbnail.title}
+          subtitle={course.thumbnail.subtitle}
+          variant={course.thumbnail.variant}
+          imageUrl={course.thumbnailImageUrl}
+          showFavorite={false}
+        />
       </Link>
       <div className="p-4">
         <div className="text-xs font-medium text-muted-foreground">{category?.label[locale]}</div>
@@ -59,12 +68,14 @@ export function Thumbnail({
   subtitle,
   variant,
   badge,
+  imageUrl,
   showFavorite = true
 }: {
   title: string;
   subtitle: string;
   variant: "dark" | "blue" | "purple" | "green";
   badge?: string;
+  imageUrl?: string | null;
   showFavorite?: boolean;
 }) {
   return (
@@ -77,6 +88,8 @@ export function Thumbnail({
         variant === "green" && "bg-[linear-gradient(135deg,#064e3b,#059669)]"
       )}
     >
+      {imageUrl ? <Image src={imageUrl} alt={title} fill sizes="(min-width: 1280px) 25vw, (min-width: 640px) 50vw, 100vw" className="object-cover" /> : null}
+      {imageUrl ? <div className="absolute inset-0 bg-black/12" /> : null}
       {!badge && showFavorite ? (
         <button
           type="button"
@@ -90,10 +103,12 @@ export function Thumbnail({
         <span className="absolute right-3 top-3 rounded-md bg-white px-2 py-1 text-xs font-black text-foreground">{badge}</span>
       ) : null}
       <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/25 to-transparent" />
-      <div className="relative z-10 flex h-full flex-col justify-end">
-        <div className="text-2xl font-black tracking-normal">{title}</div>
-        <div className="mt-1 text-xs font-black uppercase text-warning">{subtitle}</div>
-      </div>
+      {!imageUrl ? (
+        <div className="relative z-10 flex h-full flex-col justify-end">
+          <div className="text-2xl font-black tracking-normal">{title}</div>
+          <div className="mt-1 text-xs font-black uppercase text-warning">{subtitle}</div>
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -12,20 +12,24 @@ import { calculateCartTotals } from "@/lib/discounts";
 import { formatPrice, type Locale } from "@/lib/i18n/config";
 import { type Dictionary } from "@/lib/i18n/dictionaries";
 import { emptyInvoiceData, isInvoiceDataComplete, type InvoiceData } from "@/lib/invoice";
-import { bundles, courses, type Product } from "@/lib/mock-data";
+import { type Bundle, type Course, type Product } from "@/lib/mock-data";
 import { getBundlePath, getCoursePath } from "@/lib/routes";
-
-const products: Product[] = [...courses, ...bundles];
 
 export function CheckoutPage({
   locale,
-  dictionary
+  dictionary,
+  courses,
+  bundles
 }: {
   locale: Locale;
   dictionary: Dictionary;
+  courses: Course[];
+  bundles: Bundle[];
 }) {
   const { items, hydrated, appliedDiscountCode } = useCart();
+  const [invoiceRequested, setInvoiceRequested] = useState(false);
   const [invoiceData, setInvoiceData] = useState<InvoiceData>(emptyInvoiceData);
+  const products: Product[] = [...courses, ...bundles];
   const checkoutProducts = items
     .map((item) => products.find((product) => product.id === item.productId && product.type === item.productType))
     .filter((product): product is Product => Boolean(product));
@@ -34,7 +38,7 @@ export function CheckoutPage({
     productType: product.type
   }));
   const totals = calculateCartTotals(checkoutProducts, locale, appliedDiscountCode);
-  const invoiceComplete = isInvoiceDataComplete(invoiceData);
+  const invoiceComplete = !invoiceRequested || isInvoiceDataComplete(invoiceData);
 
   return (
     <div className="bg-gradient-to-b from-white to-[#fbfaff]">
@@ -78,7 +82,13 @@ export function CheckoutPage({
                   <CheckoutProductRow key={`${product.type}:${product.id}`} product={product} locale={locale} dictionary={dictionary} />
                 ))}
               </div>
-              <InvoiceDetailsForm invoiceData={invoiceData} onChange={setInvoiceData} dictionary={dictionary} />
+              <InvoiceDetailsForm
+                invoiceData={invoiceData}
+                invoiceRequested={invoiceRequested}
+                onInvoiceRequestedChange={setInvoiceRequested}
+                onChange={setInvoiceData}
+                dictionary={dictionary}
+              />
             </div>
 
             <aside className="rounded-2xl border border-border bg-white p-6 shadow-card lg:sticky lg:top-24">
@@ -111,6 +121,7 @@ export function CheckoutPage({
                   items={checkoutItems}
                   dictionary={dictionary}
                   discountCode={appliedDiscountCode}
+                  invoiceRequested={invoiceRequested}
                   invoiceData={invoiceData}
                   disabled={!invoiceComplete}
                 />
@@ -126,10 +137,14 @@ export function CheckoutPage({
 
 function InvoiceDetailsForm({
   invoiceData,
+  invoiceRequested,
+  onInvoiceRequestedChange,
   onChange,
   dictionary
 }: {
   invoiceData: InvoiceData;
+  invoiceRequested: boolean;
+  onInvoiceRequestedChange: (value: boolean) => void;
   onChange: (invoiceData: InvoiceData) => void;
   dictionary: Dictionary;
 }) {
@@ -139,18 +154,36 @@ function InvoiceDetailsForm({
 
   return (
     <section className="mt-6 rounded-2xl border border-border bg-white p-6 shadow-[0_10px_26px_rgba(15,23,42,0.04)]">
-      <h2 className="text-2xl font-black">{dictionary.checkoutPage.invoiceTitle}</h2>
-      <p className="mt-2 text-sm leading-6 text-slate-600">{dictionary.checkoutPage.invoiceLead}</p>
-      <div className="mt-5 grid gap-4 sm:grid-cols-2">
-        <TextField label={dictionary.checkoutPage.buyerName} value={invoiceData.buyerName} onChange={(value) => updateField("buyerName", value)} required />
-        <TextField label={dictionary.checkoutPage.buyerCompany} value={invoiceData.buyerCompany} onChange={(value) => updateField("buyerCompany", value)} optionalLabel={dictionary.checkoutPage.optional} />
-        <TextField label={dictionary.checkoutPage.buyerEmail} value={invoiceData.buyerEmail} onChange={(value) => updateField("buyerEmail", value)} type="email" required />
-        <TextField label={dictionary.checkoutPage.buyerCountry} value={invoiceData.buyerCountry} onChange={(value) => updateField("buyerCountry", value)} required />
-        <TextField label={dictionary.checkoutPage.buyerTaxId} value={invoiceData.buyerTaxId} onChange={(value) => updateField("buyerTaxId", value)} optionalLabel={dictionary.checkoutPage.optional} />
-        <TextField label={dictionary.checkoutPage.buyerCity} value={invoiceData.buyerCity} onChange={(value) => updateField("buyerCity", value)} required />
-        <TextField label={dictionary.checkoutPage.buyerAddressLine1} value={invoiceData.buyerAddressLine1} onChange={(value) => updateField("buyerAddressLine1", value)} required />
-        <TextField label={dictionary.checkoutPage.buyerPostalCode} value={invoiceData.buyerPostalCode} onChange={(value) => updateField("buyerPostalCode", value)} required />
-      </div>
+      <label className="flex cursor-pointer items-start gap-3">
+        <input
+          type="checkbox"
+          checked={invoiceRequested}
+          onChange={(event) => onInvoiceRequestedChange(event.target.checked)}
+          className="mt-1 h-5 w-5 rounded border-border text-primary"
+        />
+        <span>
+          <span className="block text-2xl font-black">{dictionary.checkoutPage.invoiceToggle}</span>
+          <span className="mt-2 block text-sm leading-6 text-slate-600">{dictionary.checkoutPage.invoiceToggleText}</span>
+        </span>
+      </label>
+      {invoiceRequested ? (
+        <>
+          <div className="mt-6 border-t border-border pt-6">
+            <h2 className="text-xl font-black">{dictionary.checkoutPage.invoiceTitle}</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-600">{dictionary.checkoutPage.invoiceLead}</p>
+          </div>
+          <div className="mt-5 grid gap-4 sm:grid-cols-2">
+            <TextField label={dictionary.checkoutPage.buyerName} value={invoiceData.buyerName} onChange={(value) => updateField("buyerName", value)} required />
+            <TextField label={dictionary.checkoutPage.buyerCompany} value={invoiceData.buyerCompany} onChange={(value) => updateField("buyerCompany", value)} optionalLabel={dictionary.checkoutPage.optional} />
+            <TextField label={dictionary.checkoutPage.buyerEmail} value={invoiceData.buyerEmail} onChange={(value) => updateField("buyerEmail", value)} type="email" required />
+            <TextField label={dictionary.checkoutPage.buyerCountry} value={invoiceData.buyerCountry} onChange={(value) => updateField("buyerCountry", value)} required />
+            <TextField label={dictionary.checkoutPage.buyerTaxId} value={invoiceData.buyerTaxId} onChange={(value) => updateField("buyerTaxId", value)} optionalLabel={dictionary.checkoutPage.optional} />
+            <TextField label={dictionary.checkoutPage.buyerCity} value={invoiceData.buyerCity} onChange={(value) => updateField("buyerCity", value)} required />
+            <TextField label={dictionary.checkoutPage.buyerAddressLine1} value={invoiceData.buyerAddressLine1} onChange={(value) => updateField("buyerAddressLine1", value)} required />
+            <TextField label={dictionary.checkoutPage.buyerPostalCode} value={invoiceData.buyerPostalCode} onChange={(value) => updateField("buyerPostalCode", value)} required />
+          </div>
+        </>
+      ) : null}
     </section>
   );
 }
@@ -223,6 +256,7 @@ function CheckoutProductRow({
           title={product.thumbnail.title}
           subtitle={product.thumbnail.subtitle}
           variant={product.thumbnail.variant}
+          imageUrl={product.type === "course" ? product.thumbnailImageUrl : null}
           badge={typeLabel}
           showFavorite={false}
         />

@@ -1,4 +1,4 @@
-import { type Locale } from "@/lib/i18n/config";
+type Locale = "pl" | "de" | "en";
 
 export type Category = {
   id: string;
@@ -11,9 +11,10 @@ export type Course = {
   id: string;
   type: "course";
   title: Record<Locale, string>;
+  subtitle?: Record<Locale, string | null>;
   slug: Record<Locale, string>;
   categoryId: string;
-  level: "beginner" | "intermediate" | "advanced";
+  level: "all_levels" | "beginner" | "intermediate" | "advanced";
   rating: number;
   reviews: number;
   price: Record<Locale, number>;
@@ -22,12 +23,14 @@ export type Course = {
   lessons: number;
   highlights: Record<Locale, string[]>;
   outcomes: Record<Locale, string[]>;
-  agenda: Record<Locale, { title: string; lessons: number; duration: string }[]>;
+  agenda: Record<Locale, { title: string; lessons: number; duration?: string }[]>;
   thumbnail: {
     title: string;
     subtitle: string;
     variant: "dark" | "blue" | "purple" | "green";
   };
+  thumbnailImageUrl?: string | null;
+  trailerYoutubeUrl?: string | null;
 };
 
 export type Bundle = {

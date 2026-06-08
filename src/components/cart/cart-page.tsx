@@ -10,19 +10,24 @@ import { Thumbnail } from "@/components/commerce/product-card";
 import { calculateCartTotals } from "@/lib/discounts";
 import { type Dictionary } from "@/lib/i18n/dictionaries";
 import { formatPrice, type Locale } from "@/lib/i18n/config";
-import { bundles, categories, courses, type Product } from "@/lib/mock-data";
+import { type Bundle, type Category, type Course, type Product } from "@/lib/mock-data";
 import { getBundlePath, getCoursePath } from "@/lib/routes";
-
-const products: Product[] = [...courses, ...bundles];
 
 export function CartPage({
   locale,
-  dictionary
+  dictionary,
+  categories,
+  courses,
+  bundles
 }: {
   locale: Locale;
   dictionary: Dictionary;
+  categories: Category[];
+  courses: Course[];
+  bundles: Bundle[];
 }) {
   const { items, hydrated, removeItem, clearCart, appliedDiscountCode } = useCart();
+  const products: Product[] = [...courses, ...bundles];
   const cartProducts = items
     .map((item) => products.find((product) => product.id === item.productId && product.type === item.productType))
     .filter((product): product is Product => Boolean(product));
@@ -73,6 +78,7 @@ export function CartPage({
                     product={product}
                     locale={locale}
                     dictionary={dictionary}
+                    categories={categories}
                     onRemove={() => removeItem(product.type, product.id)}
                   />
                 ))}
@@ -127,7 +133,7 @@ export function CartPage({
                 <h2 className="text-2xl font-black">{dictionary.cartPage.recommendedTitle}</h2>
                 <div className="mt-5 grid gap-5 md:grid-cols-2">
                   {recommendedProducts.map((product) => (
-                    <RecommendedProductCard key={`${product.type}:${product.id}`} product={product} locale={locale} dictionary={dictionary} />
+                    <RecommendedProductCard key={`${product.type}:${product.id}`} product={product} locale={locale} dictionary={dictionary} categories={categories} />
                   ))}
                 </div>
               </section>
@@ -159,11 +165,13 @@ function CartProductRow({
   product,
   locale,
   dictionary,
+  categories,
   onRemove
 }: {
   product: Product;
   locale: Locale;
   dictionary: Dictionary;
+  categories: Category[];
   onRemove: () => void;
 }) {
   const href = product.type === "course" ? getCoursePath(product, locale) : getBundlePath(product, locale);
@@ -178,6 +186,7 @@ function CartProductRow({
           title={product.thumbnail.title}
           subtitle={product.thumbnail.subtitle}
           variant={product.thumbnail.variant}
+          imageUrl={product.type === "course" ? product.thumbnailImageUrl : null}
           badge={typeLabel}
           showFavorite={false}
         />
@@ -292,11 +301,13 @@ function AccessBenefits({ dictionary }: { dictionary: Dictionary }) {
 function RecommendedProductCard({
   product,
   locale,
-  dictionary
+  dictionary,
+  categories
 }: {
   product: Product;
   locale: Locale;
   dictionary: Dictionary;
+  categories: Category[];
 }) {
   const href = product.type === "course" ? getCoursePath(product, locale) : getBundlePath(product, locale);
   const category = categories.find((item) => item.id === product.categoryId);
@@ -304,7 +315,13 @@ function RecommendedProductCard({
   return (
     <article className="grid gap-4 rounded-2xl border border-border bg-white p-4 shadow-[0_10px_26px_rgba(15,23,42,0.04)] sm:grid-cols-[180px_1fr_auto] sm:items-center">
       <Link href={href} aria-label={product.title[locale]} className="overflow-hidden rounded-xl">
-        <Thumbnail title={product.thumbnail.title} subtitle={product.thumbnail.subtitle} variant={product.thumbnail.variant} showFavorite={false} />
+        <Thumbnail
+          title={product.thumbnail.title}
+          subtitle={product.thumbnail.subtitle}
+          variant={product.thumbnail.variant}
+          imageUrl={product.type === "course" ? product.thumbnailImageUrl : null}
+          showFavorite={false}
+        />
       </Link>
       <div>
         <h3 className="font-black leading-6">

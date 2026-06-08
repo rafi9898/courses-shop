@@ -4,20 +4,28 @@ import { ArrowRight, ChevronDown, Search, X } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
-import { categories, products } from "@/lib/mock-data";
+import { type Bundle, type Category, type Course, type Product } from "@/lib/mock-data";
 import { formatPrice, type Locale } from "@/lib/i18n/config";
 import { type Dictionary } from "@/lib/i18n/dictionaries";
+import { getBundlePath, getCoursePath } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
 export function SearchPanel({
   locale,
-  dictionary
+  dictionary,
+  categories,
+  courses,
+  bundles
 }: {
   locale: Locale;
   dictionary: Dictionary;
+  categories: Category[];
+  courses: Course[];
+  bundles: Bundle[];
 }) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("all");
+  const products: Product[] = useMemo(() => [...courses, ...bundles], [bundles, courses]);
 
   const results = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -33,7 +41,7 @@ export function SearchPanel({
         return `${product.title[locale]} ${categoryLabel}`.toLowerCase().includes(normalized);
       })
       .slice(0, 5);
-  }, [category, locale, query]);
+  }, [categories, category, locale, products, query]);
 
   return (
     <section className="container-shell relative z-10 -mt-10">
@@ -111,7 +119,7 @@ export function SearchPanel({
                 {results.map((product) => (
                   <Link
                     key={product.id}
-                    href={product.type === "course" ? dictionary.routes.courses : dictionary.routes.bundles}
+                    href={product.type === "course" ? getCoursePath(product, locale) : getBundlePath(product, locale)}
                     className="flex items-center justify-between gap-3 rounded-lg bg-white p-3 transition hover:shadow-card"
                   >
                     <div>

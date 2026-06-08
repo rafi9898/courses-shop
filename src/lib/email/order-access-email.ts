@@ -1,11 +1,13 @@
-import { type Order, type OrderItem } from "@prisma/client";
+import { InvoiceStatus, type Invoice, type Order, type OrderItem } from "@prisma/client";
 import { Resend } from "resend";
 import { formatPrice, isLocale, type Locale } from "@/lib/i18n/config";
 import { prisma } from "@/lib/prisma";
+import { getAbsoluteUrl, getInvoiceDownloadPath, getOrderAccessPath } from "@/lib/routes";
 import { getUdemyAccessLinks, type UdemyAccessLink } from "@/lib/udemy-access";
 
 type OrderWithItems = Order & {
   items: OrderItem[];
+  invoice: Invoice | null;
 };
 
 const copy = {
@@ -15,6 +17,10 @@ const copy = {
     lead: "Poniżej znajdziesz linki do zakupionych kursów Udemy wraz z aktualnymi kodami.",
     orderNumber: "Numer zamówienia",
     total: "Kwota zamówienia",
+    viewOrder: "Zobacz zamówienie",
+    privateLink: "Prywatny link do zamówienia",
+    downloadInvoice: "Pobierz fakturę PDF",
+    invoiceLink: "Link do faktury",
     openCourse: "Otwórz kurs",
     couponCode: "Kod Udemy",
     validUntil: "Ważny do",
@@ -27,6 +33,10 @@ const copy = {
     lead: "Unten findest du Links zu deinen gekauften Udemy-Kursen mit aktuellen Gutscheincodes.",
     orderNumber: "Bestellnummer",
     total: "Bestellbetrag",
+    viewOrder: "Bestellung ansehen",
+    privateLink: "Privater Bestelllink",
+    downloadInvoice: "PDF-Rechnung herunterladen",
+    invoiceLink: "Rechnungslink",
     openCourse: "Kurs öffnen",
     couponCode: "Udemy-Code",
     validUntil: "Gültig bis",
@@ -39,6 +49,10 @@ const copy = {
     lead: "Below are links to your purchased Udemy courses with current coupon codes.",
     orderNumber: "Order number",
     total: "Order total",
+    viewOrder: "View order",
+    privateLink: "Private order link",
+    downloadInvoice: "Download invoice PDF",
+    invoiceLink: "Invoice link",
     openCourse: "Open course",
     couponCode: "Udemy code",
     validUntil: "Valid until",
@@ -47,7 +61,7 @@ const copy = {
   }
 } satisfies Record<Locale, Record<string, string>>;
 
-export async function sendOrderAccessEmail(orderId: string) {
+export async function sendOrderAccessEmail(orderId: string, options: { force?: boolean } = {}) {
   const resendApiKey = process.env.RESEND_API_KEY;
   const from = process.env.EMAIL_FROM;
 
@@ -57,14 +71,14 @@ export async function sendOrderAccessEmail(orderId: string) {
 
   const order = await prisma.order.findUnique({
     where: { id: orderId },
-    include: { items: true }
+    include: { items: true, invoice: true }
   });
 
   if (!order) {
     throw new Error(`Order ${orderId} was not found.`);
   }
 
-  if (order.accessEmailSentAt) {
+  if (order.accessEmailSentAt && !options.force) {
     return order;
   }
 
@@ -77,7 +91,9 @@ export async function sendOrderAccessEmail(orderId: string) {
   }
 
   const locale = parseLocale(order.locale);
-  const accessLinks = getUdemyAccessLinks(
+  const orderAccessUrl = getAbsoluteUrl(getOrderAccessPath(locale, order.accessToken));
+  const invoiceUrl = order.invoice?.pdfUrl ? getAbsoluteUrl(getInvoiceDownloadPath(order.invoice.id, order.accessToken)) : null;
+  const accessLinks = await getUdemyAccessLinks(
     order.items.map((item) => ({
       productId: item.productId,
       productType: item.productType
@@ -92,9 +108,16 @@ export async function sendOrderAccessEmail(orderId: string) {
       from,
       to: order.customerEmail,
       subject: `${copy[locale].subject} - ${order.orderNumber}`,
-      html: renderOrderAccessEmailHtml(order, accessLinks, locale),
-      text: renderOrderAccessEmailText(order, accessLinks, locale)
+      html: renderOrderAccessEmailHtml(order, accessLinks, locale, orderAccessUrl, invoiceUrl),
+      text: renderOrderAccessEmailText(order, accessLinks, locale, orderAccessUrl, invoiceUrl)
     });
+
+    if (order.invoice) {
+      await prisma.invoice.update({
+        where: { id: order.invoice.id },
+        data: { status: InvoiceStatus.SENT }
+      });
+    }
 
     return prisma.order.update({
       where: { id: order.id },
@@ -102,7 +125,7 @@ export async function sendOrderAccessEmail(orderId: string) {
         accessEmailSentAt: new Date(),
         accessEmailError: null
       },
-      include: { items: true }
+      include: { items: true, invoice: true }
     });
   } catch (error) {
     await prisma.order.update({
@@ -115,7 +138,7 @@ export async function sendOrderAccessEmail(orderId: string) {
   }
 }
 
-function renderOrderAccessEmailHtml(order: OrderWithItems, accessLinks: UdemyAccessLink[], locale: Locale) {
+function renderOrderAccessEmailHtml(order: OrderWithItems, accessLinks: UdemyAccessLink[], locale: Locale, orderAccessUrl: string, invoiceUrl: string | null) {
   const t = copy[locale];
 
   return `<!doctype html>
@@ -129,6 +152,12 @@ function renderOrderAccessEmailHtml(order: OrderWithItems, accessLinks: UdemyAcc
           <p style="margin:0 0 8px;font-size:14px;color:#475569;">${escapeHtml(t.orderNumber)}: <strong>${escapeHtml(order.orderNumber)}</strong></p>
           <p style="margin:0;font-size:14px;color:#475569;">${escapeHtml(t.total)}: <strong>${formatOrderPrice(order, locale)}</strong></p>
         </div>
+        <a href="${escapeHtml(orderAccessUrl)}" style="display:inline-block;background:#4218ff;color:#ffffff;text-decoration:none;font-weight:700;border-radius:10px;padding:12px 16px;margin-bottom:18px;">${escapeHtml(t.viewOrder)}</a>
+        ${
+          invoiceUrl
+            ? `<a href="${escapeHtml(invoiceUrl)}" style="display:inline-block;background:#ffffff;color:#4218ff;text-decoration:none;font-weight:700;border:1px solid #d8d2ff;border-radius:10px;padding:11px 16px;margin:0 0 18px 10px;">${escapeHtml(t.downloadInvoice)}</a>`
+            : ""
+        }
         ${accessLinks.length > 0 ? accessLinks.map((link) => renderAccessLinkHtml(link, locale)).join("") : `<p style="margin:0;color:#475569;">${escapeHtml(t.noLinks)}</p>`}
         <p style="margin:28px 0 0;color:#64748b;font-size:13px;line-height:1.6;">${escapeHtml(t.footer)}</p>
       </div>
@@ -148,7 +177,7 @@ function renderAccessLinkHtml(link: UdemyAccessLink, locale: Locale) {
   </div>`;
 }
 
-function renderOrderAccessEmailText(order: OrderWithItems, accessLinks: UdemyAccessLink[], locale: Locale) {
+function renderOrderAccessEmailText(order: OrderWithItems, accessLinks: UdemyAccessLink[], locale: Locale, orderAccessUrl: string, invoiceUrl: string | null) {
   const t = copy[locale];
   const linksText = accessLinks.length
     ? accessLinks
@@ -162,6 +191,8 @@ ${t.lead}
 
 ${t.orderNumber}: ${order.orderNumber}
 ${t.total}: ${formatOrderPrice(order, locale)}
+${t.privateLink}: ${orderAccessUrl}
+${invoiceUrl ? `${t.invoiceLink}: ${invoiceUrl}\n` : ""}
 
 ${linksText}
 

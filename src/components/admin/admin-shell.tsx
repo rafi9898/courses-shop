@@ -1,0 +1,49 @@
+import { Boxes, FileText, GraduationCap, LayoutDashboard, PackageOpen, Tags } from "lucide-react";
+import { AdminLogoutButton } from "@/components/admin/admin-actions";
+import { ButtonLink } from "@/components/ui/button";
+
+const adminNavItems = [
+  { href: "/admin", label: "Zamówienia", icon: FileText },
+  { href: "/admin/catalog", label: "Katalog", icon: LayoutDashboard },
+  { href: "/admin/catalog/categories", label: "Kategorie", icon: Tags },
+  { href: "/admin/catalog/courses", label: "Kursy", icon: GraduationCap },
+  { href: "/admin/catalog/bundles", label: "Pakiety", icon: PackageOpen }
+];
+
+export function AdminShell({ children }: { children: React.ReactNode }) {
+  return <main className="min-h-screen bg-slate-50 px-4 py-8 sm:px-6 lg:px-8">{children}</main>;
+}
+
+export function AdminFrame({ children }: { children: React.ReactNode }) {
+  return (
+    <AdminShell>
+      <div className="mx-auto max-w-7xl">
+        <div className="mb-6 flex flex-col gap-4 rounded-xl border border-border bg-white p-4 shadow-card lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex items-center gap-3">
+            <div className="grid h-10 w-10 place-items-center rounded-lg bg-primary-soft text-primary">
+              <Boxes className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-xs font-black uppercase text-primary">Panel admina</p>
+              <p className="text-sm font-semibold text-slate-600">Zamówienia, faktury, kody Udemy i katalog produktów</p>
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            {adminNavItems.map((item) => {
+              const Icon = item.icon;
+
+              return (
+                <ButtonLink key={item.href} href={item.href} variant="secondary" className="h-10 px-3">
+                  <Icon className="h-4 w-4" />
+                  {item.label}
+                </ButtonLink>
+              );
+            })}
+            <AdminLogoutButton />
+          </div>
+        </div>
+        {children}
+      </div>
+    </AdminShell>
+  );
+}
