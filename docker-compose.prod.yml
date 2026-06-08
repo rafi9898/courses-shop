@@ -15,6 +15,7 @@ services:
       retries: 10
 
   app:
+    image: courses-shop-app:${APP_IMAGE_TAG:-latest}
     build:
       context: .
     restart: unless-stopped

@@ -63,10 +63,18 @@ jobs:
             cd /opt/courses-shop/app
             git fetch origin main
             git reset --hard origin/main
+            export APP_IMAGE_TAG="$(git rev-parse --short HEAD)"
             sudo docker compose --env-file .env.production -f docker-compose.prod.yml build --no-cache app
             sudo docker compose --env-file .env.production -f docker-compose.prod.yml up -d db
             sudo docker compose --env-file .env.production -f docker-compose.prod.yml run --rm app npm run prisma:migrate:deploy
             sudo docker compose --env-file .env.production -f docker-compose.prod.yml up -d --force-recreate app caddy
+            running_container_id="$(sudo docker compose --env-file .env.production -f docker-compose.prod.yml ps -q app)"
+            running_image="$(sudo docker inspect --format '{{.Config.Image}}' "$running_container_id")"
+            expected_image="courses-shop-app:${APP_IMAGE_TAG}"
+            if [ "$running_image" != "$expected_image" ]; then
+              echo "Deploy verification failed: expected ${expected_image}, got ${running_image}"
+              exit 1
+            fi
             sudo docker image prune -f
           REMOTE
 
