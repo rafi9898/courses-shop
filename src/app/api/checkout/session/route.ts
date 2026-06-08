@@ -13,6 +13,7 @@ type CheckoutRequestBody = {
   locale?: unknown;
   items?: unknown;
   discountCode?: unknown;
+  customerEmail?: unknown;
   invoiceRequested?: unknown;
   invoiceData?: unknown;
 };
@@ -27,10 +28,11 @@ export async function POST(request: NextRequest) {
   const body = (await request.json().catch(() => null)) as CheckoutRequestBody | null;
   const locale = typeof body?.locale === "string" && isLocale(body.locale) ? body.locale : null;
   const items = parseItems(body?.items);
+  const customerEmail = parseEmail(body?.customerEmail);
   const invoiceRequested = body?.invoiceRequested === true;
   const invoiceData = invoiceRequested ? parseInvoiceData(body?.invoiceData) : null;
 
-  if (!locale || items.length === 0 || (invoiceRequested && !invoiceData)) {
+  if (!locale || items.length === 0 || !customerEmail || (invoiceRequested && !invoiceData)) {
     return NextResponse.json({ error: "Invalid checkout payload." }, { status: 400 });
   }
 
@@ -59,10 +61,11 @@ export async function POST(request: NextRequest) {
     cancel_url: cancelUrl,
     billing_address_collection: "auto",
     customer_creation: "if_required",
-    customer_email: invoiceData?.buyerEmail,
+    customer_email: customerEmail,
     metadata: {
       locale,
       currency: localeMeta[locale].currency,
+      customer_email: customerEmail,
       discount_code: discountCode ?? "",
       product_keys: items.map(getCartItemKey).join(","),
       product_count: String(items.length),
@@ -98,6 +101,13 @@ export async function POST(request: NextRequest) {
   });
 
   return NextResponse.json({ url: session.url });
+}
+
+function parseEmail(value: unknown) {
+  if (typeof value !== "string") return null;
+
+  const email = value.trim().slice(0, 254).toLowerCase();
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? email : null;
 }
 
 function parseItems(items: unknown): CheckoutCartItemInput[] {

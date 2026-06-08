@@ -13,6 +13,7 @@ export function StripeCheckoutButton({
   items,
   dictionary,
   discountCode,
+  customerEmail,
   invoiceRequested = false,
   invoiceData,
   disabled = false
@@ -21,6 +22,7 @@ export function StripeCheckoutButton({
   items: CheckoutCartItemInput[];
   dictionary: Dictionary;
   discountCode?: string | null;
+  customerEmail: string;
   invoiceRequested?: boolean;
   invoiceData?: InvoiceData;
   disabled?: boolean;
@@ -36,7 +38,7 @@ export function StripeCheckoutButton({
       const response = await fetch("/api/checkout/session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ locale, items, discountCode, invoiceRequested, invoiceData: invoiceRequested ? invoiceData : undefined })
+        body: JSON.stringify({ locale, items, discountCode, customerEmail, invoiceRequested, invoiceData: invoiceRequested ? invoiceData : undefined })
       });
       const data = (await response.json()) as { url?: string; error?: string };
 
