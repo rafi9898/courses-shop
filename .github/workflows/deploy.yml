@@ -74,10 +74,41 @@ jobs:
         run: |
           set -euo pipefail
 
-          for path in /pl /en /de /pl/kursy /pl/pakiety /pl/kategorie /robots.txt /sitemap.xml; do
+          for path in \
+            /pl \
+            /en \
+            /de \
+            /pl/kursy \
+            /pl/pakiety \
+            /pl/kategorie \
+            /pl/regulamin \
+            /pl/polityka-prywatnosci \
+            /en/terms \
+            /en/privacy-policy \
+            /de/agb \
+            /de/datenschutz \
+            /robots.txt \
+            /sitemap.xml; do
             status="$(curl -L -s -o /dev/null -w '%{http_code}' "https://rafalpodraza.com${path}")"
             if [ "$status" -lt 200 ] || [ "$status" -ge 400 ]; then
               echo "Smoke test failed for ${path}: HTTP ${status}"
+              exit 1
+            fi
+          done
+
+          legal_page="$(curl -fsSL https://rafalpodraza.com/pl/regulamin)"
+          if ! grep -Fq "Regulamin sklepu" <<< "$legal_page"; then
+            echo "Smoke test failed: legal page content is missing"
+            exit 1
+          fi
+
+          home_page="$(curl -fsSL https://rafalpodraza.com/pl)"
+          for expected in \
+            "https://www.youtube.com/@RafalPodraza" \
+            "https://www.linkedin.com/in/rafalpodraza" \
+            "https://www.facebook.com/technikaprogramowania"; do
+            if ! grep -Fq "$expected" <<< "$home_page"; then
+              echo "Smoke test failed: missing footer link ${expected}"
               exit 1
             fi
           done
