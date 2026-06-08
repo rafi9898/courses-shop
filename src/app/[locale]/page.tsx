@@ -8,8 +8,19 @@ import { SearchPanel } from "@/components/home/search-panel";
 import { getPublicCatalog } from "@/lib/catalog-data";
 import { isLocale, type Locale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionaries";
+import { getPublicPageMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata({
+  params
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+
+  return isLocale(locale) ? getPublicPageMetadata(locale, "home") : {};
+}
 
 export default async function LocaleHomePage({
   params

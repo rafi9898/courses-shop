@@ -84,10 +84,11 @@ export default async function AdminOrderDetailsPage({
         </div>
       </div>
 
-      <div className="mt-6 grid gap-4 lg:grid-cols-4">
+      <div className="mt-6 grid gap-4 lg:grid-cols-5">
         <InfoCard label="Płatność" value={order.paymentStatus} note={order.status} />
         <InfoCard label="Kwota" value={formatOrderPrice(Number(order.totalAmount), locale, order.currency)} note={order.discountCode ? `Kod rabatowy: ${order.discountCode}` : "Bez kodu rabatowego"} />
         <InfoCard label="E-mail wysłany" value={order.accessEmailSentAt ? "Tak" : "Nie"} note={order.accessEmailSentAt ? formatDate(order.accessEmailSentAt) : order.accessEmailError ?? "Brak wysyłki"} />
+        <InfoCard label="Telegram" value={order.telegramNotifiedAt ? "Wysłany" : "Nie"} note={order.telegramNotifiedAt ? formatDate(order.telegramNotifiedAt) : order.telegramNotifyError ?? "Brak wysyłki"} />
         <InfoCard label="Faktura" value={order.invoice ? order.invoice.status : "Brak"} note={order.invoice?.invoiceNumber ?? "Nie wystawiono"} />
       </div>
 

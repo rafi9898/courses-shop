@@ -19,11 +19,13 @@ import { BundleCard } from "@/components/commerce/bundle-card";
 import { ProductCard, Thumbnail } from "@/components/commerce/product-card";
 import { RichTextContent } from "@/components/product-detail/rich-text-content";
 import { VideoPreview } from "@/components/product-detail/video-preview";
+import { JsonLd } from "@/components/seo/json-ld";
 import { Badge } from "@/components/ui/badge";
 import { type Bundle, type Category, type Course } from "@/lib/mock-data";
-import { formatPrice, type Locale } from "@/lib/i18n/config";
+import { formatPrice, localeMeta, type Locale } from "@/lib/i18n/config";
 import { type Dictionary } from "@/lib/i18n/dictionaries";
-import { getCoursePath } from "@/lib/routes";
+import { getBundlePath, getCoursePath } from "@/lib/routes";
+import { createProductJsonLd } from "@/lib/seo";
 
 type DetailProduct =
   | {
@@ -59,9 +61,21 @@ export function ProductDetailPage({
   const bundleCourses = !isCourse ? courses.filter((course) => product.courseIds.includes(course.id)) : [];
   const recommendedCourses = courses.filter((course) => course.id !== product.id && course.categoryId === product.categoryId).slice(0, 3);
   const recommendedBundles = bundles.filter((bundle) => bundle.id !== product.id && bundle.categoryId === product.categoryId).slice(0, 2);
+  const productPath = isCourse ? getCoursePath(product, locale) : getBundlePath(product, locale);
 
   return (
     <div className="bg-gradient-to-b from-white to-[#fbfaff]">
+      <JsonLd
+        data={createProductJsonLd({
+          locale,
+          path: productPath,
+          name: title,
+          description: heroSubtitle || title,
+          price: product.price[locale],
+          currency: localeMeta[locale].currency,
+          imageUrl: product.thumbnailImageUrl
+        })}
+      />
       <section className="border-b border-border/70 bg-white">
         <div className="container-shell py-9 lg:py-12">
           <nav className="mb-8 flex flex-wrap items-center gap-2 text-sm text-muted-foreground" aria-label="Breadcrumb">

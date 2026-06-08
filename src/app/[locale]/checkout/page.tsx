@@ -3,11 +3,16 @@ import { CheckoutPage } from "@/components/checkout/checkout-page";
 import { getPublicCatalog } from "@/lib/catalog-data";
 import { isLocale, type Locale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionaries";
+import { getNoIndexMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
 export function generateStaticParams() {
   return [{ locale: "pl" }, { locale: "de" }, { locale: "en" }];
+}
+
+export function generateMetadata() {
+  return getNoIndexMetadata("Checkout");
 }
 
 export default async function CheckoutRoutePage({
