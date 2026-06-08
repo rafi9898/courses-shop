@@ -25,6 +25,7 @@ COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/next.config.mjs ./next.config.mjs
 COPY --from=build /app/public ./public
 COPY --from=build /app/prisma ./prisma
+COPY --from=build /app/src ./src
 COPY --from=build /app/.next ./.next
 
 RUN mkdir -p public/uploads/course-thumbnails public/uploads/bundle-thumbnails storage/invoices
