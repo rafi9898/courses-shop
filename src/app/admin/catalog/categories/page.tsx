@@ -1,4 +1,5 @@
 import { Edit, Plus, Tags, Trash2 } from "lucide-react";
+import { AdminPagination, getAdminPagination, parseAdminPage } from "@/components/admin/admin-pagination";
 import { CatalogLocaleSwitcher, parseAdminLocale } from "@/components/admin/catalog-locale-switcher";
 import { AdminFrame, AdminShell } from "@/components/admin/admin-shell";
 import { AdminLoginForm } from "@/components/admin/admin-login-form";
@@ -12,18 +13,22 @@ export const dynamic = "force-dynamic";
 export default async function AdminCategoriesPage({
   searchParams
 }: {
-  searchParams: Promise<{ locale?: string }>;
+  searchParams: Promise<{ locale?: string; page?: string }>;
 }) {
   if (!isAdminConfigured()) return <AdminShell><AdminLoginForm /></AdminShell>;
   if (!(await isAdminAuthenticated())) return <AdminShell><AdminLoginForm /></AdminShell>;
 
-  const { locale: rawLocale } = await searchParams;
+  const { locale: rawLocale, page: rawPage } = await searchParams;
   const locale = parseAdminLocale(rawLocale);
+  const page = parseAdminPage(rawPage);
+  const { skip, take } = getAdminPagination(page);
   let databaseError: string | null = null;
-  const categories = await prisma.category
-    .findMany({
+  const [categories, totalCategories] = await Promise.all([
+    prisma.category.findMany({
       where: { locale },
       orderBy: [{ sortOrder: "asc" }, { label: "asc" }],
+      skip,
+      take,
       include: {
         _count: {
           select: {
@@ -32,11 +37,12 @@ export default async function AdminCategoriesPage({
           }
         }
       }
-    })
-    .catch(() => {
-      databaseError = "Nie udało się pobrać kategorii. Sprawdź `DATABASE_URL`, uruchom migracje i seed katalogu.";
-      return [];
-    });
+    }),
+    prisma.category.count({ where: { locale } })
+  ]).catch(() => {
+    databaseError = "Nie udało się pobrać kategorii. Sprawdź `DATABASE_URL`, uruchom migracje i seed katalogu.";
+    return [[], 0] as const;
+  });
 
   return (
     <AdminFrame>
@@ -126,6 +132,7 @@ export default async function AdminCategoriesPage({
             </tbody>
           </table>
         </div>
+        <AdminPagination basePath="/admin/catalog/categories" page={page} totalItems={totalCategories} params={{ locale }} />
       </section>
     </AdminFrame>
   );

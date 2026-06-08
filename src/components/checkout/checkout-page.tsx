@@ -2,7 +2,7 @@
 
 import { ArrowLeft, CreditCard, Lock } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { StripeCheckoutButton } from "@/components/checkout/stripe-checkout-button";
 import { useCart } from "@/components/cart/cart-provider";
 import { Thumbnail } from "@/components/commerce/product-card";
@@ -26,18 +26,32 @@ export function CheckoutPage({
   courses: Course[];
   bundles: Bundle[];
 }) {
-  const { items, hydrated, appliedDiscountCode } = useCart();
+  const { items, hydrated, removeItem, appliedDiscountCode, discounts } = useCart();
   const [invoiceRequested, setInvoiceRequested] = useState(false);
   const [invoiceData, setInvoiceData] = useState<InvoiceData>(emptyInvoiceData);
-  const products: Product[] = [...courses, ...bundles];
+  const products: Product[] = useMemo(() => [...courses, ...bundles], [bundles, courses]);
+  const discountPool = discounts.length > 0 ? discounts : undefined;
   const checkoutProducts = items
     .map((item) => products.find((product) => product.id === item.productId && product.type === item.productType))
     .filter((product): product is Product => Boolean(product));
+
+  useEffect(() => {
+    if (!hydrated) return;
+
+    items.forEach((item) => {
+      const exists = products.some((product) => product.id === item.productId && product.type === item.productType);
+
+      if (!exists) {
+        removeItem(item.productType, item.productId);
+      }
+    });
+  }, [hydrated, items, products, removeItem]);
+
   const checkoutItems: CheckoutCartItemInput[] = checkoutProducts.map((product) => ({
     productId: product.id,
     productType: product.type
   }));
-  const totals = calculateCartTotals(checkoutProducts, locale, appliedDiscountCode);
+  const totals = calculateCartTotals(checkoutProducts, locale, appliedDiscountCode, discountPool);
   const invoiceComplete = !invoiceRequested || isInvoiceDataComplete(invoiceData);
 
   return (
@@ -256,7 +270,8 @@ function CheckoutProductRow({
           title={product.thumbnail.title}
           subtitle={product.thumbnail.subtitle}
           variant={product.thumbnail.variant}
-          imageUrl={product.type === "course" ? product.thumbnailImageUrl : null}
+          hideText={product.type === "bundle"}
+          imageUrl={product.thumbnailImageUrl}
           badge={typeLabel}
           showFavorite={false}
         />

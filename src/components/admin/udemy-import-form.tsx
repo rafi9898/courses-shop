@@ -9,14 +9,15 @@ type ImportResult = {
   totalRows: number;
   created: number;
   updated: number;
+  missingUdemyCourseIds?: string[];
   rejected: Array<{
     rowNumber: number;
     reason: string;
   }>;
 };
 
-const sampleCsv = `courseId,locale,courseTitle,udemyUrl,couponCode,validUntil,isActive
-python,pl,Python od podstaw,https://www.udemy.com/course/python-od-podstaw/,PYTHON2026,2026-06-30,true`;
+const sampleCsv = `course_id,coupon_type,coupon_code,start_date,start_time,custom_price
+6893793,free_targeted,A7F3D92KLM8P4QX1R0ZT,2026-05-01,00:00,`;
 
 export function UdemyImportForm() {
   const router = useRouter();
@@ -62,7 +63,7 @@ export function UdemyImportForm() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h2 className="text-xl font-black">Import kodów Udemy</h2>
-          <p className="mt-1 text-sm leading-6 text-slate-600">CSV obsługuje kolumny: `courseId`, `locale`, `courseTitle`, `udemyUrl`, `couponCode`, `validUntil`, `isActive`.</p>
+          <p className="mt-1 text-sm leading-6 text-slate-600">CSV z Udemy obsługuje kolumny: `course_id`, `coupon_code`, `start_date`, `start_time`. Kurs musi mieć uzupełnione `Udemy Course ID` i `URL kursu Udemy`.</p>
         </div>
         <label className="focus-ring inline-flex h-10 cursor-pointer items-center justify-center gap-2 rounded-[10px] border border-border bg-white px-4 text-sm font-semibold hover:border-primary hover:text-primary">
           <FileUp className="h-4 w-4" />
@@ -99,6 +100,15 @@ export function UdemyImportForm() {
                 </li>
               ))}
             </ul>
+          ) : null}
+          {result.missingUdemyCourseIds?.length ? (
+            <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-amber-800">
+              <p className="font-black">Brak mapowania Udemy Course ID:</p>
+              <p className="mt-1 font-mono text-xs leading-5">
+                {result.missingUdemyCourseIds.slice(0, 30).join(", ")}
+                {result.missingUdemyCourseIds.length > 30 ? ` + ${result.missingUdemyCourseIds.length - 30} więcej` : ""}
+              </p>
+            </div>
           ) : null}
         </div>
       ) : null}

@@ -2,7 +2,7 @@
 
 import { ArrowLeft, CreditCard, Info, KeyRound, Mail, PackageCheck, ShieldCheck, Trash2, Zap } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { useCart } from "@/components/cart/cart-provider";
 import { AddToCartButton } from "@/components/commerce/add-to-cart-button";
@@ -26,12 +26,26 @@ export function CartPage({
   courses: Course[];
   bundles: Bundle[];
 }) {
-  const { items, hydrated, removeItem, clearCart, appliedDiscountCode } = useCart();
-  const products: Product[] = [...courses, ...bundles];
+  const { items, hydrated, removeItem, clearCart, appliedDiscountCode, discounts } = useCart();
+  const products: Product[] = useMemo(() => [...courses, ...bundles], [bundles, courses]);
+  const discountPool = discounts.length > 0 ? discounts : undefined;
   const cartProducts = items
     .map((item) => products.find((product) => product.id === item.productId && product.type === item.productType))
     .filter((product): product is Product => Boolean(product));
-  const totals = calculateCartTotals(cartProducts, locale, appliedDiscountCode);
+
+  useEffect(() => {
+    if (!hydrated) return;
+
+    items.forEach((item) => {
+      const exists = products.some((product) => product.id === item.productId && product.type === item.productType);
+
+      if (!exists) {
+        removeItem(item.productType, item.productId);
+      }
+    });
+  }, [hydrated, items, products, removeItem]);
+
+  const totals = calculateCartTotals(cartProducts, locale, appliedDiscountCode, discountPool);
   const recommendedProducts = products
     .filter((product) => !cartProducts.some((cartProduct) => cartProduct.id === product.id && cartProduct.type === product.type))
     .slice(0, 2);
@@ -186,7 +200,8 @@ function CartProductRow({
           title={product.thumbnail.title}
           subtitle={product.thumbnail.subtitle}
           variant={product.thumbnail.variant}
-          imageUrl={product.type === "course" ? product.thumbnailImageUrl : null}
+          hideText={product.type === "bundle"}
+          imageUrl={product.thumbnailImageUrl}
           badge={typeLabel}
           showFavorite={false}
         />
@@ -319,7 +334,8 @@ function RecommendedProductCard({
           title={product.thumbnail.title}
           subtitle={product.thumbnail.subtitle}
           variant={product.thumbnail.variant}
-          imageUrl={product.type === "course" ? product.thumbnailImageUrl : null}
+          hideText={product.type === "bundle"}
+          imageUrl={product.thumbnailImageUrl}
           showFavorite={false}
         />
       </Link>

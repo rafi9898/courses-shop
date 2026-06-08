@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 import { CatalogCta } from "@/components/catalog/catalog-cta";
 import { CatalogHero } from "@/components/catalog/catalog-hero";
 import { ButtonLink } from "@/components/ui/button";
-import { categories, courses } from "@/lib/mock-data";
+import { type Category, type Course } from "@/lib/mock-data";
 import { type Locale } from "@/lib/i18n/config";
 import { type Dictionary } from "@/lib/i18n/dictionaries";
 
@@ -20,10 +20,14 @@ const categoryIcons = {
 
 export function CategoriesPage({
   locale,
-  dictionary
+  dictionary,
+  categories,
+  courses
 }: {
   locale: Locale;
   dictionary: Dictionary;
+  categories: Category[];
+  courses: Course[];
 }) {
   const [query, setQuery] = useState("");
 
@@ -34,7 +38,7 @@ export function CategoriesPage({
       if (!normalized) return true;
       return `${category.label[locale]} ${category.description[locale]}`.toLowerCase().includes(normalized);
     });
-  }, [locale, query]);
+  }, [categories, locale, query]);
 
   return (
     <>

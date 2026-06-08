@@ -1,4 +1,4 @@
-import { Boxes, FileText, GraduationCap, LayoutDashboard, PackageOpen, Tags } from "lucide-react";
+import { Boxes, FileText, GraduationCap, LayoutDashboard, PackageOpen, Percent, Tags } from "lucide-react";
 import { AdminLogoutButton } from "@/components/admin/admin-actions";
 import { ButtonLink } from "@/components/ui/button";
 
@@ -7,7 +7,8 @@ const adminNavItems = [
   { href: "/admin/catalog", label: "Katalog", icon: LayoutDashboard },
   { href: "/admin/catalog/categories", label: "Kategorie", icon: Tags },
   { href: "/admin/catalog/courses", label: "Kursy", icon: GraduationCap },
-  { href: "/admin/catalog/bundles", label: "Pakiety", icon: PackageOpen }
+  { href: "/admin/catalog/bundles", label: "Pakiety", icon: PackageOpen },
+  { href: "/admin/discounts", label: "Rabaty", icon: Percent }
 ];
 
 export function AdminShell({ children }: { children: React.ReactNode }) {

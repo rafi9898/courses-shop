@@ -1,7 +1,7 @@
 "use client";
 
-import { RotateCcw, Search, SlidersHorizontal } from "lucide-react";
-import { useMemo, useState } from "react";
+import { ChevronLeft, ChevronRight, RotateCcw, Search, SlidersHorizontal } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { BundleCard } from "@/components/commerce/bundle-card";
 import { ProductCard } from "@/components/commerce/product-card";
 import { CatalogCta } from "@/components/catalog/catalog-cta";
@@ -19,11 +19,14 @@ import { type Dictionary } from "@/lib/i18n/dictionaries";
 import { cn } from "@/lib/utils";
 
 type ProductKind = "courses" | "bundles";
+const ITEMS_PER_PAGE = 9;
 
 export function CatalogListPage({
   locale,
   dictionary,
   kind,
+  initialCategoryId = "all",
+  initialQuery = "",
   categories = fallbackCategories,
   courses = fallbackCourses,
   bundles = fallbackBundles
@@ -31,13 +34,16 @@ export function CatalogListPage({
   locale: Locale;
   dictionary: Dictionary;
   kind: ProductKind;
+  initialCategoryId?: string;
+  initialQuery?: string;
   categories?: Category[];
   courses?: Course[];
   bundles?: Bundle[];
 }) {
-  const [query, setQuery] = useState("");
-  const [categoryId, setCategoryId] = useState("all");
+  const [query, setQuery] = useState(initialQuery);
+  const [categoryId, setCategoryId] = useState(initialCategoryId);
   const [sort, setSort] = useState("popular");
+  const [page, setPage] = useState(1);
 
   const isCourses = kind === "courses";
   const source = isCourses ? courses : bundles;
@@ -49,7 +55,7 @@ export function CatalogListPage({
       const category = categories.find((entry) => entry.id === item.categoryId);
       const matchesQuery =
         !normalized ||
-        `${item.title[locale]} ${category?.label[locale] ?? ""}`.toLowerCase().includes(normalized);
+        getCatalogItemSearchText(item, category?.label[locale] ?? "", locale).includes(normalized);
 
       return matchesCategory && matchesQuery;
     });
@@ -60,6 +66,25 @@ export function CatalogListPage({
       return b.reviews - a.reviews;
     });
   }, [categories, categoryId, locale, query, sort, source]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredItems.length / ITEMS_PER_PAGE));
+  const paginatedItems = filteredItems.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+
+  useEffect(() => {
+    setPage(1);
+  }, [categoryId, query, sort]);
+
+  useEffect(() => {
+    setQuery(initialQuery);
+  }, [initialQuery]);
+
+  useEffect(() => {
+    setCategoryId(initialCategoryId);
+  }, [initialCategoryId]);
+
+  useEffect(() => {
+    setPage((currentPage) => Math.min(currentPage, totalPages));
+  }, [totalPages]);
 
   const foundText = (isCourses ? dictionary.catalog.foundCourses : dictionary.catalog.foundBundles).replace(
     "{count}",
@@ -103,6 +128,7 @@ export function CatalogListPage({
             </select>
             <button
               type="button"
+              onClick={() => setPage(1)}
               className="focus-ring h-14 rounded-xl bg-primary px-6 text-sm font-bold text-white shadow-soft transition hover:bg-[#2f16d8]"
             >
               {dictionary.home.searchButton}
@@ -175,7 +201,7 @@ export function CatalogListPage({
 
             {filteredItems.length ? (
               <div className={cn("grid gap-5", isCourses ? "sm:grid-cols-2 xl:grid-cols-3" : "md:grid-cols-2 xl:grid-cols-3")}>
-                {filteredItems.map((item) =>
+                {paginatedItems.map((item) =>
                   item.type === "course" ? (
                     <ProductCard key={item.id} course={item} locale={locale} dictionary={dictionary} categories={categories} />
                   ) : (
@@ -189,7 +215,7 @@ export function CatalogListPage({
               </div>
             )}
 
-            <Pagination />
+            <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
           </div>
         </div>
 
@@ -202,6 +228,24 @@ export function CatalogListPage({
       </section>
     </>
   );
+}
+
+function getCatalogItemSearchText(item: Course | Bundle, categoryLabel: string, locale: Locale) {
+  const values = [
+    item.title[locale],
+    item.subtitle?.[locale],
+    categoryLabel
+  ].filter(Boolean);
+
+  if ("description" in item) {
+    values.push(item.description[locale]);
+  }
+
+  if ("highlights" in item) {
+    values.push(...item.highlights[locale]);
+  }
+
+  return values.join(" ").toLowerCase();
 }
 
 function FilterPill({
@@ -254,23 +298,67 @@ function CheckboxRow({
   );
 }
 
-function Pagination() {
+function Pagination({
+  page,
+  totalPages,
+  onPageChange
+}: {
+  page: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+}) {
+  if (totalPages <= 1) return null;
+
+  const pages = Array.from({ length: totalPages }, (_, index) => index + 1);
+
   return (
     <div className="mt-8 flex items-center justify-center gap-2">
-      {["‹", "1", "2", "3", "…", "6", "›"].map((item, index) => (
+      <PaginationButton disabled={page === 1} onClick={() => onPageChange(Math.max(1, page - 1))} ariaLabel="Poprzednia strona">
+        <ChevronLeft className="h-4 w-4" />
+      </PaginationButton>
+      {pages.map((item) => (
         <button
-          key={`${item}-${index}`}
+          key={item}
           type="button"
+          onClick={() => onPageChange(item)}
           className={cn(
             "focus-ring grid h-10 w-10 place-items-center rounded-full border text-sm font-bold transition",
-            item === "1"
+            item === page
               ? "border-primary bg-primary text-white"
               : "border-border bg-white text-slate-600 hover:border-primary hover:text-primary"
           )}
+          aria-current={item === page ? "page" : undefined}
         >
           {item}
         </button>
       ))}
+      <PaginationButton disabled={page === totalPages} onClick={() => onPageChange(Math.min(totalPages, page + 1))} ariaLabel="Następna strona">
+        <ChevronRight className="h-4 w-4" />
+      </PaginationButton>
     </div>
+  );
+}
+
+function PaginationButton({
+  children,
+  disabled,
+  onClick,
+  ariaLabel
+}: {
+  children: React.ReactNode;
+  disabled: boolean;
+  onClick: () => void;
+  ariaLabel: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={ariaLabel}
+      className="focus-ring grid h-10 w-10 place-items-center rounded-full border border-border bg-white text-sm font-bold text-slate-600 transition hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-border disabled:hover:text-slate-600"
+    >
+      {children}
+    </button>
   );
 }

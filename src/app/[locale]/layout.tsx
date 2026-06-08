@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { CartProvider } from "@/components/cart/cart-provider";
 import { Footer } from "@/components/public/footer";
 import { Header } from "@/components/public/header";
+import { getActiveDiscountCodes } from "@/lib/discount-code-data";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 import { isLocale, type Locale } from "@/lib/i18n/config";
 
@@ -24,9 +25,10 @@ export default async function LocaleLayout({
 
   const locale = rawLocale as Locale;
   const dictionary = getDictionary(locale);
+  const discounts = await getActiveDiscountCodes().catch(() => []);
 
   return (
-    <CartProvider locale={locale}>
+    <CartProvider locale={locale} discounts={discounts}>
       <Header locale={locale} dictionary={dictionary} />
       <main>{children}</main>
       <Footer locale={locale} dictionary={dictionary} />

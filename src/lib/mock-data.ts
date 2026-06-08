@@ -37,6 +37,7 @@ export type Bundle = {
   id: string;
   type: "bundle";
   title: Record<Locale, string>;
+  subtitle?: Record<Locale, string | null>;
   slug: Record<Locale, string>;
   categoryId: string;
   description: Record<Locale, string>;
@@ -51,6 +52,7 @@ export type Bundle = {
     subtitle: string;
     variant: "dark" | "blue" | "purple" | "green";
   };
+  thumbnailImageUrl?: string | null;
 };
 
 export type Product = Course | Bundle;

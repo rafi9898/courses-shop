@@ -93,6 +93,8 @@ model Course {
   highlights        Json
   outcomes          Json
   agenda            Json
+  udemyCourseId     String?
+  udemyUrl          String?
   thumbnailImageUrl String?
   trailerYoutubeUrl String?
   sortOrder         Int              @default(0)
@@ -104,6 +106,7 @@ model Course {
 
   @@unique([locale, slug])
   @@index([locale, catalogKey])
+  @@index([udemyCourseId])
   @@index([categoryId])
   @@index([isActive, sortOrder])
 }
@@ -114,6 +117,7 @@ model Bundle {
   catalogKey        String
   categoryId        String
   title             String
+  subtitle          String?
   slug              String
   description       String
   courseCount       Int
@@ -125,6 +129,7 @@ model Bundle {
   thumbnailTitle    String
   thumbnailSubtitle String
   thumbnailVariant  ThumbnailVariant
+  thumbnailImageUrl String?
   sortOrder         Int              @default(0)
   isActive          Boolean          @default(true)
   createdAt         DateTime         @default(now())
@@ -227,6 +232,21 @@ model Invoice {
 
   @@index([status])
   @@index([issuedAt])
+}
+
+model DiscountCode {
+  id          String    @id @default(cuid())
+  code        String    @unique
+  percentage  Int
+  description String?
+  validFrom   DateTime?
+  validUntil  DateTime?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([isActive])
+  @@index([validUntil])
 }
 
 model UdemyCoupon {

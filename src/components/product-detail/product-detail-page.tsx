@@ -17,6 +17,7 @@ import Link from "next/link";
 import { AddToCartButton } from "@/components/commerce/add-to-cart-button";
 import { BundleCard } from "@/components/commerce/bundle-card";
 import { ProductCard, Thumbnail } from "@/components/commerce/product-card";
+import { RichTextContent } from "@/components/product-detail/rich-text-content";
 import { VideoPreview } from "@/components/product-detail/video-preview";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -60,7 +61,7 @@ export function ProductDetailPage({
   const category = categories.find((item) => item.id === product.categoryId);
   const isCourse = kind === "course";
   const title = product.title[locale];
-  const heroSubtitle = isCourse ? product.subtitle?.[locale] : product.description[locale];
+  const heroSubtitle = isCourse ? product.subtitle?.[locale] : product.subtitle?.[locale];
   const savings = product.regularPrice[locale] - product.price[locale];
   const bundleCourses = !isCourse ? courses.filter((course) => product.courseIds.includes(course.id)) : [];
   const recommendedCourses = courses.filter((course) => course.id !== product.id && course.categoryId === product.categoryId).slice(0, 3);
@@ -121,7 +122,8 @@ export function ProductDetailPage({
                       title={product.thumbnail.title}
                       subtitle={product.thumbnail.subtitle}
                       variant={product.thumbnail.variant}
-                      badge={dictionary.detail.includedCourses.replace("{count}", String(product.courseCount))}
+                      hideText
+                      imageUrl={product.thumbnailImageUrl}
                       showFavorite={false}
                     />
                   </div>
@@ -141,10 +143,10 @@ export function ProductDetailPage({
           <div className="space-y-10">
             <ContentCard title={isCourse ? dictionary.detail.aboutCourse : dictionary.detail.aboutBundle}>
               {isCourse ? (
-                product.highlights[locale].map((item) => <p key={item}>{item}</p>)
+                <RichTextContent html={courseAboutHtml(product.highlights[locale])} />
               ) : (
                 <>
-                  <p>{product.description[locale]}</p>
+                  <RichTextContent html={product.description[locale]} />
                   <p>{getBundleAboutCopy(locale)}</p>
                 </>
               )}
@@ -237,6 +239,15 @@ export function ProductDetailPage({
       </section>
     </div>
   );
+}
+
+function courseAboutHtml(highlights: string[]) {
+  if (highlights.length === 1 && highlights[0].includes("<")) return highlights[0];
+  return highlights.map((item) => `<p>${escapeHtml(item)}</p>`).join("");
+}
+
+function escapeHtml(value: string) {
+  return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
 }
 
 function PriceCard({

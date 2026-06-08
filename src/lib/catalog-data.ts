@@ -62,6 +62,14 @@ export async function getPublicCourseBySlug(locale: Locale, slug: string) {
   };
 }
 
+export async function getPublicBundleBySlug(locale: Locale, slug: string) {
+  const catalog = await getPublicCatalog(locale);
+  return {
+    catalog,
+    bundle: catalog.bundles.find((bundle) => bundle.slug[locale] === slug) ?? null
+  };
+}
+
 function getFallbackCatalog(locale: Locale): PublicCatalog {
   return {
     categories: fallbackCategories,
@@ -112,6 +120,7 @@ function mapBundle(bundle: DbBundleWithCourses, locale: Locale): Bundle {
     id: bundle.id,
     type: "bundle",
     title: localized(locale, bundle.title),
+    subtitle: localized(locale, bundle.subtitle),
     slug: localized(locale, bundle.slug),
     categoryId: bundle.categoryId,
     description: localized(locale, bundle.description),
@@ -125,7 +134,8 @@ function mapBundle(bundle: DbBundleWithCourses, locale: Locale): Bundle {
       title: bundle.thumbnailTitle,
       subtitle: bundle.thumbnailSubtitle,
       variant: mapThumbnailVariant(bundle.thumbnailVariant)
-    }
+    },
+    thumbnailImageUrl: bundle.thumbnailImageUrl
   };
 }
 

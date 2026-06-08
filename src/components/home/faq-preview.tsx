@@ -27,7 +27,7 @@ export function FaqPreview({
           </p>
         </div>
         <div className="overflow-hidden rounded-2xl border border-border bg-white shadow-soft">
-          {faq.map((item, index) => {
+          {faq.slice(0, 5).map((item, index) => {
             const isOpen = open === index;
 
             return (

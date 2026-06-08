@@ -6,6 +6,8 @@ coverage
 storage/invoices/*.pdf
 public/uploads/course-thumbnails/*
 !public/uploads/course-thumbnails/.gitkeep
+public/uploads/bundle-thumbnails/*
+!public/uploads/bundle-thumbnails/.gitkeep
 .env
 .env*.local
 next-env.d.ts

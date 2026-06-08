@@ -68,3 +68,90 @@ select {
 .focus-ring:focus-visible {
   outline-color: hsl(var(--primary));
 }
+
+.rich-text-content,
+.prose-reset {
+  color: rgb(71 85 105);
+}
+
+.rich-text-content > * + *,
+.prose-reset > * + * {
+  margin-top: 0.75rem;
+}
+
+.rich-text-content p,
+.prose-reset p {
+  line-height: 1.75;
+}
+
+.rich-text-content strong,
+.rich-text-content b,
+.prose-reset strong,
+.prose-reset b {
+  color: hsl(var(--foreground));
+  font-weight: 900;
+}
+
+.rich-text-content em,
+.rich-text-content i,
+.prose-reset em,
+.prose-reset i {
+  font-style: italic;
+}
+
+.rich-text-content h3,
+.rich-text-content h4,
+.prose-reset h3,
+.prose-reset h4 {
+  color: hsl(var(--foreground));
+  font-weight: 900;
+  line-height: 1.25;
+}
+
+.rich-text-content h3,
+.prose-reset h3 {
+  font-size: 1.125rem;
+}
+
+.rich-text-content h4,
+.prose-reset h4 {
+  font-size: 1rem;
+}
+
+.rich-text-content ul,
+.rich-text-content ol,
+.prose-reset ul,
+.prose-reset ol {
+  padding-left: 1.25rem;
+}
+
+.rich-text-content ul,
+.prose-reset ul {
+  list-style: disc;
+}
+
+.rich-text-content ol,
+.prose-reset ol {
+  list-style: decimal;
+}
+
+.rich-text-content li,
+.prose-reset li {
+  margin-top: 0.35rem;
+  line-height: 1.7;
+}
+
+.rich-text-content a,
+.prose-reset a {
+  color: hsl(var(--primary));
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.rich-text-content blockquote,
+.prose-reset blockquote {
+  border-left: 4px solid hsl(var(--primary));
+  padding-left: 1rem;
+  color: rgb(71 85 105);
+}

@@ -2,7 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { type AddCartItemInput, type CartItem, getCartItemKey, getCartStorageKey, getDiscountStorageKey } from "@/lib/cart";
-import { getDiscount } from "@/lib/discounts";
+import { getDiscount, type Discount } from "@/lib/discounts";
 import { type Locale } from "@/lib/i18n/config";
 import { type Product } from "@/lib/mock-data";
 
@@ -11,6 +11,7 @@ type CartContextValue = {
   hydrated: boolean;
   discountCode: string;
   appliedDiscountCode: string | null;
+  discounts: Discount[];
   addItem: (item: AddCartItemInput) => void;
   removeItem: (productType: Product["type"], productId: string) => void;
   clearCart: () => void;
@@ -24,15 +25,18 @@ const CartContext = createContext<CartContextValue | null>(null);
 
 export function CartProvider({
   locale,
+  discounts,
   children
 }: {
   locale: Locale;
+  discounts?: Discount[];
   children: ReactNode;
 }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [discountCode, setDiscountCode] = useState("");
   const [appliedDiscountCode, setAppliedDiscountCode] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
+  const discountList = discounts && discounts.length > 0 ? discounts : undefined;
   const storageKey = getCartStorageKey(locale);
   const discountStorageKey = getDiscountStorageKey(locale);
 
@@ -43,7 +47,7 @@ export function CartProvider({
       const rawDiscountCode = window.localStorage.getItem(discountStorageKey);
       setItems(parsed.filter((item) => item.locale === locale));
       setDiscountCode(rawDiscountCode ?? "");
-      setAppliedDiscountCode(rawDiscountCode && getDiscount(rawDiscountCode) ? rawDiscountCode : null);
+      setAppliedDiscountCode(rawDiscountCode && getDiscount(rawDiscountCode, discountList) ? rawDiscountCode : null);
     } catch {
       setItems([]);
       setDiscountCode("");
@@ -51,7 +55,7 @@ export function CartProvider({
     } finally {
       setHydrated(true);
     }
-  }, [discountStorageKey, locale, storageKey]);
+  }, [discountList, discountStorageKey, locale, storageKey]);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -99,7 +103,7 @@ export function CartProvider({
   }, []);
 
   const applyDiscountCode = useCallback(() => {
-    const discount = getDiscount(discountCode);
+    const discount = getDiscount(discountCode, discountList);
     if (!discount) {
       setAppliedDiscountCode(null);
       return false;
@@ -108,7 +112,7 @@ export function CartProvider({
     setAppliedDiscountCode(discount.code);
     setDiscountCode(discount.code);
     return true;
-  }, [discountCode]);
+  }, [discountCode, discountList]);
 
   const clearDiscountCode = useCallback(() => {
     setDiscountCode("");
@@ -127,6 +131,7 @@ export function CartProvider({
       hydrated,
       discountCode,
       appliedDiscountCode,
+      discounts: discountList ?? [],
       addItem,
       removeItem,
       clearCart,
@@ -135,7 +140,7 @@ export function CartProvider({
       clearDiscountCode,
       isInCart
     }),
-    [addItem, appliedDiscountCode, applyDiscountCode, clearCart, clearDiscountCode, discountCode, hydrated, isInCart, items, removeItem]
+    [addItem, appliedDiscountCode, applyDiscountCode, clearCart, clearDiscountCode, discountCode, discountList, hydrated, isInCart, items, removeItem]
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

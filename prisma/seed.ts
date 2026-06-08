@@ -129,6 +129,7 @@ async function seedBundles() {
           catalogKey: bundle.id,
           categoryId: `${bundle.categoryId}-${locale}`,
           title: bundle.title[locale],
+          subtitle: bundle.subtitle?.[locale] ?? null,
           description: bundle.description[locale],
           courseCount: bundle.courseIds.length,
           rating: bundle.rating,
@@ -139,6 +140,7 @@ async function seedBundles() {
           thumbnailTitle: bundle.thumbnail.title,
           thumbnailSubtitle: bundle.thumbnail.subtitle,
           thumbnailVariant: thumbnailVariantMap(bundle.thumbnail.variant),
+          thumbnailImageUrl: bundle.thumbnailImageUrl ?? null,
           sortOrder: index,
           isActive: true
         },
@@ -148,6 +150,7 @@ async function seedBundles() {
           catalogKey: bundle.id,
           categoryId: `${bundle.categoryId}-${locale}`,
           title: bundle.title[locale],
+          subtitle: bundle.subtitle?.[locale] ?? null,
           slug: bundle.slug[locale],
           description: bundle.description[locale],
           courseCount: bundle.courseIds.length,
@@ -159,6 +162,7 @@ async function seedBundles() {
           thumbnailTitle: bundle.thumbnail.title,
           thumbnailSubtitle: bundle.thumbnail.subtitle,
           thumbnailVariant: thumbnailVariantMap(bundle.thumbnail.variant),
+          thumbnailImageUrl: bundle.thumbnailImageUrl ?? null,
           sortOrder: index,
           isActive: true
         }
@@ -176,6 +180,27 @@ async function seedBundles() {
   }
 }
 
+async function seedDiscountCodes() {
+  await prisma.discountCode.upsert({
+    where: { code: "START10" },
+    update: {
+      percentage: 10,
+      description: "Kod startowy widoczny w koszyku i checkoutcie.",
+      validFrom: new Date("2026-01-01T00:00:00.000Z"),
+      validUntil: new Date("2026-12-31T23:59:59.000Z"),
+      isActive: true
+    },
+    create: {
+      code: "START10",
+      percentage: 10,
+      description: "Kod startowy widoczny w koszyku i checkoutcie.",
+      validFrom: new Date("2026-01-01T00:00:00.000Z"),
+      validUntil: new Date("2026-12-31T23:59:59.000Z"),
+      isActive: true
+    }
+  });
+}
+
 function thumbnailVariantMap(variant: "dark" | "blue" | "purple" | "green") {
   const variants = {
     dark: "DARK",
@@ -191,9 +216,10 @@ async function main() {
   await seedCategories();
   await seedCourses();
   await seedBundles();
+  await seedDiscountCodes();
 
   console.info(
-    `Seeded locale catalog: ${categories.length * locales.length} categories, ${courses.length * locales.length} courses, ${bundles.length * locales.length} bundles.`
+    `Seeded locale catalog: ${categories.length * locales.length} categories, ${courses.length * locales.length} courses, ${bundles.length * locales.length} bundles, 1 discount code.`
   );
 }
 

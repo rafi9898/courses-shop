@@ -18,10 +18,17 @@ export default async function EditCoursePage({
   if (!(await isAdminAuthenticated())) return <AdminShell><AdminLoginForm /></AdminShell>;
 
   const { courseId } = await params;
-  const [course, categories] = await Promise.all([
+  const [course, categories, activeUdemyCoupon] = await Promise.all([
     prisma.course.findUnique({ where: { id: courseId } }),
     prisma.category.findMany({
       orderBy: [{ sortOrder: "asc" }, { label: "asc" }]
+    }),
+    prisma.udemyCoupon.findFirst({
+      where: {
+        courseId,
+        isActive: true
+      },
+      orderBy: [{ validUntil: "desc" }, { updatedAt: "desc" }]
     })
   ]);
 
@@ -35,7 +42,12 @@ export default async function EditCoursePage({
         <ArrowLeft className="h-4 w-4" />
         Wróć do kursów
       </ButtonLink>
-      <CourseForm course={course} categories={categories.filter((category) => category.locale === course.locale)} locale={course.locale as "pl" | "de" | "en"} />
+      <CourseForm
+        course={course}
+        activeUdemyCoupon={activeUdemyCoupon}
+        categories={categories.filter((category) => category.locale === course.locale)}
+        locale={course.locale as "pl" | "de" | "en"}
+      />
     </AdminFrame>
   );
 }

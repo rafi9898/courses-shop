@@ -11,14 +11,17 @@ export function generateStaticParams() {
 }
 
 export default async function CoursesEnPage({
-  params
+  params,
+  searchParams
 }: {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ category?: string; q?: string }>;
 }) {
   const { locale: rawLocale } = await params;
+  const { category, q } = await searchParams;
   if (!isLocale(rawLocale) || rawLocale !== "en") notFound();
 
   const locale = rawLocale as Locale;
   const catalog = await getPublicCatalog(locale);
-  return <CatalogListPage locale={locale} dictionary={getDictionary(locale)} kind="courses" {...catalog} />;
+  return <CatalogListPage locale={locale} dictionary={getDictionary(locale)} kind="courses" initialCategoryId={category || "all"} initialQuery={q || ""} {...catalog} />;
 }

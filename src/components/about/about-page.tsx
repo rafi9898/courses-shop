@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { ArrowRight, CheckCircle2, Clock, Code2, Database, Github, PlayCircle, Star, Users } from "lucide-react";
 import { ButtonLink } from "@/components/ui/button";
 import { type Locale } from "@/lib/i18n/config";
@@ -111,12 +112,15 @@ export function AboutPage({
 function AuthorPortrait() {
   return (
     <div className="relative mx-auto h-[420px] w-full max-w-[560px] overflow-hidden rounded-[28px] bg-primary-soft shadow-soft" aria-hidden="true">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_35%_25%,rgba(79,70,229,0.12),transparent_18rem)]" />
-      <div className="absolute bottom-0 left-1/2 h-72 w-56 -translate-x-1/2 rounded-t-[110px] bg-gradient-to-b from-slate-900 to-slate-950" />
-      <div className="absolute left-1/2 top-20 h-32 w-32 -translate-x-1/2 rounded-full bg-gradient-to-br from-[#f1c6a6] to-[#c98766]" />
-      <div className="absolute left-1/2 top-16 h-16 w-36 -translate-x-1/2 rounded-t-full bg-[#5b301c]" />
-      <div className="absolute left-1/2 top-[132px] h-6 w-20 -translate-x-1/2 rounded-full border-2 border-slate-950" />
-      <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-primary-soft to-transparent" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_42%_28%,rgba(79,70,229,0.14),transparent_18rem)]" />
+      <Image
+        src="/images/about-hero-author.png"
+        alt=""
+        fill
+        priority
+        sizes="(min-width: 1024px) 45vw, 100vw"
+        className="translate-y-4 object-contain object-bottom"
+      />
     </div>
   );
 }

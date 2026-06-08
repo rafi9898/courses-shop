@@ -30,10 +30,10 @@ const activeUdemyCoupons: Record<string, { couponCode: string; validUntil: strin
 
 export async function getUdemyAccessLinks(purchasedProducts: PurchasedProduct[], localeValue: string): Promise<UdemyAccessLink[]> {
   const locale: Locale = isLocale(localeValue) ? localeValue : "pl";
-  const courseIds = getPurchasedCourseIds(purchasedProducts);
   const now = new Date();
 
   try {
+    const courseIds = await getPurchasedCourseIds(purchasedProducts, locale);
     const coupons = await prisma.udemyCoupon.findMany({
       where: {
         courseId: {
@@ -47,6 +47,19 @@ export async function getUdemyAccessLinks(purchasedProducts: PurchasedProduct[],
       },
       orderBy: [{ validUntil: "desc" }, { updatedAt: "desc" }]
     });
+    const courseRecords = await prisma.course.findMany({
+      where: {
+        id: {
+          in: Array.from(courseIds)
+        },
+        locale
+      },
+      select: {
+        id: true,
+        title: true
+      }
+    });
+    const courseById = new Map(courseRecords.map((course) => [course.id, course]));
 
     const couponByCourseId = new Map<string, (typeof coupons)[number]>();
     coupons.forEach((coupon) => {
@@ -57,14 +70,14 @@ export async function getUdemyAccessLinks(purchasedProducts: PurchasedProduct[],
 
     return Array.from(courseIds)
       .map((courseId) => {
-        const course = courses.find((item) => item.id === courseId);
+        const course = courseById.get(courseId);
         const coupon = couponByCourseId.get(courseId);
 
-        if (!course || !coupon) return null;
+        if (!coupon) return null;
 
         return {
           courseId,
-          title: coupon.courseTitle || course.title[locale],
+          title: coupon.courseTitle || course?.title || courseId,
           url: createUdemyCouponUrl(coupon.udemyUrl, coupon.couponCode),
           couponCode: coupon.couponCode,
           validUntil: coupon.validUntil.toISOString()
@@ -72,11 +85,52 @@ export async function getUdemyAccessLinks(purchasedProducts: PurchasedProduct[],
       })
       .filter((item): item is UdemyAccessLink => Boolean(item));
   } catch {
-    return getStaticUdemyAccessLinks(courseIds, locale);
+    return getStaticUdemyAccessLinks(getStaticPurchasedCourseIds(purchasedProducts), locale);
   }
 }
 
-function getPurchasedCourseIds(purchasedProducts: PurchasedProduct[]) {
+async function getPurchasedCourseIds(purchasedProducts: PurchasedProduct[], locale: Locale) {
+  const courseIds = new Set<string>();
+  const bundleIds = new Set<string>();
+
+  for (const product of purchasedProducts) {
+    const productType = product.productType.toLowerCase();
+
+    if (productType === "course") {
+      courseIds.add(product.productId);
+    }
+
+    if (productType === "bundle") {
+      bundleIds.add(product.productId);
+    }
+  }
+
+  if (bundleIds.size > 0) {
+    const dbBundles = await prisma.bundle.findMany({
+      where: {
+        id: {
+          in: Array.from(bundleIds)
+        },
+        locale
+      },
+      include: {
+        courses: {
+          select: {
+            courseId: true
+          }
+        }
+      }
+    });
+
+    dbBundles.forEach((bundle) => {
+      bundle.courses.forEach((course) => courseIds.add(course.courseId));
+    });
+  }
+
+  return courseIds;
+}
+
+function getStaticPurchasedCourseIds(purchasedProducts: PurchasedProduct[]) {
   const courseIds = new Set<string>();
 
   for (const product of purchasedProducts) {

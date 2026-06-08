@@ -1,4 +1,5 @@
 import { Download, ExternalLink, FileText, ShieldCheck, SquareArrowOutUpRight } from "lucide-react";
+import { AdminPagination, getAdminPagination, parseAdminPage } from "@/components/admin/admin-pagination";
 import { AdminFrame, AdminShell } from "@/components/admin/admin-shell";
 import { AdminLoginForm } from "@/components/admin/admin-login-form";
 import { CopyLinkButton } from "@/components/admin/admin-actions";
@@ -12,7 +13,11 @@ import { getAbsoluteUrl, getInvoiceDownloadPath, getOrderAccessPath } from "@/li
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminPage() {
+export default async function AdminPage({
+  searchParams
+}: {
+  searchParams: Promise<{ ordersPage?: string; udemyPage?: string }>;
+}) {
   if (!isAdminConfigured()) {
     return (
       <AdminShell>
@@ -35,38 +40,47 @@ export default async function AdminPage() {
     );
   }
 
+  const { ordersPage: rawOrdersPage, udemyPage: rawUdemyPage } = await searchParams;
+  const ordersPage = parseAdminPage(rawOrdersPage);
+  const udemyPage = parseAdminPage(rawUdemyPage);
+  const ordersPagination = getAdminPagination(ordersPage);
+  const udemyPagination = getAdminPagination(udemyPage);
   let databaseError: string | null = null;
   let udemyCouponsError: string | null = null;
-  const orders = await prisma.order
-    .findMany({
+  const [orders, totalOrders, paidOrders, invoices] = await Promise.all([
+    prisma.order.findMany({
       orderBy: {
         createdAt: "desc"
       },
-      take: 100,
+      skip: ordersPagination.skip,
+      take: ordersPagination.take,
       include: {
         items: true,
         invoice: true
       }
-    })
-    .catch(() => {
-      databaseError = "Nie udało się pobrać zamówień. Sprawdź `DATABASE_URL` i migracje Prisma.";
-      return [];
-    });
-  const udemyCoupons = await prisma.udemyCoupon
-    .findMany({
+    }),
+    prisma.order.count(),
+    prisma.order.count({ where: { paymentStatus: "PAID" } }),
+    prisma.invoice.count()
+  ]).catch(() => {
+    databaseError = "Nie udało się pobrać zamówień. Sprawdź `DATABASE_URL` i migracje Prisma.";
+    return [[], 0, 0, 0] as const;
+  });
+  const [udemyCoupons, totalUdemyCoupons, activeCoupons] = await Promise.all([
+    prisma.udemyCoupon.findMany({
       orderBy: {
         updatedAt: "desc"
       },
-      take: 100
-    })
-    .catch(() => {
-      udemyCouponsError = "Nie udało się pobrać kodów Udemy. Sprawdź `DATABASE_URL` i migracje Prisma.";
-      return [];
-    });
-
-  const paidOrders = orders.filter((order) => order.paymentStatus === "PAID").length;
-  const invoices = orders.filter((order) => order.invoice).length;
-  const activeCoupons = udemyCoupons.filter((coupon) => coupon.isActive).length;
+      skip: udemyPagination.skip,
+      take: udemyPagination.take
+    }),
+    prisma.udemyCoupon.count(),
+    prisma.udemyCoupon.count({ where: { isActive: true } })
+  ]).catch(() => {
+    udemyCouponsError = "Nie udało się pobrać kodów Udemy. Sprawdź `DATABASE_URL` i migracje Prisma.";
+    return [[], 0, 0] as const;
+  });
+  const activeDiscounts = await prisma.discountCode.count({ where: { isActive: true } }).catch(() => 0);
   const revenueByCurrency = orders.reduce<Record<string, number>>((totals, order) => {
     if (order.paymentStatus !== "PAID") return totals;
 
@@ -82,15 +96,16 @@ export default async function AdminPage() {
         <div>
           <p className="text-sm font-black uppercase text-primary">Admin</p>
           <h1 className="mt-2 text-3xl font-black tracking-normal">Zamówienia i faktury</h1>
-          <p className="mt-2 text-sm text-slate-600">Ostatnie 100 zamówień, statusy płatności, faktury PDF i prywatne linki klienta.</p>
+          <p className="mt-2 text-sm text-slate-600">Lista zamówień, statusy płatności, faktury PDF i prywatne linki klienta.</p>
         </div>
       </div>
 
-      <div className="mt-6 grid gap-3 sm:grid-cols-4">
+      <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         <Stat label="Zamówienia opłacone" value={String(paidOrders)} />
         <Stat label="Faktury" value={String(invoices)} />
         <Stat label="Przychód z listy" value={formatRevenue(revenueByCurrency)} />
         <Stat label="Aktywne kody Udemy" value={String(activeCoupons)} />
+        <Stat label="Aktywne rabaty" value={String(activeDiscounts)} />
       </div>
 
       {databaseError ? <p className="mt-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-800">{databaseError}</p> : null}
@@ -186,6 +201,13 @@ export default async function AdminPage() {
             </tbody>
           </table>
         </div>
+        <AdminPagination
+          basePath="/admin"
+          page={ordersPage}
+          totalItems={totalOrders}
+          pageParam="ordersPage"
+          params={{ udemyPage }}
+        />
       </section>
 
       <section className="mt-8">
@@ -197,7 +219,7 @@ export default async function AdminPage() {
       <section className="mt-6 overflow-hidden rounded-xl border border-border bg-white shadow-card">
         <div className="border-b border-border px-5 py-4">
           <h2 className="text-xl font-black">Kody Udemy</h2>
-          <p className="mt-1 text-sm text-slate-600">Ostatnie 100 kodów zaimportowanych do bazy.</p>
+          <p className="mt-1 text-sm text-slate-600">Lista kodów zaimportowanych do bazy.</p>
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-[980px] w-full border-collapse text-left text-sm">
@@ -263,6 +285,13 @@ export default async function AdminPage() {
             </tbody>
           </table>
         </div>
+        <AdminPagination
+          basePath="/admin"
+          page={udemyPage}
+          totalItems={totalUdemyCoupons}
+          pageParam="udemyPage"
+          params={{ ordersPage }}
+        />
       </section>
     </AdminFrame>
   );

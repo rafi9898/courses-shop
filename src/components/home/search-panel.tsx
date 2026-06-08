@@ -2,6 +2,7 @@
 
 import { ArrowRight, ChevronDown, Search, X } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { type Bundle, type Category, type Course, type Product } from "@/lib/mock-data";
@@ -23,6 +24,7 @@ export function SearchPanel({
   courses: Course[];
   bundles: Bundle[];
 }) {
+  const router = useRouter();
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("all");
   const products: Product[] = useMemo(() => [...courses, ...bundles], [bundles, courses]);
@@ -38,15 +40,28 @@ export function SearchPanel({
         }
 
         const categoryLabel = categories.find((item) => item.id === product.categoryId)?.label[locale] ?? "";
-        return `${product.title[locale]} ${categoryLabel}`.toLowerCase().includes(normalized);
+        return getProductSearchText(product, categoryLabel, locale).includes(normalized);
       })
       .slice(0, 5);
   }, [categories, category, locale, products, query]);
 
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const params = new URLSearchParams();
+    const trimmedQuery = query.trim();
+
+    if (trimmedQuery) params.set("q", trimmedQuery);
+    if (category !== "all") params.set("category", category);
+
+    const search = params.toString();
+    router.push(`${dictionary.routes.courses}${search ? `?${search}` : ""}`);
+  }
+
   return (
-    <section className="container-shell relative z-10 -mt-10">
+    <section className="container-shell relative z-10 -mt-4">
       <div className="rounded-2xl border border-border bg-white p-4 shadow-soft sm:p-5">
-        <div className="grid gap-3 lg:grid-cols-[1fr_260px_132px]">
+        <form onSubmit={handleSubmit} className="grid gap-3 lg:grid-cols-[1fr_260px_132px]">
           <label className="relative block">
             <span className="sr-only">{dictionary.home.searchPlaceholder}</span>
             <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500" />
@@ -86,12 +101,12 @@ export function SearchPanel({
           </label>
 
           <button
-            type="button"
+            type="submit"
             className="focus-ring h-14 rounded-xl bg-primary px-6 text-sm font-bold text-white shadow-soft transition hover:bg-[#2f16d8]"
           >
             {dictionary.home.searchButton}
           </button>
-        </div>
+        </form>
 
         <div className="mt-4 flex flex-wrap items-center gap-2">
           <span className="mr-1 text-sm font-bold">{dictionary.home.popularCategories}</span>
@@ -146,4 +161,18 @@ export function SearchPanel({
       </div>
     </section>
   );
+}
+
+function getProductSearchText(product: Product, categoryLabel: string, locale: Locale) {
+  const values = [
+    product.title[locale],
+    product.subtitle?.[locale],
+    categoryLabel
+  ].filter(Boolean);
+
+  if ("description" in product) {
+    values.push(product.description[locale]);
+  }
+
+  return values.join(" ").toLowerCase();
 }

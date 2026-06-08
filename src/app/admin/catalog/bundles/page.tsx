@@ -1,4 +1,5 @@
 import { Edit, PackageOpen, Plus, Trash2 } from "lucide-react";
+import { AdminPagination, getAdminPagination, parseAdminPage } from "@/components/admin/admin-pagination";
 import { CatalogLocaleSwitcher, parseAdminLocale } from "@/components/admin/catalog-locale-switcher";
 import { AdminFrame, AdminShell } from "@/components/admin/admin-shell";
 import { AdminLoginForm } from "@/components/admin/admin-login-form";
@@ -12,18 +13,22 @@ export const dynamic = "force-dynamic";
 export default async function AdminBundlesPage({
   searchParams
 }: {
-  searchParams: Promise<{ locale?: string }>;
+  searchParams: Promise<{ locale?: string; page?: string }>;
 }) {
   if (!isAdminConfigured()) return <AdminShell><AdminLoginForm /></AdminShell>;
   if (!(await isAdminAuthenticated())) return <AdminShell><AdminLoginForm /></AdminShell>;
 
-  const { locale: rawLocale } = await searchParams;
+  const { locale: rawLocale, page: rawPage } = await searchParams;
   const locale = parseAdminLocale(rawLocale);
+  const page = parseAdminPage(rawPage);
+  const { skip, take } = getAdminPagination(page);
   let databaseError: string | null = null;
-  const bundles = await prisma.bundle
-    .findMany({
+  const [bundles, totalBundles] = await Promise.all([
+    prisma.bundle.findMany({
       where: { locale },
       orderBy: [{ sortOrder: "asc" }, { title: "asc" }],
+      skip,
+      take,
       include: {
         category: true,
         courses: {
@@ -33,11 +38,12 @@ export default async function AdminBundlesPage({
           }
         }
       }
-    })
-    .catch(() => {
-      databaseError = "Nie udało się pobrać pakietów. Sprawdź `DATABASE_URL`, uruchom migracje i seed katalogu.";
-      return [];
-    });
+    }),
+    prisma.bundle.count({ where: { locale } })
+  ]).catch(() => {
+    databaseError = "Nie udało się pobrać pakietów. Sprawdź `DATABASE_URL`, uruchom migracje i seed katalogu.";
+    return [[], 0] as const;
+  });
 
   return (
     <AdminFrame>
@@ -132,6 +138,7 @@ export default async function AdminBundlesPage({
             </tbody>
           </table>
         </div>
+        <AdminPagination basePath="/admin/catalog/bundles" page={page} totalItems={totalBundles} params={{ locale }} />
       </section>
     </AdminFrame>
   );

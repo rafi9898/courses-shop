@@ -4,25 +4,28 @@ import { type Product } from "@/lib/mock-data";
 export type Discount = {
   code: string;
   percentage: number;
+  description?: string | null;
+  validFrom?: string | null;
+  validUntil?: string | null;
 };
 
-const discounts: Discount[] = [
+const fallbackDiscounts: Discount[] = [
   {
     code: "START10",
     percentage: 10
   }
 ];
 
-export function getDiscount(code?: string | null) {
+export function getDiscount(code?: string | null, discounts: Discount[] = fallbackDiscounts) {
   if (!code) return null;
   const normalizedCode = code.trim().toUpperCase();
   return discounts.find((discount) => discount.code === normalizedCode) ?? null;
 }
 
-export function calculateCartTotals(products: Product[], locale: Locale, discountCode?: string | null) {
+export function calculateCartTotals(products: Product[], locale: Locale, discountCode?: string | null, discounts: Discount[] = fallbackDiscounts) {
   const regularTotal = products.reduce((sum, product) => sum + product.regularPrice[locale], 0);
   const subtotal = products.reduce((sum, product) => sum + product.price[locale], 0);
-  const discount = getDiscount(discountCode);
+  const discount = getDiscount(discountCode, discounts);
   const discountAmount = discount ? roundPrice(subtotal * (discount.percentage / 100)) : 0;
   const total = Math.max(0, roundPrice(subtotal - discountAmount));
 
@@ -36,8 +39,8 @@ export function calculateCartTotals(products: Product[], locale: Locale, discoun
   };
 }
 
-export function getDiscountedUnitAmount(amount: number, discountCode?: string | null) {
-  const discount = getDiscount(discountCode);
+export function getDiscountedUnitAmount(amount: number, discountCode?: string | null, discounts: Discount[] = fallbackDiscounts) {
+  const discount = getDiscount(discountCode, discounts);
   if (!discount) return amount;
 
   return roundPrice(amount * (1 - discount.percentage / 100));

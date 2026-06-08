@@ -9,6 +9,7 @@ import { redirect } from "next/navigation";
 import { isAdminAuthenticated, isAdminConfigured } from "@/lib/admin-auth";
 import { adminCatalogLocales, type AdminCatalogLocale } from "@/lib/admin-catalog-locales";
 import { prisma } from "@/lib/prisma";
+import { sanitizeRichText } from "@/lib/rich-text";
 
 const categoryColors = Object.values(CategoryColor);
 const courseLevels = Object.values(CourseLevel);
@@ -60,8 +61,16 @@ export async function deleteCategoryAction(formData: FormData) {
 export async function createCourseAction(formData: FormData) {
   await ensureAdmin();
   const data = await readCourseForm(formData);
+  const udemyCouponCode = optionalText(formData, "udemyCouponCode");
 
-  await prisma.course.create({ data });
+  const course = await prisma.course.create({ data });
+  await syncCourseUdemyCoupon({
+    courseId: course.id,
+    locale: course.locale,
+    title: course.title,
+    udemyUrl: course.udemyUrl,
+    couponCode: udemyCouponCode
+  });
 
   revalidateCatalog();
   redirect(`/admin/catalog/courses?locale=${data.locale}`);
@@ -71,10 +80,18 @@ export async function updateCourseAction(formData: FormData) {
   await ensureAdmin();
   const courseId = requiredText(formData, "currentId");
   const data = await readCourseForm(formData, courseId);
+  const udemyCouponCode = optionalText(formData, "udemyCouponCode");
 
-  await prisma.course.update({
+  const course = await prisma.course.update({
     where: { id: courseId },
     data
+  });
+  await syncCourseUdemyCoupon({
+    courseId: course.id,
+    locale: course.locale,
+    title: course.title,
+    udemyUrl: course.udemyUrl,
+    couponCode: udemyCouponCode
   });
 
   revalidateCatalog();
@@ -94,7 +111,7 @@ export async function deleteCourseAction(formData: FormData) {
 
 export async function createBundleAction(formData: FormData) {
   await ensureAdmin();
-  const { courseIds, data } = readBundleForm(formData);
+  const { courseIds, data } = await readBundleForm(formData);
 
   await prisma.bundle.create({
     data: {
@@ -116,7 +133,7 @@ export async function createBundleAction(formData: FormData) {
 export async function updateBundleAction(formData: FormData) {
   await ensureAdmin();
   const bundleId = requiredText(formData, "currentId");
-  const { courseIds, data } = readBundleForm(formData);
+  const { courseIds, data } = await readBundleForm(formData, bundleId);
 
   await prisma.$transaction([
     prisma.bundle.update({
@@ -177,7 +194,7 @@ async function readCourseForm(formData: FormData, currentCourseId?: string) {
   const title = requiredText(formData, "title");
   const requestedSlug = optionalText(formData, "slug") || slugify(title);
   const slug = await uniqueCourseSlug(locale, requestedSlug, currentCourseId);
-  const thumbnailImageUrl = await saveCourseThumbnail(formData);
+  const thumbnailImageUrl = await saveThumbnail(formData, "course-thumbnails", "Miniaturka kursu");
   const existingThumbnailImageUrl = optionalText(formData, "existingThumbnailImageUrl");
 
   return {
@@ -195,9 +212,11 @@ async function readCourseForm(formData: FormData, currentCourseId?: string) {
     currency: optionalText(formData, "currency") || currencyByLocale[locale],
     durationHours: intValue(formData, "durationHours"),
     lessons: intValue(formData, "lessons"),
-    highlights: linesJson(formData, "highlights"),
+    highlights: richTextJson(formData, "highlights"),
     outcomes: linesJson(formData, "outcomes"),
     agenda: agendaJson(formData, "agenda"),
+    udemyCourseId: optionalText(formData, "udemyCourseId") || null,
+    udemyUrl: optionalText(formData, "udemyUrl") || null,
     thumbnailImageUrl: thumbnailImageUrl || existingThumbnailImageUrl || null,
     trailerYoutubeUrl: optionalText(formData, "trailerYoutubeUrl") || null,
     sortOrder: intValue(formData, "sortOrder"),
@@ -205,8 +224,13 @@ async function readCourseForm(formData: FormData, currentCourseId?: string) {
   };
 }
 
-function readBundleForm(formData: FormData) {
+async function readBundleForm(formData: FormData, currentBundleId?: string) {
   const locale = localeValue(formData);
+  const title = requiredText(formData, "title");
+  const requestedSlug = optionalText(formData, "slug") || slugify(title);
+  const slug = await uniqueBundleSlug(locale, requestedSlug, currentBundleId);
+  const thumbnailImageUrl = await saveThumbnail(formData, "bundle-thumbnails", "Miniaturka pakietu");
+  const existingThumbnailImageUrl = optionalText(formData, "existingThumbnailImageUrl");
   const courseIds = formData
     .getAll("courseIds")
     .map((value) => String(value))
@@ -216,10 +240,11 @@ function readBundleForm(formData: FormData) {
     courseIds,
     data: {
       locale,
-      catalogKey: requiredText(formData, "catalogKey"),
+      catalogKey: optionalText(formData, "catalogKey") || slug,
       categoryId: requiredText(formData, "categoryId"),
-      title: requiredText(formData, "title"),
-      slug: requiredText(formData, "slug"),
+      title,
+      subtitle: optionalText(formData, "subtitle") || null,
+      slug,
       description: requiredText(formData, "description"),
       courseCount: courseIds.length,
       rating: decimalValue(formData, "rating", 4.8),
@@ -227,13 +252,95 @@ function readBundleForm(formData: FormData) {
       price: decimalValue(formData, "price"),
       regularPrice: decimalValue(formData, "regularPrice"),
       currency: optionalText(formData, "currency") || currencyByLocale[locale],
-      thumbnailTitle: requiredText(formData, "thumbnailTitle"),
-      thumbnailSubtitle: requiredText(formData, "thumbnailSubtitle"),
+      thumbnailTitle: optionalText(formData, "thumbnailTitle") || title,
+      thumbnailSubtitle: optionalText(formData, "thumbnailSubtitle"),
       thumbnailVariant: enumValue(formData, "thumbnailVariant", thumbnailVariants, ThumbnailVariant.PURPLE),
+      thumbnailImageUrl: thumbnailImageUrl || existingThumbnailImageUrl || null,
       sortOrder: intValue(formData, "sortOrder"),
       isActive: boolValue(formData, "isActive")
     }
   };
+}
+
+async function syncCourseUdemyCoupon({
+  courseId,
+  locale,
+  title,
+  udemyUrl,
+  couponCode
+}: {
+  courseId: string;
+  locale: string;
+  title: string;
+  udemyUrl: string | null;
+  couponCode: string;
+}) {
+  const normalizedCode = couponCode.trim();
+
+  if (!normalizedCode) {
+    await prisma.udemyCoupon.updateMany({
+      where: {
+        courseId,
+        locale,
+        isActive: true
+      },
+      data: {
+        isActive: false
+      }
+    });
+    return;
+  }
+
+  if (!udemyUrl) {
+    throw new Error("Aby zapisać kod, uzupełnij URL kursu Udemy.");
+  }
+
+  const activeCoupon = await prisma.udemyCoupon.findFirst({
+    where: {
+      courseId,
+      locale,
+      isActive: true
+    },
+    orderBy: [{ validUntil: "desc" }, { updatedAt: "desc" }]
+  });
+
+  if (activeCoupon && activeCoupon.couponCode !== normalizedCode) {
+    await prisma.udemyCoupon.updateMany({
+      where: {
+        courseId,
+        locale,
+        isActive: true
+      },
+      data: {
+        isActive: false
+      }
+    });
+  }
+
+  await prisma.udemyCoupon.upsert({
+    where: {
+      courseId_locale_couponCode: {
+        courseId,
+        locale,
+        couponCode: normalizedCode
+      }
+    },
+    update: {
+      courseTitle: title,
+      udemyUrl,
+      validUntil: activeCoupon?.validUntil ?? defaultCouponValidUntil(),
+      isActive: true
+    },
+    create: {
+      courseId,
+      locale,
+      courseTitle: title,
+      udemyUrl,
+      couponCode: normalizedCode,
+      validUntil: defaultCouponValidUntil(),
+      isActive: true
+    }
+  });
 }
 
 function requiredText(formData: FormData, name: string) {
@@ -269,6 +376,14 @@ function boolValue(formData: FormData, name: string) {
   return formData.get(name) === "on";
 }
 
+function defaultCouponValidUntil() {
+  const value = new Date();
+  value.setUTCDate(value.getUTCDate() + 31);
+  value.setUTCHours(23, 59, 59, 999);
+
+  return value;
+}
+
 function enumValue<T extends string>(formData: FormData, name: string, values: T[], fallback: T) {
   const value = optionalText(formData, name) as T;
   return values.includes(value) ? value : fallback;
@@ -279,6 +394,14 @@ function linesJson(formData: FormData, name: string): Prisma.InputJsonValue {
     .split("\n")
     .map((line) => line.trim())
     .filter(Boolean);
+}
+
+function richTextJson(formData: FormData, name: string): Prisma.InputJsonValue {
+  const html = sanitizeRichText(optionalText(formData, name));
+
+  if (!html) return [];
+
+  return [html];
 }
 
 function agendaJson(formData: FormData, name: string): Prisma.InputJsonValue {
@@ -295,7 +418,7 @@ function agendaJson(formData: FormData, name: string): Prisma.InputJsonValue {
     .filter((item) => item.title);
 }
 
-async function saveCourseThumbnail(formData: FormData) {
+async function saveThumbnail(formData: FormData, folderName: string, label: string) {
   const file = formData.get("thumbnailImage");
 
   if (!(file instanceof File) || file.size === 0) {
@@ -303,22 +426,22 @@ async function saveCourseThumbnail(formData: FormData) {
   }
 
   if (file.size > maxCourseThumbnailSize) {
-    throw new Error("Miniaturka kursu może mieć maksymalnie 8 MB.");
+    throw new Error(`${label} może mieć maksymalnie 8 MB.`);
   }
 
   if (!allowedCourseThumbnailTypes.includes(file.type)) {
-    throw new Error("Miniaturka kursu musi być plikiem JPG, PNG, WebP albo GIF.");
+    throw new Error(`${label} musi być plikiem JPG, PNG, WebP albo GIF.`);
   }
 
   const extension = getSafeImageExtension(file);
   const fileName = `${randomUUID()}.${extension}`;
-  const uploadDir = path.join(process.cwd(), "public", "uploads", "course-thumbnails");
+  const uploadDir = path.join(process.cwd(), "public", "uploads", folderName);
   const filePath = path.join(uploadDir, fileName);
 
   await mkdir(uploadDir, { recursive: true });
   await writeFile(filePath, Buffer.from(await file.arrayBuffer()));
 
-  return `/uploads/course-thumbnails/${fileName}`;
+  return `/uploads/${folderName}/${fileName}`;
 }
 
 function getSafeImageExtension(file: File) {
@@ -369,15 +492,43 @@ async function uniqueCourseSlug(locale: AdminCatalogLocale, slug: string, curren
   return candidate;
 }
 
+async function uniqueBundleSlug(locale: AdminCatalogLocale, slug: string, currentBundleId?: string) {
+  const baseSlug = slugify(slug) || "pakiet";
+  let candidate = baseSlug;
+  let suffix = 2;
+
+  while (
+    await prisma.bundle.findFirst({
+      where: {
+        locale,
+        slug: candidate,
+        ...(currentBundleId ? { id: { not: currentBundleId } } : {})
+      },
+      select: { id: true }
+    })
+  ) {
+    candidate = `${baseSlug}-${suffix}`;
+    suffix += 1;
+  }
+
+  return candidate;
+}
+
 function revalidateCatalog() {
   revalidatePath("/admin/catalog");
   revalidatePath("/admin/catalog/categories");
   revalidatePath("/admin/catalog/courses");
   revalidatePath("/admin/catalog/bundles");
   revalidatePath("/pl");
+  revalidatePath("/pl/kategorie");
   revalidatePath("/pl/kursy");
+  revalidatePath("/pl/pakiety");
   revalidatePath("/de");
+  revalidatePath("/de/kategorien");
   revalidatePath("/de/kurse");
+  revalidatePath("/de/pakete");
   revalidatePath("/en");
+  revalidatePath("/en/categories");
   revalidatePath("/en/courses");
+  revalidatePath("/en/bundles");
 }

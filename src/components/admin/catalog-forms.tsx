@@ -1,8 +1,9 @@
-import { CategoryColor, CourseLevel, ThumbnailVariant, type Bundle, type Category, type Course } from "@prisma/client";
+import { CategoryColor, CourseLevel, type Bundle, type Category, type Course, type UdemyCoupon } from "@prisma/client";
 import { Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CourseThumbnailInput } from "@/components/admin/course-thumbnail-input";
 import { CourseTitleSlugFields } from "@/components/admin/course-title-slug-fields";
+import { RichTextEditor } from "@/components/admin/rich-text-editor";
 import { createBundleAction, createCategoryAction, createCourseAction, updateBundleAction, updateCategoryAction, updateCourseAction } from "@/lib/admin-catalog-actions";
 import { type AdminCatalogLocale } from "@/lib/admin-catalog-locales";
 
@@ -68,7 +69,17 @@ export function CategoryForm({ category, locale }: { category?: Category; locale
   );
 }
 
-export function CourseForm({ categories, course, locale }: { categories: Category[]; course?: Course; locale: AdminCatalogLocale }) {
+export function CourseForm({
+  categories,
+  course,
+  activeUdemyCoupon,
+  locale
+}: {
+  categories: Category[];
+  course?: Course;
+  activeUdemyCoupon?: UdemyCoupon | null;
+  locale: AdminCatalogLocale;
+}) {
   const isEdit = Boolean(course);
   const currentLocale = (course?.locale ?? locale) as AdminCatalogLocale;
 
@@ -106,6 +117,18 @@ export function CourseForm({ categories, course, locale }: { categories: Categor
       <Field label="Podtytuł">
         <Textarea name="subtitle" defaultValue={course?.subtitle ?? ""} />
       </Field>
+      <div className="grid gap-4 md:grid-cols-2">
+        <Field label="Udemy Course ID">
+          <Input name="udemyCourseId" defaultValue={course?.udemyCourseId ?? ""} placeholder="np. 6893793" />
+        </Field>
+        <Field label="URL kursu Udemy">
+          <Input name="udemyUrl" type="url" defaultValue={course?.udemyUrl ?? ""} placeholder="https://www.udemy.com/course/..." />
+        </Field>
+      </div>
+      <Field label="Kod">
+        <Input name="udemyCouponCode" defaultValue={activeUdemyCoupon?.couponCode ?? ""} placeholder="np. A7F3D92KLM8P4QX1R0ZT" />
+      </Field>
+      <p className="-mt-4 text-xs font-semibold text-slate-500">Kod zaciąga się automatycznie po imporcie CSV. Ręczna zmiana tego pola aktualizuje aktywny kod Udemy dla kursu.</p>
       <PriceGrid locale={currentLocale} entity={course} />
       <div className="grid gap-4 md:grid-cols-4">
         <Field label="Ocena">
@@ -130,9 +153,9 @@ export function CourseForm({ categories, course, locale }: { categories: Categor
         </Field>
       </div>
       {course?.thumbnailImageUrl ? <p className="-mt-4 text-xs font-semibold text-slate-500">Aktualna miniaturka: {course.thumbnailImageUrl}</p> : null}
-      <Field label="O kursie">
-        <Textarea name="highlights" defaultValue={linesValue(course?.highlights)} />
-      </Field>
+      <EditorField label="O kursie">
+        <RichTextEditor name="highlights" defaultValue={richTextValue(course?.highlights)} />
+      </EditorField>
       <Field label="Czego się nauczysz">
         <Textarea name="outcomes" defaultValue={linesValue(course?.outcomes)} />
       </Field>
@@ -168,10 +191,12 @@ export function BundleForm({
       {bundle ? <input type="hidden" name="currentId" value={bundle.id} /> : null}
       <FormHeader title={isEdit ? "Edytuj pakiet" : "Dodaj pakiet"} description="Tworzysz pakiet tylko dla jednego wybranego języka." />
       <LocaleField locale={currentLocale} readOnly={isEdit} />
-      <div className="grid gap-4 md:grid-cols-4">
-        <Field label="Klucz katalogu">
-          <Input name="catalogKey" defaultValue={bundle?.catalogKey} required />
-        </Field>
+      <input type="hidden" name="catalogKey" value={bundle?.catalogKey ?? ""} />
+      <input type="hidden" name="thumbnailTitle" value={bundle?.thumbnailTitle ?? ""} />
+      <input type="hidden" name="thumbnailSubtitle" value={bundle?.thumbnailSubtitle ?? ""} />
+      <input type="hidden" name="thumbnailVariant" value={bundle?.thumbnailVariant ?? "PURPLE"} />
+      {bundle?.thumbnailImageUrl ? <input type="hidden" name="existingThumbnailImageUrl" value={bundle.thumbnailImageUrl} /> : null}
+      <div className="grid gap-4 md:grid-cols-3">
         <Field label="Kategoria">
           <Select name="categoryId" defaultValue={bundle?.categoryId ?? categories[0]?.id} required>
             {categories.map((category) => (
@@ -181,30 +206,21 @@ export function BundleForm({
             ))}
           </Select>
         </Field>
-        <Field label="Miniatura">
-          <Select name="thumbnailVariant" defaultValue={bundle?.thumbnailVariant ?? ThumbnailVariant.PURPLE}>
-            {Object.values(ThumbnailVariant).map((variant) => (
-              <option key={variant} value={variant}>
-                {variant}
-              </option>
-            ))}
-          </Select>
-        </Field>
         <Field label="Kolejność">
           <Input name="sortOrder" type="number" defaultValue={bundle?.sortOrder ?? 0} />
         </Field>
-      </div>
-      <div className="grid gap-4 md:grid-cols-2">
-        <Field label={`Tytuł (${currentLocale.toUpperCase()})`}>
-          <Input name="title" defaultValue={bundle?.title} required />
-        </Field>
-        <Field label="Slug">
-          <Input name="slug" defaultValue={bundle?.slug} required />
+        <Field label="Miniaturka pakietu">
+          <CourseThumbnailInput />
         </Field>
       </div>
-      <Field label={`Opis (${currentLocale.toUpperCase()})`}>
-        <Textarea name="description" defaultValue={bundle?.description} required />
+      {bundle?.thumbnailImageUrl ? <p className="-mt-4 text-xs font-semibold text-slate-500">Aktualna miniaturka: {bundle.thumbnailImageUrl}</p> : null}
+      <CourseTitleSlugFields defaultTitle={bundle?.title} defaultSlug={bundle?.slug} locale={currentLocale} />
+      <Field label="Podtytuł">
+        <Textarea name="subtitle" defaultValue={bundle?.subtitle ?? ""} />
       </Field>
+      <EditorField label="O pakiecie">
+        <RichTextEditor name="description" defaultValue={bundle?.description ?? ""} />
+      </EditorField>
       <PriceGrid locale={currentLocale} entity={bundle} />
       <div className="grid gap-4 md:grid-cols-2">
         <Field label="Ocena">
@@ -212,14 +228,6 @@ export function BundleForm({
         </Field>
         <Field label="Recenzje">
           <Input name="reviews" type="number" min="0" defaultValue={bundle?.reviews ?? 0} required />
-        </Field>
-      </div>
-      <div className="grid gap-4 md:grid-cols-2">
-        <Field label="Tytuł miniatury">
-          <Input name="thumbnailTitle" defaultValue={bundle?.thumbnailTitle} required />
-        </Field>
-        <Field label="Podtytuł miniatury">
-          <Input name="thumbnailSubtitle" defaultValue={bundle?.thumbnailSubtitle} required />
         </Field>
       </div>
       <Field label="Kursy w pakiecie">
@@ -285,6 +293,15 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
+function EditorField({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="block">
+      <span className="text-xs font-black uppercase text-slate-500">{label}</span>
+      <div className="mt-1">{children}</div>
+    </div>
+  );
+}
+
 function Input(props: React.ComponentPropsWithoutRef<"input">) {
   return <input className="focus-ring h-11 w-full rounded-lg border border-border bg-white px-3 text-sm font-semibold outline-none read-only:bg-slate-50 read-only:text-slate-500" {...props} />;
 }
@@ -339,6 +356,19 @@ function decimalValue(value: unknown, fallback = "0.00") {
 function linesValue(value: unknown) {
   if (Array.isArray(value)) return value.map((item) => String(item)).join("\n");
   return "";
+}
+
+function richTextValue(value: unknown) {
+  if (!Array.isArray(value)) return "";
+  if (value.length === 1 && String(value[0]).includes("<")) return String(value[0]);
+
+  return value
+    .map((item) => `<p>${escapeHtml(String(item))}</p>`)
+    .join("");
+}
+
+function escapeHtml(value: string) {
+  return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
 }
 
 function agendaValue(value: unknown) {

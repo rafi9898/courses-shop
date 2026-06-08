@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import Stripe from "stripe";
 import { type CheckoutCartItemInput, getCartItemKey } from "@/lib/cart";
 import { getPublicCatalog } from "@/lib/catalog-data";
+import { getActiveDiscountCodes } from "@/lib/discount-code-data";
 import { calculateCartTotals, getDiscount, getDiscountedUnitAmount } from "@/lib/discounts";
 import { isLocale, localeMeta } from "@/lib/i18n/config";
 import { parseInvoiceData } from "@/lib/invoice";
@@ -26,7 +27,6 @@ export async function POST(request: NextRequest) {
   const body = (await request.json().catch(() => null)) as CheckoutRequestBody | null;
   const locale = typeof body?.locale === "string" && isLocale(body.locale) ? body.locale : null;
   const items = parseItems(body?.items);
-  const discountCode = typeof body?.discountCode === "string" && getDiscount(body.discountCode) ? getDiscount(body.discountCode)?.code : null;
   const invoiceRequested = body?.invoiceRequested === true;
   const invoiceData = invoiceRequested ? parseInvoiceData(body?.invoiceData) : null;
 
@@ -35,6 +35,9 @@ export async function POST(request: NextRequest) {
   }
 
   const catalog = await getPublicCatalog(locale);
+  const discounts = await getActiveDiscountCodes();
+  const discountPool = discounts.length > 0 ? discounts : undefined;
+  const discountCode = typeof body?.discountCode === "string" && getDiscount(body.discountCode, discountPool) ? getDiscount(body.discountCode, discountPool)?.code : null;
   const products: Product[] = [...catalog.courses, ...catalog.bundles];
   const checkoutProducts = items
     .map((item) => products.find((product) => product.type === item.productType && product.id === item.productId))
@@ -44,7 +47,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "One or more products are unavailable." }, { status: 400 });
   }
 
-  const totals = calculateCartTotals(checkoutProducts, locale, discountCode);
+  const totals = calculateCartTotals(checkoutProducts, locale, discountCode, discountPool);
   const stripe = new Stripe(stripeSecretKey);
   const origin = getAppOrigin(request);
   const successUrl = `${origin}${getCheckoutSuccessPath(locale)}?session_id={CHECKOUT_SESSION_ID}`;
@@ -81,7 +84,7 @@ export async function POST(request: NextRequest) {
       quantity: 1,
       price_data: {
         currency: localeMeta[locale].currency.toLowerCase(),
-        unit_amount: toStripeAmount(getDiscountedUnitAmount(product.price[locale], discountCode)),
+        unit_amount: toStripeAmount(getDiscountedUnitAmount(product.price[locale], discountCode, discountPool)),
         product_data: {
           name: product.title[locale],
           metadata: {

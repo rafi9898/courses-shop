@@ -34,7 +34,7 @@ export function ProductShowcase({
       </div>
 
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        {courses.slice(0, 4).map((course) => (
+        {courses.slice(0, 8).map((course) => (
           <ProductCard key={course.id} course={course} locale={locale} dictionary={dictionary} categories={categories} />
         ))}
       </div>
@@ -47,7 +47,7 @@ export function ProductShowcase({
         </ButtonLink>
       </div>
       <div className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-        {bundles.map((bundle) => (
+        {bundles.slice(0, 3).map((bundle) => (
           <BundleCard key={bundle.id} bundle={bundle} locale={locale} dictionary={dictionary} categories={categories} />
         ))}
       </div>

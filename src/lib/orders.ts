@@ -1,19 +1,23 @@
 import { randomBytes } from "node:crypto";
 import { InvoiceStatus, PaymentStatus, Prisma, ProductType } from "@prisma/client";
 import Stripe from "stripe";
+import { getPublicCatalog } from "@/lib/catalog-data";
+import { getActiveDiscountCodes } from "@/lib/discount-code-data";
 import { calculateCartTotals, getDiscountedUnitAmount } from "@/lib/discounts";
 import { isLocale, localeMeta, type Locale } from "@/lib/i18n/config";
 import { parseInvoiceData } from "@/lib/invoice";
 import { generateInvoicePdf } from "@/lib/invoices/pdf";
-import { bundles, courses, type Product } from "@/lib/mock-data";
+import { type Product } from "@/lib/mock-data";
 import { prisma } from "@/lib/prisma";
-
-const products: Product[] = [...courses, ...bundles];
 
 export async function savePaidOrderFromCheckoutSession(session: Stripe.Checkout.Session) {
   const locale = parseSessionLocale(session);
   const productKeys = parseProductKeys(session.metadata?.product_keys);
   const discountCode = session.metadata?.discount_code || null;
+  const catalog = await getPublicCatalog(locale);
+  const discounts = await getActiveDiscountCodes();
+  const discountPool = discounts.length > 0 ? discounts : undefined;
+  const products: Product[] = [...catalog.courses, ...catalog.bundles];
   const orderProducts = productKeys
     .map((item) => products.find((product) => product.id === item.productId && product.type === item.productType))
     .filter((product): product is Product => Boolean(product));
@@ -22,7 +26,7 @@ export async function savePaidOrderFromCheckoutSession(session: Stripe.Checkout.
     throw new Error(`Cannot save order for checkout session ${session.id}: invalid products.`);
   }
 
-  const totals = calculateCartTotals(orderProducts, locale, discountCode);
+  const totals = calculateCartTotals(orderProducts, locale, discountCode, discountPool);
   const paymentIntentId = getStripeId(session.payment_intent);
   const customerEmail = session.customer_details?.email ?? session.customer_email ?? null;
   const customerName = session.customer_details?.name ?? null;
@@ -59,7 +63,7 @@ export async function savePaidOrderFromCheckoutSession(session: Stripe.Checkout.
       paidAt,
       items: {
         create: orderProducts.map((product) => {
-          const unitAmount = getDiscountedUnitAmount(product.price[locale], discountCode);
+          const unitAmount = getDiscountedUnitAmount(product.price[locale], discountCode, discountPool);
 
           return {
             productId: product.id,

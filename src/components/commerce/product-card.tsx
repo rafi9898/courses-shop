@@ -68,6 +68,7 @@ export function Thumbnail({
   subtitle,
   variant,
   badge,
+  hideText = false,
   imageUrl,
   showFavorite = true
 }: {
@@ -75,6 +76,7 @@ export function Thumbnail({
   subtitle: string;
   variant: "dark" | "blue" | "purple" | "green";
   badge?: string;
+  hideText?: boolean;
   imageUrl?: string | null;
   showFavorite?: boolean;
 }) {
@@ -100,10 +102,14 @@ export function Thumbnail({
         </button>
       ) : null}
       {badge ? (
-        <span className="absolute right-3 top-3 rounded-md bg-white px-2 py-1 text-xs font-black text-foreground">{badge}</span>
+        <div className="absolute inset-x-3 top-3 z-10 flex justify-end">
+          <span className="inline-flex max-w-full whitespace-nowrap rounded-md bg-white px-2.5 py-1.5 text-xs font-black leading-none text-foreground shadow-sm">
+            {badge}
+          </span>
+        </div>
       ) : null}
       <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/25 to-transparent" />
-      {!imageUrl ? (
+      {!imageUrl && !hideText ? (
         <div className="relative z-10 flex h-full flex-col justify-end">
           <div className="text-2xl font-black tracking-normal">{title}</div>
           <div className="mt-1 text-xs font-black uppercase text-warning">{subtitle}</div>
