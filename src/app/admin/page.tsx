@@ -1,4 +1,5 @@
 import { Download, ExternalLink, FileText, ShieldCheck, SquareArrowOutUpRight } from "lucide-react";
+import { type Prisma } from "@prisma/client";
 import { AdminPagination, getAdminPagination, parseAdminPage } from "@/components/admin/admin-pagination";
 import { AdminFrame, AdminShell } from "@/components/admin/admin-shell";
 import { AdminLoginForm } from "@/components/admin/admin-login-form";
@@ -7,6 +8,7 @@ import { UdemyCouponActions } from "@/components/admin/udemy-coupon-actions";
 import { UdemyImportForm } from "@/components/admin/udemy-import-form";
 import { ButtonLink } from "@/components/ui/button";
 import { isAdminAuthenticated, isAdminConfigured } from "@/lib/admin-auth";
+import { getAdminPath } from "@/lib/admin-routes";
 import { isLocale, type Locale } from "@/lib/i18n/config";
 import { prisma } from "@/lib/prisma";
 import { getAbsoluteUrl, getInvoiceDownloadPath, getOrderAccessPath } from "@/lib/routes";
@@ -16,7 +18,7 @@ export const dynamic = "force-dynamic";
 export default async function AdminPage({
   searchParams
 }: {
-  searchParams: Promise<{ ordersPage?: string; udemyPage?: string }>;
+  searchParams: Promise<{ ordersPage?: string; udemyPage?: string; dateFrom?: string; dateTo?: string }>;
 }) {
   if (!isAdminConfigured()) {
     return (
@@ -40,15 +42,27 @@ export default async function AdminPage({
     );
   }
 
-  const { ordersPage: rawOrdersPage, udemyPage: rawUdemyPage } = await searchParams;
+  const { ordersPage: rawOrdersPage, udemyPage: rawUdemyPage, dateFrom: rawDateFrom, dateTo: rawDateTo } = await searchParams;
   const ordersPage = parseAdminPage(rawOrdersPage);
   const udemyPage = parseAdminPage(rawUdemyPage);
+  const dateRange = parseAdminDateRange(rawDateFrom, rawDateTo);
+  const orderWhere: Prisma.OrderWhereInput = dateRange.where
+    ? {
+        paymentStatus: "PAID",
+        paidAt: dateRange.where
+      }
+    : {};
+  const paidOrderWhere: Prisma.OrderWhereInput = {
+    paymentStatus: "PAID",
+    ...(dateRange.where ? { paidAt: dateRange.where } : {})
+  };
   const ordersPagination = getAdminPagination(ordersPage);
   const udemyPagination = getAdminPagination(udemyPage);
   let databaseError: string | null = null;
   let udemyCouponsError: string | null = null;
-  const [orders, totalOrders, paidOrders, invoices] = await Promise.all([
+  const [orders, totalOrders, paidOrders, invoices, revenueGroups] = await Promise.all([
     prisma.order.findMany({
+      where: orderWhere,
       orderBy: {
         createdAt: "desc"
       },
@@ -59,12 +73,25 @@ export default async function AdminPage({
         invoice: true
       }
     }),
-    prisma.order.count(),
-    prisma.order.count({ where: { paymentStatus: "PAID" } }),
-    prisma.invoice.count()
+    prisma.order.count({ where: orderWhere }),
+    prisma.order.count({ where: paidOrderWhere }),
+    prisma.invoice.count({
+      where: dateRange.where
+        ? {
+            order: paidOrderWhere
+          }
+        : undefined
+    }),
+    prisma.order.groupBy({
+      by: ["currency"],
+      where: paidOrderWhere,
+      _sum: {
+        totalAmount: true
+      }
+    })
   ]).catch(() => {
     databaseError = "Nie udało się pobrać zamówień. Sprawdź `DATABASE_URL` i migracje Prisma.";
-    return [[], 0, 0, 0] as const;
+    return [[], 0, 0, 0, []] as const;
   });
   const [udemyCoupons, totalUdemyCoupons, activeCoupons] = await Promise.all([
     prisma.udemyCoupon.findMany({
@@ -81,12 +108,13 @@ export default async function AdminPage({
     return [[], 0, 0] as const;
   });
   const activeDiscounts = await prisma.discountCode.count({ where: { isActive: true } }).catch(() => 0);
-  const revenueByCurrency = orders.reduce<Record<string, number>>((totals, order) => {
-    if (order.paymentStatus !== "PAID") return totals;
+  const revenueByCurrency = revenueGroups.reduce<Record<string, number>>((totals, group) => {
+    const amount = group._sum.totalAmount;
+    if (!amount) return totals;
 
     return {
       ...totals,
-      [order.currency]: (totals[order.currency] ?? 0) + Number(order.totalAmount)
+      [group.currency]: Number(amount)
     };
   }, {});
 
@@ -101,12 +129,51 @@ export default async function AdminPage({
       </div>
 
       <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-        <Stat label="Zamówienia opłacone" value={String(paidOrders)} />
-        <Stat label="Faktury" value={String(invoices)} />
-        <Stat label="Przychód z listy" value={formatRevenue(revenueByCurrency)} />
+        <Stat label={dateRange.isActive ? "Zamówienia opłacone w okresie" : "Zamówienia opłacone"} value={String(paidOrders)} />
+        <Stat label={dateRange.isActive ? "Faktury w okresie" : "Faktury"} value={String(invoices)} />
+        <Stat label={dateRange.isActive ? "Przychód w okresie" : "Przychód łączny"} value={formatRevenue(revenueByCurrency)} />
         <Stat label="Aktywne kody Udemy" value={String(activeCoupons)} />
         <Stat label="Aktywne rabaty" value={String(activeDiscounts)} />
       </div>
+
+      <section className="mt-6 rounded-xl border border-border bg-white p-4 shadow-card">
+        <form className="grid gap-3 md:grid-cols-[1fr_1fr_auto_auto]" action={getAdminPath()}>
+          <label className="text-sm font-semibold text-slate-700">
+            Od
+            <input
+              type="date"
+              name="dateFrom"
+              defaultValue={dateRange.dateFrom}
+              className="focus-ring mt-2 h-11 w-full rounded-[10px] border border-border bg-white px-3 text-sm text-slate-900"
+            />
+          </label>
+          <label className="text-sm font-semibold text-slate-700">
+            Do
+            <input
+              type="date"
+              name="dateTo"
+              defaultValue={dateRange.dateTo}
+              className="focus-ring mt-2 h-11 w-full rounded-[10px] border border-border bg-white px-3 text-sm text-slate-900"
+            />
+          </label>
+          <div className="flex items-end">
+            <button className="focus-ring inline-flex h-11 w-full items-center justify-center rounded-[10px] bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-soft transition duration-200 hover:bg-[#2f16d8] md:w-auto">
+              Filtruj
+            </button>
+          </div>
+          {dateRange.isActive ? (
+            <div className="flex items-end">
+              <ButtonLink className="h-11 w-full px-5 md:w-auto" href="/admin" variant="secondary">
+                Wyczyść
+              </ButtonLink>
+            </div>
+          ) : null}
+        </form>
+        <p className="mt-3 text-xs leading-5 text-slate-500">
+          Przychód liczony jest z opłaconych zamówień według daty płatności.
+          {dateRange.error ? <span className="font-semibold text-amber-700"> {dateRange.error}</span> : null}
+        </p>
+      </section>
 
       {databaseError ? <p className="mt-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-800">{databaseError}</p> : null}
 
@@ -206,7 +273,7 @@ export default async function AdminPage({
           page={ordersPage}
           totalItems={totalOrders}
           pageParam="ordersPage"
-          params={{ udemyPage }}
+          params={{ udemyPage, dateFrom: dateRange.dateFrom, dateTo: dateRange.dateTo }}
         />
       </section>
 
@@ -290,7 +357,7 @@ export default async function AdminPage({
           page={udemyPage}
           totalItems={totalUdemyCoupons}
           pageParam="udemyPage"
-          params={{ ordersPage }}
+          params={{ ordersPage, dateFrom: dateRange.dateFrom, dateTo: dateRange.dateTo }}
         />
       </section>
     </AdminFrame>
@@ -354,4 +421,53 @@ function formatRevenue(revenueByCurrency: Record<string, number>) {
       }).format(amount)
     )
     .join(" / ");
+}
+
+function parseAdminDateRange(rawDateFrom?: string, rawDateTo?: string) {
+  const dateFrom = isDateInputValue(rawDateFrom) ? rawDateFrom : "";
+  const dateTo = isDateInputValue(rawDateTo) ? rawDateTo : "";
+  const start = dateFrom ? parseDateInputBoundary(dateFrom, "start") : null;
+  const end = dateTo ? parseDateInputBoundary(dateTo, "end") : null;
+  let error = "";
+
+  if ((rawDateFrom && !dateFrom) || (rawDateTo && !dateTo)) {
+    error = "Nieprawidłowy format daty został pominięty.";
+  }
+
+  if (start && end && start > end) {
+    return {
+      dateFrom,
+      dateTo,
+      where: null,
+      isActive: Boolean(dateFrom || dateTo),
+      error: "Data początkowa nie może być późniejsza niż końcowa."
+    };
+  }
+
+  const where: Prisma.DateTimeNullableFilter | null =
+    start || end
+      ? {
+          ...(start ? { gte: start } : {}),
+          ...(end ? { lte: end } : {})
+        }
+      : null;
+
+  return {
+    dateFrom,
+    dateTo,
+    where,
+    isActive: Boolean(where),
+    error
+  };
+}
+
+function isDateInputValue(value?: string) {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const date = new Date(`${value}T00:00:00.000Z`);
+
+  return Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === value;
+}
+
+function parseDateInputBoundary(value: string, boundary: "start" | "end") {
+  return new Date(`${value}T${boundary === "start" ? "00:00:00.000" : "23:59:59.999"}Z`);
 }
