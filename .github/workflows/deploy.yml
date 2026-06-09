@@ -90,6 +90,13 @@ jobs:
               exit 1
             fi
 
+            if ! sudo docker inspect --format '{{range .Config.Env}}{{println .}}{{end}}' "$running_container_id" |
+              grep -Fxq "APP_VERSION=${APP_IMAGE_TAG}"; then
+              echo "Deploy verification failed: app container APP_VERSION does not match ${APP_IMAGE_TAG}"
+              sudo docker inspect --format '{{range .Config.Env}}{{println .}}{{end}}' "$running_container_id" | grep '^APP_VERSION=' || true
+              exit 1
+            fi
+
             for service in app caddy; do
               status="$(sudo docker inspect --format '{{.State.Status}}' "$(compose ps -q "$service")")"
               if [ "$status" != "running" ]; then
@@ -100,8 +107,9 @@ jobs:
             done
 
             health=""
+            health_url="https://rafalpodraza.com/api/health?deploy=${APP_IMAGE_TAG}"
             for attempt in $(seq 1 30); do
-              if health="$(curl -fsSL https://rafalpodraza.com/api/health 2>/dev/null)" &&
+              if health="$(curl -fsSL -H "Cache-Control: no-cache" "$health_url" 2>/dev/null)" &&
                 echo "$health" | grep -Fq "\"version\":\"${APP_IMAGE_TAG}\""; then
                 break
               fi
@@ -126,8 +134,9 @@ jobs:
           expected_version="${GITHUB_SHA::7}"
 
           health=""
+          health_url="https://rafalpodraza.com/api/health?deploy=${expected_version}&run=${GITHUB_RUN_ID}"
           for attempt in {1..30}; do
-            if health="$(curl -fsSL https://rafalpodraza.com/api/health 2>/dev/null)" &&
+            if health="$(curl -fsSL -H "Cache-Control: no-cache" "$health_url" 2>/dev/null)" &&
               grep -Fq "\"version\":\"${expected_version}\"" <<< "$health"; then
               break
             fi
