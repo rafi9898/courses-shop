@@ -2,6 +2,7 @@ import { ArrowLeft, Download, ExternalLink, Mail, Receipt, ShoppingBag, UserRoun
 import { notFound } from "next/navigation";
 import { CopyLinkButton } from "@/components/admin/admin-actions";
 import { AdminFrame, AdminShell } from "@/components/admin/admin-shell";
+import { OrderDeleteButton } from "@/components/admin/order-delete-button";
 import { OrderResendEmailButton } from "@/components/admin/order-resend-email-button";
 import { ButtonLink } from "@/components/ui/button";
 import { isAdminAuthenticated, isAdminConfigured } from "@/lib/admin-auth";
@@ -81,6 +82,7 @@ export default async function AdminOrderDetailsPage({
               Faktura PDF
             </ButtonLink>
           ) : null}
+          <OrderDeleteButton orderId={order.id} orderNumber={order.orderNumber} redirectTo="/admin" className="h-10 px-4 text-red-600 hover:border-red-300 hover:text-red-700" />
         </div>
       </div>
 

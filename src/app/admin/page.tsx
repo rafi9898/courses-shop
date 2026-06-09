@@ -4,12 +4,14 @@ import { AdminPagination, getAdminPagination, parseAdminPage } from "@/component
 import { AdminFrame, AdminShell } from "@/components/admin/admin-shell";
 import { AdminLoginForm } from "@/components/admin/admin-login-form";
 import { CopyLinkButton } from "@/components/admin/admin-actions";
+import { OrderDeleteButton } from "@/components/admin/order-delete-button";
 import { UdemyCouponActions } from "@/components/admin/udemy-coupon-actions";
 import { UdemyImportForm } from "@/components/admin/udemy-import-form";
 import { ButtonLink } from "@/components/ui/button";
 import { isAdminAuthenticated, isAdminConfigured } from "@/lib/admin-auth";
 import { getAdminPath } from "@/lib/admin-routes";
 import { isLocale, type Locale } from "@/lib/i18n/config";
+import { getCurrentPlnExchangeRates } from "@/lib/exchange-rates";
 import { prisma } from "@/lib/prisma";
 import { getAbsoluteUrl, getInvoiceDownloadPath, getOrderAccessPath } from "@/lib/routes";
 
@@ -60,7 +62,7 @@ export default async function AdminPage({
   const udemyPagination = getAdminPagination(udemyPage);
   let databaseError: string | null = null;
   let udemyCouponsError: string | null = null;
-  const [orders, totalOrders, paidOrders, invoices, revenueGroups] = await Promise.all([
+  const [orders, totalOrders, paidOrders, invoices, revenueGroups, exchangeRates] = await Promise.all([
     prisma.order.findMany({
       where: orderWhere,
       orderBy: {
@@ -88,10 +90,11 @@ export default async function AdminPage({
       _sum: {
         totalAmount: true
       }
-    })
+    }),
+    getCurrentPlnExchangeRates()
   ]).catch(() => {
     databaseError = "Nie udało się pobrać zamówień. Sprawdź `DATABASE_URL` i migracje Prisma.";
-    return [[], 0, 0, 0, []] as const;
+    return [[], 0, 0, 0, [], null] as const;
   });
   const [udemyCoupons, totalUdemyCoupons, activeCoupons] = await Promise.all([
     prisma.udemyCoupon.findMany({
@@ -117,6 +120,7 @@ export default async function AdminPage({
       [group.currency]: Number(amount)
     };
   }, {});
+  const revenueInPln = calculateRevenueInPln(revenueByCurrency, exchangeRates);
 
   return (
     <AdminFrame>
@@ -128,10 +132,11 @@ export default async function AdminPage({
         </div>
       </div>
 
-      <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-        <Stat label={dateRange.isActive ? "Zamówienia opłacone w okresie" : "Zamówienia opłacone"} value={String(paidOrders)} />
-        <Stat label={dateRange.isActive ? "Faktury w okresie" : "Faktury"} value={String(invoices)} />
-        <Stat label={dateRange.isActive ? "Przychód w okresie" : "Przychód łączny"} value={formatRevenue(revenueByCurrency)} />
+      <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+        <Stat label={dateRange.isCustomRange ? "Zamówienia opłacone w okresie" : "Zamówienia opłacone w bieżącym miesiącu"} value={String(paidOrders)} />
+        <Stat label={dateRange.isCustomRange ? "Faktury w okresie" : "Faktury w bieżącym miesiącu"} value={String(invoices)} />
+        <Stat label={dateRange.isCustomRange ? "Przychód w okresie" : "Przychód w bieżącym miesiącu"} value={formatRevenue(revenueByCurrency)} />
+        <Stat label="Przychód w PLN (NBP)" value={revenueInPln === null ? "Niedostępne" : formatPlnAmount(revenueInPln)} />
         <Stat label="Aktywne kody Udemy" value={String(activeCoupons)} />
         <Stat label="Aktywne rabaty" value={String(activeDiscounts)} />
       </div>
@@ -161,7 +166,7 @@ export default async function AdminPage({
               Filtruj
             </button>
           </div>
-          {dateRange.isActive ? (
+          {dateRange.isCustomRange ? (
             <div className="flex items-end">
               <ButtonLink className="h-11 w-full px-5 md:w-auto" href="/admin" variant="secondary">
                 Wyczyść
@@ -252,6 +257,7 @@ export default async function AdminPage({
                               PDF
                             </ButtonLink>
                           ) : null}
+                          <OrderDeleteButton orderId={order.id} orderNumber={order.orderNumber} label="Usuń" className="h-9 px-3 text-red-600 hover:border-red-300 hover:text-red-700" />
                         </div>
                       </Td>
                     </tr>
@@ -424,13 +430,16 @@ function formatRevenue(revenueByCurrency: Record<string, number>) {
 }
 
 function parseAdminDateRange(rawDateFrom?: string, rawDateTo?: string) {
-  const dateFrom = isDateInputValue(rawDateFrom) ? rawDateFrom : "";
-  const dateTo = isDateInputValue(rawDateTo) ? rawDateTo : "";
-  const start = dateFrom ? parseDateInputBoundary(dateFrom, "start") : null;
-  const end = dateTo ? parseDateInputBoundary(dateTo, "end") : null;
+  const defaultRange = getDefaultAdminDateRange();
+  const hasCustomDateFrom = typeof rawDateFrom === "string" && rawDateFrom.length > 0;
+  const hasCustomDateTo = typeof rawDateTo === "string" && rawDateTo.length > 0;
+  const dateFrom = isDateInputValue(rawDateFrom) ? rawDateFrom : defaultRange.dateFrom;
+  const dateTo = isDateInputValue(rawDateTo) ? rawDateTo : defaultRange.dateTo;
+  const start = parseDateInputBoundary(dateFrom, "start");
+  const end = parseDateInputBoundary(dateTo, "end");
   let error = "";
 
-  if ((rawDateFrom && !dateFrom) || (rawDateTo && !dateTo)) {
+  if ((hasCustomDateFrom && !isDateInputValue(rawDateFrom)) || (hasCustomDateTo && !isDateInputValue(rawDateTo))) {
     error = "Nieprawidłowy format daty został pominięty.";
   }
 
@@ -438,27 +447,50 @@ function parseAdminDateRange(rawDateFrom?: string, rawDateTo?: string) {
     return {
       dateFrom,
       dateTo,
-      where: null,
-      isActive: Boolean(dateFrom || dateTo),
+      where: {
+        gte: parseDateInputBoundary(defaultRange.dateFrom, "start"),
+        lte: parseDateInputBoundary(defaultRange.dateTo, "end")
+      },
+      isCustomRange: Boolean(hasCustomDateFrom || hasCustomDateTo),
       error: "Data początkowa nie może być późniejsza niż końcowa."
     };
   }
 
-  const where: Prisma.DateTimeNullableFilter | null =
-    start || end
-      ? {
-          ...(start ? { gte: start } : {}),
-          ...(end ? { lte: end } : {})
-        }
-      : null;
+  const where: Prisma.DateTimeNullableFilter = {
+    gte: start,
+    lte: end
+  };
 
   return {
     dateFrom,
     dateTo,
     where,
-    isActive: Boolean(where),
+    isCustomRange: Boolean(hasCustomDateFrom || hasCustomDateTo),
     error
   };
+}
+
+function getDefaultAdminDateRange() {
+  const today = getWarsawDateInputValue();
+  const [year, month] = today.split("-");
+
+  return {
+    dateFrom: `${year}-${month}-01`,
+    dateTo: today
+  };
+}
+
+function getWarsawDateInputValue(date = new Date()) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Warsaw",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).formatToParts(date);
+
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+
+  return `${values.year}-${values.month}-${values.day}`;
 }
 
 function isDateInputValue(value?: string) {
@@ -469,5 +501,61 @@ function isDateInputValue(value?: string) {
 }
 
 function parseDateInputBoundary(value: string, boundary: "start" | "end") {
-  return new Date(`${value}T${boundary === "start" ? "00:00:00.000" : "23:59:59.999"}Z`);
+  const [year, month, day] = value.split("-").map(Number);
+  const utcGuess = Date.UTC(
+    year,
+    month - 1,
+    day,
+    boundary === "start" ? 0 : 23,
+    boundary === "start" ? 0 : 59,
+    boundary === "start" ? 0 : 59,
+    boundary === "start" ? 0 : 999
+  );
+  const offsetMinutes = getTimezoneOffsetMinutes(new Date(utcGuess), "Europe/Warsaw");
+
+  return new Date(utcGuess - offsetMinutes * 60_000);
+}
+
+function getTimezoneOffsetMinutes(date: Date, timeZone: string) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    hourCycle: "h23",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit"
+  }).formatToParts(date);
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  const asUTC = Date.UTC(Number(values.year), Number(values.month) - 1, Number(values.day), Number(values.hour), Number(values.minute), Number(values.second), date.getUTCMilliseconds());
+
+  return (asUTC - date.getTime()) / 60000;
+}
+
+function calculateRevenueInPln(revenueByCurrency: Record<string, number>, exchangeRates: Record<string, number> | null) {
+  if (!exchangeRates) return null;
+
+  let total = 0;
+
+  for (const [currency, amount] of Object.entries(revenueByCurrency)) {
+    if (!amount) continue;
+    const rate = currency.toUpperCase() === "PLN" ? 1 : exchangeRates[currency.toUpperCase()];
+
+    if (!rate) {
+      return null;
+    }
+
+    total += amount * rate;
+  }
+
+  return total;
+}
+
+function formatPlnAmount(amount: number) {
+  return new Intl.NumberFormat("pl-PL", {
+    style: "currency",
+    currency: "PLN",
+    minimumFractionDigits: 2
+  }).format(amount);
 }
