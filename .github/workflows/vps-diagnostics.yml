@@ -1,0 +1,114 @@
+name: VPS diagnostics
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+concurrency:
+  group: vps-diagnostics
+  cancel-in-progress: true
+
+jobs:
+  collect:
+    name: Collect VPS diagnostics
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Collect diagnostics over SSH
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          set -euo pipefail
+
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "$VPS_HOST" >> ~/.ssh/known_hosts
+
+          ssh -i ~/.ssh/deploy_key "$VPS_USER@$VPS_HOST" 'bash -s' > /tmp/vps-runtime.txt <<'REMOTE'
+            set -euo pipefail
+
+            echo "generatedAt=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            echo "hostname=$(hostname)"
+            echo "hostnameIps=$(hostname -I 2>/dev/null || true)"
+            echo "whoami=$(whoami)"
+            echo
+
+            echo "== public health from VPS =="
+            curl -fsSL -H "Cache-Control: no-cache" "https://rafalpodraza.com/api/health?diag=$(date +%s)" || true
+            echo
+            echo
+
+            echo "== public health pinned to 54.37.232.118 from VPS =="
+            curl -fsSL --resolve rafalpodraza.com:443:54.37.232.118 -H "Cache-Control: no-cache" "https://rafalpodraza.com/api/health?diag-resolve=$(date +%s)" || true
+            echo
+            echo
+
+            echo "== public diagnostics file from VPS =="
+            curl -fsSL "https://rafalpodraza.com/uploads/deploy-status.txt?diag=$(date +%s)" || true
+            echo
+            echo
+
+            echo "== /opt/courses-shop/app =="
+            ls -ld /opt /opt/courses-shop /opt/courses-shop/app /opt/courses-shop/app/public /opt/courses-shop/app/public/uploads 2>/dev/null || true
+            cd /opt/courses-shop/app
+            echo "pwd=$PWD"
+            echo "gitSha=$(git rev-parse --short HEAD 2>/dev/null || true)"
+            echo
+
+            echo "== APP_DOMAIN from .env.production =="
+            sed -n 's/^APP_DOMAIN=/APP_DOMAIN=/p' .env.production 2>/dev/null || true
+            echo
+
+            echo "== compose ps in /opt/courses-shop/app =="
+            sudo env APP_IMAGE_TAG="$(git rev-parse --short HEAD)" docker compose --env-file .env.production -f docker-compose.prod.yml ps || true
+            echo
+
+            echo "== docker ps =="
+            sudo docker ps --format '  {{.ID}} {{.Image}} {{.Names}} {{.Ports}}' || true
+            echo
+
+            echo "== listeners on 80/443 =="
+            sudo ss -ltnp 'sport = :80 or sport = :443' 2>/dev/null || sudo lsof -nP -iTCP:80 -iTCP:443 -sTCP:LISTEN 2>/dev/null || true
+            echo
+
+            echo "== container details =="
+            for container_id in $(sudo docker ps -q); do
+              name="$(sudo docker inspect --format '{{.Name}}' "$container_id" | sed 's#^/##')"
+              image="$(sudo docker inspect --format '{{.Config.Image}}' "$container_id")"
+              echo "--- ${container_id} ${name} ${image}"
+              echo "ports=$(sudo docker port "$container_id" 2>/dev/null | tr '\n' ';' || true)"
+              echo "appVersionEnv=$(sudo docker inspect --format '{{range .Config.Env}}{{println .}}{{end}}' "$container_id" | sed -n 's/^APP_VERSION=//p')"
+              echo "appDomainEnv=$(sudo docker inspect --format '{{range .Config.Env}}{{println .}}{{end}}' "$container_id" | sed -n 's/^APP_DOMAIN=//p')"
+              echo "mounts:"
+              sudo docker inspect --format '{{range .Mounts}}{{println "  " .Source "->" .Destination "rw=" .RW}}{{end}}' "$container_id" || true
+              echo
+            done
+
+            echo "== current Caddyfile =="
+            sed -n '1,160p' Caddyfile 2>/dev/null || true
+          REMOTE
+
+      - name: Publish diagnostics branch
+        run: |
+          set -euo pipefail
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git switch --orphan diagnostics/vps-runtime
+          git rm -rf . >/dev/null 2>&1 || true
+          mkdir -p diagnostics
+          cp /tmp/vps-runtime.txt diagnostics/vps-runtime.txt
+          git add diagnostics/vps-runtime.txt
+          git commit -m "Update VPS diagnostics"
+          git push --force origin HEAD:diagnostics/vps-runtime
