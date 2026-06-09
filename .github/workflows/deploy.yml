@@ -74,6 +74,10 @@ jobs:
             compose run --rm app npm run prisma:migrate:deploy
 
             existing_app_container="$(compose ps -q app || true)"
+            if [ -z "$existing_app_container" ]; then
+              existing_app_container="$(sudo docker ps -aq --filter name='^app-app-1$' || true)"
+            fi
+
             if [ -n "$existing_app_container" ]; then
               sudo docker stop "$existing_app_container"
               sudo docker rm "$existing_app_container"
