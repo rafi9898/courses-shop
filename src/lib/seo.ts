@@ -11,6 +11,7 @@ const defaultTitle = "Rafał Podraza - praktyczne kursy online IT";
 const defaultDescription =
   "Praktyczne kursy online z testowania oprogramowania, programowania, chmury, AI i nowoczesnych narzędzi IT.";
 const defaultSocialImagePath = "/images/social-preview.png";
+const maxDescriptionLength = 160;
 
 export const publicPagePaths: Record<PublicPage, Record<Locale, string>> = {
   home: {
@@ -96,6 +97,97 @@ const publicPageTitles: Record<PublicPage, Record<Locale, string>> = {
   }
 };
 
+const defaultKeywords: Record<Locale, string[]> = {
+  pl: [
+    "Rafał Podraza",
+    "kursy online",
+    "kursy IT",
+    "kursy Udemy",
+    "testowanie oprogramowania",
+    "programowanie",
+    "automatyzacja testów",
+    "AI w IT"
+  ],
+  de: [
+    "Rafał Podraza",
+    "Online-Kurse",
+    "IT-Kurse",
+    "Udemy-Kurse",
+    "Software Testing",
+    "Programmierung",
+    "Testautomatisierung",
+    "KI in IT"
+  ],
+  en: [
+    "Rafał Podraza",
+    "online courses",
+    "IT courses",
+    "Udemy courses",
+    "software testing",
+    "programming",
+    "test automation",
+    "AI in IT"
+  ]
+};
+
+const publicPageKeywords: Record<PublicPage, Record<Locale, string[]>> = {
+  home: {
+    pl: ["praktyczne kursy online", "nauka IT online", "kursy dla testerów", "kursy programowania", "kursy chmury"],
+    de: ["praktische Online-Kurse", "IT online lernen", "Kurse für Tester", "Programmierkurse", "Cloud-Kurse"],
+    en: ["practical online courses", "learn IT online", "courses for testers", "programming courses", "cloud courses"]
+  },
+  courses: {
+    pl: ["wszystkie kursy online", "kursy testowania", "kursy JavaScript", "kursy SQL", "kursy Postman"],
+    de: ["alle Online-Kurse", "Testing-Kurse", "JavaScript-Kurse", "SQL-Kurse", "Postman-Kurse"],
+    en: ["all online courses", "testing courses", "JavaScript courses", "SQL courses", "Postman courses"]
+  },
+  bundles: {
+    pl: ["pakiety kursów", "pakiety Udemy", "zestawy kursów IT", "pakiet testera oprogramowania"],
+    de: ["Kurspakete", "Udemy-Pakete", "IT-Kurspakete", "Software-Tester-Paket"],
+    en: ["course bundles", "Udemy bundles", "IT course bundles", "software tester bundle"]
+  },
+  categories: {
+    pl: ["kategorie kursów IT", "testowanie", "programowanie", "DevOps", "AWS", "SQL", "cyberbezpieczeństwo"],
+    de: ["IT-Kurskategorien", "Testing", "Programmierung", "DevOps", "AWS", "SQL", "Cybersicherheit"],
+    en: ["IT course categories", "testing", "programming", "DevOps", "AWS", "SQL", "cybersecurity"]
+  },
+  about: {
+    pl: ["Rafał Podraza", "autor kursów online", "instruktor Udemy", "praktyczne szkolenia IT"],
+    de: ["Rafał Podraza", "Online-Kursautor", "Udemy-Dozent", "praktische IT-Schulungen"],
+    en: ["Rafał Podraza", "online course creator", "Udemy instructor", "practical IT training"]
+  },
+  faq: {
+    pl: ["FAQ kursy online", "pytania o kursy", "kody Udemy", "płatności za kursy"],
+    de: ["FAQ Online-Kurse", "Fragen zu Kursen", "Udemy-Codes", "Kurszahlungen"],
+    en: ["online courses FAQ", "course questions", "Udemy codes", "course payments"]
+  },
+  terms: {
+    pl: ["regulamin sklepu", "regulamin kursów online", "zakup kursów online"],
+    de: ["AGB", "Online-Shop AGB", "Online-Kurse kaufen"],
+    en: ["terms and conditions", "online shop terms", "buy online courses"]
+  },
+  privacy: {
+    pl: ["polityka prywatności", "przetwarzanie danych", "cookies", "dane osobowe"],
+    de: ["Datenschutzerklärung", "Datenverarbeitung", "Cookies", "personenbezogene Daten"],
+    en: ["privacy policy", "data processing", "cookies", "personal data"]
+  }
+};
+
+const productKeywordSeeds: Record<Locale, Record<"course" | "bundle", string[]>> = {
+  pl: {
+    course: ["kurs online", "kurs Udemy", "kurs IT", "praktyczny kurs", "szkolenie online"],
+    bundle: ["pakiet kursów", "pakiet Udemy", "zestaw kursów", "kursy IT", "pakiet online"]
+  },
+  de: {
+    course: ["Online-Kurs", "Udemy-Kurs", "IT-Kurs", "Praxis-Kurs", "Online-Schulung"],
+    bundle: ["Kurspaket", "Udemy-Paket", "Kursbundle", "IT-Kurse", "Online-Paket"]
+  },
+  en: {
+    course: ["online course", "Udemy course", "IT course", "practical course", "online training"],
+    bundle: ["course bundle", "Udemy bundle", "IT courses", "online bundle", "course package"]
+  }
+};
+
 export function getSiteUrl(path = "/") {
   return getAbsoluteUrl(path);
 }
@@ -111,6 +203,7 @@ export function getPublicPageMetadata(locale: Locale, page: PublicPage): Metadat
     path,
     title,
     description,
+    keywords: createKeywords(defaultKeywords[locale], publicPageKeywords[page][locale], title, description),
     alternates: publicPagePaths[page]
   });
 }
@@ -134,13 +227,15 @@ export function getProductMetadata({
   path,
   title,
   description,
-  imageUrl
+  imageUrl,
+  keywords = []
 }: {
   locale: Locale;
   path: string;
   title: string;
   description: string;
   imageUrl?: string | null;
+  keywords?: string[];
 }): Metadata {
   const image = getMetadataImageUrl(imageUrl);
 
@@ -149,8 +244,36 @@ export function getProductMetadata({
     path,
     title,
     description,
+    keywords: createKeywords(defaultKeywords[locale], title, description, keywords),
     images: [image]
   });
+}
+
+export function getProductKeywords({
+  locale,
+  kind,
+  title,
+  category,
+  subtitle,
+  highlights = [],
+  outcomes = []
+}: {
+  locale: Locale;
+  kind: "course" | "bundle";
+  title: string;
+  category?: string | null;
+  subtitle?: string | null;
+  highlights?: string[];
+  outcomes?: string[];
+}) {
+  return createKeywords(
+    productKeywordSeeds[locale][kind],
+    title,
+    category,
+    subtitle,
+    highlights.slice(0, 3),
+    outcomes.slice(0, 3)
+  );
 }
 
 export function createWebsiteJsonLd(locale: Locale) {
@@ -233,7 +356,8 @@ function createMetadata({
   title,
   description,
   alternates,
-  images
+  images,
+  keywords
 }: {
   locale: Locale;
   path: string;
@@ -241,13 +365,16 @@ function createMetadata({
   description: string;
   alternates?: Record<Locale, string>;
   images?: string[];
+  keywords?: string[];
 }): Metadata {
   const url = getSiteUrl(path);
   const metadataImages = images?.length ? images : [getSiteUrl(defaultSocialImagePath)];
+  const normalizedDescription = normalizeDescription(description);
 
   return {
     title: `${title} | ${siteName}`,
-    description,
+    description: normalizedDescription,
+    keywords: createKeywords(defaultKeywords[locale], keywords),
     alternates: {
       canonical: url,
       languages: alternates ? getLanguageAlternates(alternates) : undefined
@@ -257,14 +384,14 @@ function createMetadata({
       locale: localeNames[locale],
       siteName,
       title: `${title} | ${siteName}`,
-      description,
+      description: normalizedDescription,
       url,
       images: metadataImages
     },
     twitter: {
       card: "summary_large_image",
       title: `${title} | ${siteName}`,
-      description,
+      description: normalizedDescription,
       images: metadataImages
     }
   };
@@ -281,6 +408,46 @@ function getMetadataImageUrl(imageUrl?: string | null) {
   if (!imageUrl) return getSiteUrl(defaultSocialImagePath);
   if (/^https?:\/\//i.test(imageUrl)) return imageUrl;
   return getSiteUrl(imageUrl);
+}
+
+function createKeywords(...groups: Array<string | string[] | null | undefined>) {
+  const seen = new Set<string>();
+  const keywords: string[] = [];
+
+  for (const group of groups) {
+    const values = Array.isArray(group) ? group : [group];
+
+    for (const value of values) {
+      const keyword = normalizeKeyword(value);
+      if (!keyword) continue;
+
+      const key = keyword.toLocaleLowerCase();
+      if (seen.has(key)) continue;
+
+      seen.add(key);
+      keywords.push(keyword);
+
+      if (keywords.length >= 18) return keywords;
+    }
+  }
+
+  return keywords;
+}
+
+function normalizeKeyword(value?: string | null) {
+  if (!value) return "";
+  const keyword = value.replace(/\s+/g, " ").replace(/[<>]/g, "").trim();
+  if (keyword.length < 2 || keyword.length > 80) return "";
+  return keyword;
+}
+
+function normalizeDescription(value: string) {
+  const description = value.replace(/\s+/g, " ").trim();
+  if (description.length <= maxDescriptionLength) return description;
+
+  const shortened = description.slice(0, maxDescriptionLength - 1);
+  const lastSpace = shortened.lastIndexOf(" ");
+  return `${shortened.slice(0, lastSpace > 120 ? lastSpace : shortened.length).trim()}…`;
 }
 
 function getPublicPageDescription(locale: Locale, page: PublicPage, dictionary: ReturnType<typeof getDictionary>) {
@@ -303,6 +470,7 @@ export const defaultMetadata: Metadata = {
     template: `%s | ${siteName}`
   },
   description: defaultDescription,
+  keywords: defaultKeywords.pl,
   applicationName: siteName,
   authors: [{ name: "Rafał Podraza", url: getSiteUrl("/en/about") }],
   creator: "Rafał Podraza",
