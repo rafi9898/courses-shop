@@ -73,6 +73,8 @@ jobs:
             compose up -d db
             compose run --rm app npm run prisma:migrate:deploy
 
+            compose stop app caddy || true
+            compose rm -f app caddy || true
             compose up -d --force-recreate --remove-orphans app caddy
 
             running_container_id="$(compose ps -q app)"
