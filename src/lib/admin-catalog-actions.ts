@@ -36,7 +36,7 @@ type CategoryFormData = {
 
 export async function createCategoryAction(formData: FormData) {
   await ensureAdmin();
-  const data = readCreateCategoryForm(formData);
+  const data = await readCreateCategoryForm(formData);
 
   await prisma.category.create({ data });
 
@@ -47,7 +47,7 @@ export async function createCategoryAction(formData: FormData) {
 export async function updateCategoryAction(formData: FormData) {
   await ensureAdmin();
   const categoryId = requiredText(formData, "currentId");
-  const data = readCategoryForm(formData);
+  const data = await readCategoryForm(formData, categoryId);
 
   await prisma.category.update({
     where: { id: categoryId },
@@ -185,22 +185,32 @@ async function ensureAdmin() {
   }
 }
 
-function readCreateCategoryForm(formData: FormData): Prisma.CategoryCreateInput {
-  const data = readCategoryForm(formData);
-
-  return {
-    ...data,
-    catalogKey: slugify(data.slug) || slugify(data.label) || "kategoria"
-  };
-}
-
-function readCategoryForm(formData: FormData): CategoryFormData {
+async function readCreateCategoryForm(formData: FormData): Promise<Prisma.CategoryCreateInput> {
   const locale = localeValue(formData);
-  const slug = requiredText(formData, "slug");
+  const label = requiredText(formData, "label");
+  const slug = await uniqueCategorySlug(locale, label);
 
   return {
     locale,
-    label: requiredText(formData, "label"),
+    catalogKey: slug,
+    label,
+    slug,
+    description: requiredText(formData, "description"),
+    color: enumValue(formData, "color", categoryColors, CategoryColor.VIOLET),
+    sortOrder: intValue(formData, "sortOrder"),
+    isActive: boolValue(formData, "isActive")
+  };
+}
+
+async function readCategoryForm(formData: FormData, currentCategoryId?: string): Promise<CategoryFormData> {
+  const locale = localeValue(formData);
+  const label = requiredText(formData, "label");
+  const requestedSlug = optionalText(formData, "slug") || label;
+  const slug = await uniqueCategorySlug(locale, requestedSlug, currentCategoryId);
+
+  return {
+    locale,
+    label,
     slug,
     description: requiredText(formData, "description"),
     color: enumValue(formData, "color", categoryColors, CategoryColor.VIOLET),
@@ -488,6 +498,28 @@ function slugify(value: string) {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 80);
+}
+
+async function uniqueCategorySlug(locale: AdminCatalogLocale, slug: string, currentCategoryId?: string) {
+  const baseSlug = slugify(slug) || "kategoria";
+  let candidate = baseSlug;
+  let suffix = 2;
+
+  while (
+    await prisma.category.findFirst({
+      where: {
+        locale,
+        slug: candidate,
+        ...(currentCategoryId ? { id: { not: currentCategoryId } } : {})
+      },
+      select: { id: true }
+    })
+  ) {
+    candidate = `${baseSlug}-${suffix}`;
+    suffix += 1;
+  }
+
+  return candidate;
 }
 
 async function uniqueCourseSlug(locale: AdminCatalogLocale, slug: string, currentCourseId?: string) {

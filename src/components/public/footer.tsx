@@ -30,7 +30,7 @@ export function Footer({
           <Link href={`/${locale}`} aria-label="Rafał Podraza home">
             <Logo />
           </Link>
-          <p className="mt-4 text-xs text-muted-foreground">© 2024 Rafał Podraza. Wszelkie prawa zastrzeżone.</p>
+          <p className="mt-4 text-xs text-muted-foreground">© 2026 Rafał Podraza. Wszelkie prawa zastrzeżone.</p>
         </div>
 
         <div className="flex flex-col gap-4">

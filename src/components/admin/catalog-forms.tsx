@@ -38,9 +38,11 @@ export function CategoryForm({ category, locale }: { category?: Category; locale
       <FormHeader title={isEdit ? "Edytuj kategorię" : "Dodaj kategorię"} description="Tworzysz kategorię tylko dla jednego wybranego języka." />
       <LocaleField locale={currentLocale} readOnly={isEdit} />
       <div className="grid gap-4 md:grid-cols-3">
-        <Field label="Slug">
-          <Input name="slug" defaultValue={category?.slug} required />
-        </Field>
+        {isEdit ? (
+          <Field label="Slug">
+            <Input name="slug" defaultValue={category?.slug} required />
+          </Field>
+        ) : null}
         <Field label="Kolor">
           <Select name="color" defaultValue={category?.color ?? CategoryColor.VIOLET}>
             {Object.values(CategoryColor).map((color) => (
