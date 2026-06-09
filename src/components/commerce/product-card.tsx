@@ -80,6 +80,8 @@ export function Thumbnail({
   imageUrl?: string | null;
   showFavorite?: boolean;
 }) {
+  const isUploadedImage = imageUrl?.startsWith("/uploads/");
+
   return (
     <div
       className={cn(
@@ -90,7 +92,16 @@ export function Thumbnail({
         variant === "green" && "bg-[linear-gradient(135deg,#064e3b,#059669)]"
       )}
     >
-      {imageUrl ? <Image src={imageUrl} alt={title} fill sizes="(min-width: 1280px) 25vw, (min-width: 640px) 50vw, 100vw" className="object-cover" /> : null}
+      {imageUrl ? (
+        <Image
+          src={imageUrl}
+          alt={title}
+          fill
+          sizes="(min-width: 1280px) 25vw, (min-width: 640px) 50vw, 100vw"
+          className="object-cover"
+          unoptimized={isUploadedImage}
+        />
+      ) : null}
       {imageUrl ? <div className="absolute inset-0 bg-black/12" /> : null}
       {!badge && showFavorite ? (
         <button

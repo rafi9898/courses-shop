@@ -19,6 +19,7 @@ export function VideoPreview({
 }) {
   const [open, setOpen] = useState(false);
   const trailerEmbedUrl = getYoutubeEmbedUrl(course.trailerYoutubeUrl);
+  const isUploadedThumbnail = course.thumbnailImageUrl?.startsWith("/uploads/");
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -54,7 +55,16 @@ export function VideoPreview({
             course.thumbnail.variant === "green" && "bg-[linear-gradient(135deg,#064e3b,#059669)]"
           )}
         >
-          {course.thumbnailImageUrl ? <Image src={course.thumbnailImageUrl} alt={course.title[locale]} fill sizes="(min-width: 768px) 50vw, 100vw" className="object-cover" /> : null}
+          {course.thumbnailImageUrl ? (
+            <Image
+              src={course.thumbnailImageUrl}
+              alt={course.title[locale]}
+              fill
+              sizes="(min-width: 768px) 50vw, 100vw"
+              className="object-cover"
+              unoptimized={isUploadedThumbnail}
+            />
+          ) : null}
           {course.thumbnailImageUrl ? <div className="absolute inset-0 bg-black/25" /> : null}
           <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/35 to-transparent" />
           <div className="absolute -bottom-8 left-0 right-0 h-28 border-t border-dashed border-white/20 opacity-60" />

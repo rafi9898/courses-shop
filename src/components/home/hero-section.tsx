@@ -21,7 +21,7 @@ export function HeroSection({
             <GraduationCap className="h-4 w-4" />
             {dictionary.home.badge}
           </span>
-          <h1 className="mt-6 max-w-[680px] text-4xl font-black leading-[1.08] tracking-normal text-foreground sm:text-5xl lg:text-[58px]">
+          <h1 className="mt-6 max-w-[680px] text-4xl font-black leading-[1.08] tracking-normal text-foreground sm:text-5xl lg:text-[56px]">
             {dictionary.home.heroTitleStart}{" "}
             <span className="text-primary">{dictionary.home.heroTitleAccent}</span>
           </h1>
