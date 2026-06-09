@@ -70,7 +70,8 @@ export function Thumbnail({
   badge,
   hideText = false,
   imageUrl,
-  showFavorite = true
+  showFavorite = true,
+  imageFit = "cover"
 }: {
   title: string;
   subtitle: string;
@@ -79,6 +80,7 @@ export function Thumbnail({
   hideText?: boolean;
   imageUrl?: string | null;
   showFavorite?: boolean;
+  imageFit?: "cover" | "contain";
 }) {
   const isUploadedImage = imageUrl?.startsWith("/uploads/");
 
@@ -98,7 +100,7 @@ export function Thumbnail({
           alt={title}
           fill
           sizes="(min-width: 1280px) 25vw, (min-width: 640px) 50vw, 100vw"
-          className="object-cover"
+          className={cn(imageFit === "contain" ? "object-contain" : "object-cover")}
           unoptimized={isUploadedImage}
         />
       ) : null}

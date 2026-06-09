@@ -31,6 +31,7 @@ export function BundleCard({
           hideText
           imageUrl={bundle.thumbnailImageUrl}
           showFavorite={false}
+          imageFit="contain"
         />
       </Link>
       <div className="p-5">
