@@ -132,6 +132,15 @@ function renderInvoicePdf(invoice: InvoiceForPdf) {
     doc.text(labels.total, 350, y, { width: 90, align: "right" });
     doc.text(formatPrice(Number(invoice.totalAmount), locale), 442, y, { width: 90, align: "right" });
 
+    y += 44;
+    if (y > 700) {
+      doc.addPage();
+      y = 64;
+    }
+    doc.roundedRect(48, y, 499, 54, 8).fill("#f8fafc");
+    doc.font(fonts.bold).fontSize(10).fillColor("#0f172a").text(labels.notes, 62, y + 12, { width: 470 });
+    doc.font(fonts.regular).fontSize(9).fillColor("#475569").text(labels.vatExemptionNote, 62, y + 28, { width: 470 });
+
     doc.font(fonts.regular).fontSize(9).fillColor("#64748b").text(labels.footer, 48, 760, { width: 499, align: "center" });
     doc.end();
   });
@@ -196,6 +205,8 @@ function getLabels(locale: Locale) {
       subtotal: "Wartość produktów",
       discount: "Rabat",
       total: "Suma",
+      notes: "Uwagi",
+      vatExemptionNote: "Zwolniony z podatku VAT na podstawie art. 113 ust. 1 ustawy o VAT.",
       footer: "Faktura wygenerowana automatycznie."
     },
     de: {
@@ -213,6 +224,8 @@ function getLabels(locale: Locale) {
       subtotal: "Zwischensumme",
       discount: "Rabatt",
       total: "Summe",
+      notes: "Anmerkungen",
+      vatExemptionNote: "Von der Umsatzsteuer befreit auf Grundlage von Art. 113 Abs. 1 des polnischen Umsatzsteuergesetzes.",
       footer: "Rechnung automatisch generiert."
     },
     en: {
@@ -230,6 +243,8 @@ function getLabels(locale: Locale) {
       subtotal: "Subtotal",
       discount: "Discount",
       total: "Total",
+      notes: "Notes",
+      vatExemptionNote: "Exempt from VAT pursuant to Article 113(1) of the Polish VAT Act.",
       footer: "Invoice generated automatically."
     }
   };

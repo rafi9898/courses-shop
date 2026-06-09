@@ -142,12 +142,14 @@ export function getProductMetadata({
   description: string;
   imageUrl?: string | null;
 }): Metadata {
+  const image = getMetadataImageUrl(imageUrl);
+
   return createMetadata({
     locale,
     path,
     title,
     description,
-    images: imageUrl ? [getSiteUrl(imageUrl)] : undefined
+    images: [image]
   });
 }
 
@@ -273,6 +275,12 @@ function getLanguageAlternates(paths: Record<Locale, string>) {
     ...Object.fromEntries(locales.map((locale) => [locale, getSiteUrl(paths[locale])])),
     "x-default": getSiteUrl(paths.en)
   };
+}
+
+function getMetadataImageUrl(imageUrl?: string | null) {
+  if (!imageUrl) return getSiteUrl(defaultSocialImagePath);
+  if (/^https?:\/\//i.test(imageUrl)) return imageUrl;
+  return getSiteUrl(imageUrl);
 }
 
 function getPublicPageDescription(locale: Locale, page: PublicPage, dictionary: ReturnType<typeof getDictionary>) {

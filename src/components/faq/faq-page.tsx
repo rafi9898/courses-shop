@@ -20,7 +20,7 @@ const categoryIcons = {
 
 type FaqCategory = keyof typeof categoryIcons;
 
-const contactEmailHref = "mailto:contact@rafalpodraza.com";
+const contactEmailHref = "mailto:kontakt@testowanie-oprogramowania.pl";
 
 export function FaqPage({
   locale,

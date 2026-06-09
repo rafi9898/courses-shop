@@ -35,7 +35,7 @@ export const sellerDetails = {
   address: "ul. Bogusza Stęczyńskiego 19/1, 58-100 Świdnica, Polska",
   taxId: "8842813624",
   regon: "522543771",
-  email: "contact@rafalpodraza.com",
+  email: "kontakt@testowanie-oprogramowania.pl",
   register: "Centralna Ewidencja i Informacja o Działalności Gospodarczej"
 };
 
@@ -118,7 +118,7 @@ export const legalDocuments: Record<Locale, Record<LegalDocumentType, LegalDocum
         {
           title: "9. Reklamacje",
           paragraphs: [
-            "Reklamacje można składać drogą e-mailową na adres contact@rafalpodraza.com.",
+            `Reklamacje można składać drogą e-mailową na adres ${sellerDetails.email}.`,
             "Reklamacja powinna zawierać dane umożliwiające identyfikację zamówienia, opis problemu oraz oczekiwany sposób rozwiązania sprawy.",
             "Sprzedawca rozpatruje reklamację w rozsądnym terminie, nie dłuższym niż 14 dni od jej otrzymania."
           ]
@@ -306,7 +306,7 @@ export const legalDocuments: Record<Locale, Record<LegalDocumentType, LegalDocum
         {
           title: "9. Beschwerden",
           paragraphs: [
-            "Beschwerden können per E-Mail an contact@rafalpodraza.com eingereicht werden.",
+            `Beschwerden können per E-Mail an ${sellerDetails.email} eingereicht werden.`,
             "Die Beschwerde sollte Angaben zur Bestellung, eine Beschreibung des Problems und die erwartete Lösung enthalten.",
             "Der Verkäufer prüft Beschwerden innerhalb einer angemessenen Frist, spätestens innerhalb von 14 Tagen."
           ]
@@ -493,7 +493,7 @@ export const legalDocuments: Record<Locale, Record<LegalDocumentType, LegalDocum
         {
           title: "9. Complaints",
           paragraphs: [
-            "Complaints can be submitted by e-mail to contact@rafalpodraza.com.",
+            `Complaints can be submitted by e-mail to ${sellerDetails.email}.`,
             "A complaint should include order identification details, a description of the problem and the expected resolution.",
             "The seller reviews complaints within a reasonable time, no later than 14 days after receipt."
           ]
