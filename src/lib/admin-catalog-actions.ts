@@ -79,6 +79,7 @@ export async function createCourseAction(formData: FormData) {
     courseId: course.id,
     locale: course.locale,
     title: course.title,
+    slug: course.slug,
     udemyUrl: course.udemyUrl,
     couponCode: udemyCouponCode
   });
@@ -101,6 +102,7 @@ export async function updateCourseAction(formData: FormData) {
     courseId: course.id,
     locale: course.locale,
     title: course.title,
+    slug: course.slug,
     udemyUrl: course.udemyUrl,
     couponCode: udemyCouponCode
   });
@@ -296,12 +298,14 @@ async function syncCourseUdemyCoupon({
   courseId,
   locale,
   title,
+  slug,
   udemyUrl,
   couponCode
 }: {
   courseId: string;
   locale: string;
   title: string;
+  slug: string;
   udemyUrl: string | null;
   couponCode: string;
 }) {
@@ -321,9 +325,7 @@ async function syncCourseUdemyCoupon({
     return;
   }
 
-  if (!udemyUrl) {
-    throw new Error("Aby zapisać kod, uzupełnij URL kursu Udemy.");
-  }
+  const resolvedUdemyUrl = udemyUrl || buildUdemyCourseUrl(slug);
 
   const activeCoupon = await prisma.udemyCoupon.findFirst({
     where: {
@@ -355,20 +357,20 @@ async function syncCourseUdemyCoupon({
         couponCode: normalizedCode
       }
     },
-    update: {
-      courseTitle: title,
-      udemyUrl,
-      validUntil: activeCoupon?.validUntil ?? defaultCouponValidUntil(),
-      isActive: true
-    },
-    create: {
-      courseId,
-      locale,
-      courseTitle: title,
-      udemyUrl,
-      couponCode: normalizedCode,
-      validUntil: defaultCouponValidUntil(),
-      isActive: true
+      update: {
+        courseTitle: title,
+        udemyUrl: resolvedUdemyUrl,
+        validUntil: activeCoupon?.validUntil ?? defaultCouponValidUntil(),
+        isActive: true
+      },
+      create: {
+        courseId,
+        locale,
+        courseTitle: title,
+        udemyUrl: resolvedUdemyUrl,
+        couponCode: normalizedCode,
+        validUntil: defaultCouponValidUntil(),
+        isActive: true
     }
   });
 }
@@ -412,6 +414,10 @@ function defaultCouponValidUntil() {
   value.setUTCHours(23, 59, 59, 999);
 
   return value;
+}
+
+function buildUdemyCourseUrl(slug: string) {
+  return `https://www.udemy.com/course/${slug}/`;
 }
 
 function enumValue<T extends string>(formData: FormData, name: string, values: T[], fallback: T) {
