@@ -72,7 +72,13 @@ jobs:
             compose build --no-cache app
             compose up -d db
             compose run --rm app npm run prisma:migrate:deploy
-            compose rm -sf app
+
+            existing_app_container="$(compose ps -q app || true)"
+            if [ -n "$existing_app_container" ]; then
+              sudo docker stop "$existing_app_container"
+              sudo docker rm "$existing_app_container"
+            fi
+
             compose up -d --force-recreate --remove-orphans app caddy
 
             running_container_id="$(compose ps -q app)"
