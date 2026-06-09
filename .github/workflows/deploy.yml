@@ -70,19 +70,53 @@ jobs:
             }
 
             compose build --no-cache app
-            compose down --remove-orphans
             compose up -d db
             compose run --rm app npm run prisma:migrate:deploy
 
             compose up -d --force-recreate --remove-orphans app caddy
 
             running_container_id="$(compose ps -q app)"
+            caddy_container_id="$(compose ps -q caddy)"
+            if [ -z "$running_container_id" ] || [ -z "$caddy_container_id" ]; then
+              echo "Deploy verification failed: app or caddy container is missing"
+              compose ps
+              exit 1
+            fi
+
             running_image="$(sudo docker inspect --format '{{.Config.Image}}' "$running_container_id")"
             expected_image="courses-shop-app:${APP_IMAGE_TAG}"
             if [ "$running_image" != "$expected_image" ]; then
               echo "Deploy verification failed: expected ${expected_image}, got ${running_image}"
               exit 1
             fi
+
+            for service in app caddy; do
+              status="$(sudo docker inspect --format '{{.State.Status}}' "$(compose ps -q "$service")")"
+              if [ "$status" != "running" ]; then
+                echo "Deploy verification failed: ${service} container status is ${status}"
+                compose logs --tail=80 "$service"
+                exit 1
+              fi
+            done
+
+            health=""
+            for attempt in $(seq 1 30); do
+              if health="$(curl -fsSL https://rafalpodraza.com/api/health 2>/dev/null)" &&
+                echo "$health" | grep -Fq "\"version\":\"${APP_IMAGE_TAG}\""; then
+                break
+              fi
+
+              if [ "$attempt" -eq 30 ]; then
+                echo "Deploy verification failed: expected health version ${APP_IMAGE_TAG}, got ${health:-no response}"
+                compose ps
+                compose logs --tail=80 app
+                compose logs --tail=80 caddy
+                exit 1
+              fi
+
+              sleep 5
+            done
+
             sudo docker image prune -f
           REMOTE
 
