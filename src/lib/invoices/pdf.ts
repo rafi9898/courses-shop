@@ -67,11 +67,12 @@ export function getInvoicePdfPath(invoiceId: string) {
 function renderInvoicePdf(invoice: InvoiceForPdf) {
   const locale: Locale = isLocale(invoice.locale) ? invoice.locale : "pl";
   const labels = getLabels(locale);
+  const fontPaths = resolveInvoiceFontPaths();
 
   return new Promise<Buffer>((resolve, reject) => {
-    const doc = new PDFDocument({ size: "A4", margin: 48 });
+    const doc = new PDFDocument({ size: "A4", margin: 48, font: fontPaths.regularPath ?? "Helvetica" });
     const chunks: Buffer[] = [];
-    const fonts = registerInvoiceFonts(doc);
+    const fonts = registerInvoiceFonts(doc, fontPaths);
 
     doc.on("data", (chunk: Buffer) => chunks.push(chunk));
     doc.on("end", () => resolve(Buffer.concat(chunks)));
@@ -136,9 +137,18 @@ function renderInvoicePdf(invoice: InvoiceForPdf) {
   });
 }
 
-function registerInvoiceFonts(doc: PDFKit.PDFDocument) {
+function resolveInvoiceFontPaths() {
   const regularPath = findExistingFontPath(fallbackFontPaths.regular);
   const boldPath = findExistingFontPath(fallbackFontPaths.bold) ?? regularPath;
+
+  return {
+    regularPath,
+    boldPath
+  };
+}
+
+function registerInvoiceFonts(doc: PDFKit.PDFDocument, fontPaths: { regularPath?: string; boldPath?: string }) {
+  const { regularPath, boldPath } = fontPaths;
 
   if (!regularPath) {
     return {
