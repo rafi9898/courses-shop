@@ -122,18 +122,18 @@ jobs:
               fi
 
               mkdir -p public/uploads
-              cat > public/uploads/deploy-status.json <<STATUS
-{
-  "generatedAt": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
-  "gitSha": "$(git rev-parse --short HEAD)",
-  "appImage": "${running_image}",
-  "appVersionEnv": "${app_version_env}",
-  "publicHealthVersionFromVps": "${health_version:-unknown}",
-  "publicHealthUrl": "${health_url}",
-  "appContainerId": "${running_container_id}",
-  "caddyContainerId": "${caddy_container_id}"
-}
-STATUS
+              {
+                printf '{\n'
+                printf '  "generatedAt": "%s",\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+                printf '  "gitSha": "%s",\n' "$(git rev-parse --short HEAD)"
+                printf '  "appImage": "%s",\n' "$running_image"
+                printf '  "appVersionEnv": "%s",\n' "$app_version_env"
+                printf '  "publicHealthVersionFromVps": "%s",\n' "${health_version:-unknown}"
+                printf '  "publicHealthUrl": "%s",\n' "$health_url"
+                printf '  "appContainerId": "%s",\n' "$running_container_id"
+                printf '  "caddyContainerId": "%s"\n' "$caddy_container_id"
+                printf '}\n'
+              } > public/uploads/deploy-status.json
 
               if [ "$health_version" = "$APP_IMAGE_TAG" ]; then
                 break
