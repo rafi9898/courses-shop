@@ -64,11 +64,18 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
             export APP_IMAGE_TAG="$(git rev-parse --short HEAD)"
-            sudo docker compose --env-file .env.production -f docker-compose.prod.yml build --no-cache app
-            sudo docker compose --env-file .env.production -f docker-compose.prod.yml up -d db
-            sudo docker compose --env-file .env.production -f docker-compose.prod.yml run --rm app npm run prisma:migrate:deploy
-            sudo docker compose --env-file .env.production -f docker-compose.prod.yml up -d --force-recreate app caddy
-            running_container_id="$(sudo docker compose --env-file .env.production -f docker-compose.prod.yml ps -q app)"
+
+            compose() {
+              sudo env APP_IMAGE_TAG="$APP_IMAGE_TAG" docker compose --env-file .env.production -f docker-compose.prod.yml "$@"
+            }
+
+            compose build --no-cache app
+            compose up -d db
+            compose run --rm app npm run prisma:migrate:deploy
+            compose rm -sf app
+            compose up -d --force-recreate --remove-orphans app caddy
+
+            running_container_id="$(compose ps -q app)"
             running_image="$(sudo docker inspect --format '{{.Config.Image}}' "$running_container_id")"
             expected_image="courses-shop-app:${APP_IMAGE_TAG}"
             if [ "$running_image" != "$expected_image" ]; then
@@ -120,3 +127,19 @@ jobs:
               exit 1
             fi
           done
+
+          headers="$(curl -fsSI https://rafalpodraza.com/pl)"
+          for expected_header in \
+            "x-frame-options: DENY" \
+            "x-content-type-options: nosniff" \
+            "referrer-policy: strict-origin-when-cross-origin"; do
+            if ! grep -Fqi "$expected_header" <<< "$headers"; then
+              echo "Smoke test failed: missing security header ${expected_header}"
+              exit 1
+            fi
+          done
+
+          if grep -Fqi "x-powered-by:" <<< "$headers"; then
+            echo "Smoke test failed: X-Powered-By header is still exposed"
+            exit 1
+          fi
