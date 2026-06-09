@@ -58,7 +58,10 @@ export function ProductDetailPage({
   const title = product.title[locale];
   const heroSubtitle = isCourse ? product.subtitle?.[locale] : product.subtitle?.[locale];
   const savings = product.regularPrice[locale] - product.price[locale];
-  const bundleCourses = !isCourse ? courses.filter((course) => product.courseIds.includes(course.id)) : [];
+  const courseById = new Map(courses.map((course) => [course.id, course]));
+  const bundleCourses = !isCourse
+    ? product.courseIds.map((courseId) => courseById.get(courseId)).filter((course): course is Course => Boolean(course))
+    : [];
   const recommendedCourses = courses.filter((course) => course.id !== product.id && course.categoryId === product.categoryId).slice(0, 3);
   const recommendedBundles = bundles.filter((bundle) => bundle.id !== product.id && bundle.categoryId === product.categoryId).slice(0, 2);
   const productPath = isCourse ? getCoursePath(product, locale) : getBundlePath(product, locale);
@@ -228,7 +231,7 @@ export function ProductDetailPage({
           {isCourse ? (
             <MetaCard course={product} locale={locale} dictionary={dictionary} />
           ) : (
-            <BundleValueCard bundle={product} courses={courses} locale={locale} dictionary={dictionary} />
+            <BundleValueCard bundle={product} courses={bundleCourses} locale={locale} dictionary={dictionary} />
           )}
         </div>
 
@@ -378,8 +381,8 @@ function BundleValueCard({
   locale: Locale;
   dictionary: Dictionary;
 }) {
-  const totalHours = courses.filter((course) => bundle.courseIds.includes(course.id)).reduce((sum, course) => sum + course.durationHours, 0);
-  const lessons = courses.filter((course) => bundle.courseIds.includes(course.id)).reduce((sum, course) => sum + course.lessons, 0);
+  const totalHours = courses.reduce((sum, course) => sum + course.durationHours, 0);
+  const lessons = courses.reduce((sum, course) => sum + course.lessons, 0);
 
   return (
     <aside className="rounded-2xl border border-border bg-primary-soft p-6 shadow-soft lg:sticky lg:top-24">
