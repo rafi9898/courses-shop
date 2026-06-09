@@ -89,6 +89,13 @@ jobs:
       - name: Smoke test production
         run: |
           set -euo pipefail
+          expected_version="${GITHUB_SHA::7}"
+
+          health="$(curl -fsSL https://rafalpodraza.com/api/health)"
+          if ! grep -Fq "\"version\":\"${expected_version}\"" <<< "$health"; then
+            echo "Smoke test failed: expected deployed version ${expected_version}, got ${health}"
+            exit 1
+          fi
 
           for path in \
             /pl \

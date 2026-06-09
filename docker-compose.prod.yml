@@ -18,9 +18,13 @@ services:
     image: courses-shop-app:${APP_IMAGE_TAG:-latest}
     build:
       context: .
+      args:
+        APP_VERSION: ${APP_IMAGE_TAG:-local}
     restart: unless-stopped
     env_file:
       - .env.production
+    environment:
+      APP_VERSION: ${APP_IMAGE_TAG:-local}
     depends_on:
       db:
         condition: service_healthy

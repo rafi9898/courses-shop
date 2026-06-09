@@ -16,8 +16,10 @@ FROM node:22-alpine AS runner
 
 WORKDIR /app
 
+ARG APP_VERSION=local
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV APP_VERSION=$APP_VERSION
 
 COPY --from=build /app/package.json ./package.json
 COPY --from=build /app/package-lock.json ./package-lock.json
