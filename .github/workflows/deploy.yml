@@ -62,7 +62,7 @@ jobs:
             set -euo pipefail
             cd /opt/courses-shop/app
             git fetch origin main
-            git reset --hard origin/main
+            git reset --hard FETCH_HEAD
             export APP_IMAGE_TAG="$(git rev-parse --short HEAD)"
 
             compose() {
