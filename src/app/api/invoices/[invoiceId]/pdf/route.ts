@@ -13,6 +13,11 @@ export async function GET(
 ) {
   const { invoiceId } = await params;
   const token = request.nextUrl.searchParams.get("token");
+
+  if (!isSafeInvoiceId(invoiceId) || !token || !isOrderAccessToken(token)) {
+    return NextResponse.json({ error: "Invoice PDF access denied." }, { status: 403 });
+  }
+
   const invoice = await prisma.invoice.findUnique({
     where: { id: invoiceId },
     include: {
@@ -28,7 +33,7 @@ export async function GET(
     return NextResponse.json({ error: "Invoice PDF was not found." }, { status: 404 });
   }
 
-  if (!token || token !== invoice.order.accessToken) {
+  if (token !== invoice.order.accessToken) {
     return NextResponse.json({ error: "Invoice PDF access denied." }, { status: 403 });
   }
 
@@ -44,4 +49,12 @@ export async function GET(
   } catch {
     return NextResponse.json({ error: "Invoice PDF file is unavailable." }, { status: 404 });
   }
+}
+
+function isSafeInvoiceId(invoiceId: string) {
+  return /^[a-z0-9]+$/i.test(invoiceId);
+}
+
+function isOrderAccessToken(token: string) {
+  return /^[a-f0-9]{64}$/.test(token);
 }
