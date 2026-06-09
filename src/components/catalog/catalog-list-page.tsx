@@ -1,7 +1,7 @@
 "use client";
 
 import { ChevronLeft, ChevronRight, RotateCcw, Search, SlidersHorizontal } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { BundleCard } from "@/components/commerce/bundle-card";
 import { ProductCard } from "@/components/commerce/product-card";
 import { CatalogCta } from "@/components/catalog/catalog-cta";
@@ -37,6 +37,7 @@ export function CatalogListPage({
   const [categoryId, setCategoryId] = useState(initialCategoryId);
   const [sort, setSort] = useState("popular");
   const [page, setPage] = useState(1);
+  const resultsTopRef = useRef<HTMLDivElement>(null);
 
   const isCourses = kind === "courses";
   const source = isCourses ? courses : bundles;
@@ -88,6 +89,18 @@ export function CatalogListPage({
     setQuery("");
     setCategoryId("all");
     setSort("popular");
+  }
+
+  function changePage(nextPage: number) {
+    if (nextPage === page) return;
+
+    setPage(nextPage);
+    window.requestAnimationFrame(() => {
+      resultsTopRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
+    });
   }
 
   return (
@@ -177,7 +190,7 @@ export function CatalogListPage({
             </button>
           </aside>
 
-          <div>
+          <div ref={resultsTopRef} className="scroll-mt-28">
             <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-lg font-semibold text-slate-600">{foundText}</p>
               <label className="flex items-center gap-3">
@@ -210,7 +223,7 @@ export function CatalogListPage({
               </div>
             )}
 
-            <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+            <Pagination page={page} totalPages={totalPages} onPageChange={changePage} />
           </div>
         </div>
 
