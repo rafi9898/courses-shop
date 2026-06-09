@@ -39,11 +39,12 @@ const invoiceDir = path.join(process.cwd(), "storage", "invoices");
 const fallbackFontPaths = {
   regular: [
     process.env.INVOICE_FONT_REGULAR_PATH,
+    "/usr/share/fonts/dejavu/DejaVuSans.ttf",
     "/System/Library/Fonts/Supplemental/Arial.ttf",
     "/Library/Fonts/Arial Unicode.ttf",
     "/System/Library/Fonts/Supplemental/Arial Unicode.ttf"
   ],
-  bold: [process.env.INVOICE_FONT_BOLD_PATH, "/System/Library/Fonts/Supplemental/Arial Bold.ttf"]
+  bold: [process.env.INVOICE_FONT_BOLD_PATH, "/usr/share/fonts/dejavu/DejaVuSans-Bold.ttf", "/System/Library/Fonts/Supplemental/Arial Bold.ttf"]
 };
 
 export async function generateInvoicePdf(invoice: InvoiceForPdf) {

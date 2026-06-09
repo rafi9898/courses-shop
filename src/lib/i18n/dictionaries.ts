@@ -225,6 +225,7 @@ export const dictionaries = {
       sentToEmail: "Linki zostały też wysłane na adres e-mail podany podczas zamówienia.",
       noAccessLinks: "Nie znaleziono aktywnych linków Udemy dla tego zamówienia.",
       invoicePrepared: "Faktura została przygotowana",
+      invoiceProcessing: "Faktura jest przygotowywana",
       invoiceNumber: "Numer faktury",
       downloadInvoice: "Pobierz fakturę PDF"
     },
@@ -535,6 +536,7 @@ export const dictionaries = {
       sentToEmail: "Die Links wurden auch an die beim Kauf angegebene E-Mail-Adresse gesendet.",
       noAccessLinks: "Für diese Bestellung wurden keine aktiven Udemy-Links gefunden.",
       invoicePrepared: "Die Rechnung wurde vorbereitet",
+      invoiceProcessing: "Die Rechnung wird vorbereitet",
       invoiceNumber: "Rechnungsnummer",
       downloadInvoice: "PDF-Rechnung herunterladen"
     },
@@ -845,6 +847,7 @@ export const dictionaries = {
       sentToEmail: "Links have also been sent to the e-mail address provided during checkout.",
       noAccessLinks: "No active Udemy links were found for this order.",
       invoicePrepared: "Invoice has been prepared",
+      invoiceProcessing: "Invoice is being prepared",
       invoiceNumber: "Invoice number",
       downloadInvoice: "Download invoice PDF"
     },

@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { fulfillPaidOrder } from "@/lib/order-fulfillment";
 import { orderAccessInclude, serializeOrderAccess } from "@/lib/order-access";
 import { prisma } from "@/lib/prisma";
 
@@ -17,7 +18,20 @@ export async function GET(
   }
 
   try {
-    const order = await prisma.order.findUnique({
+    let order = await prisma.order.findUnique({
+      where: {
+        accessToken: token
+      },
+      include: orderAccessInclude
+    });
+
+    if (!order) {
+      return NextResponse.json({ order: null }, { status: 404 });
+    }
+
+    await fulfillPaidOrder(order.id);
+
+    order = await prisma.order.findUnique({
       where: {
         accessToken: token
       },

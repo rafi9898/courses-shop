@@ -12,10 +12,6 @@ export async function sendTelegramOrderNotification(orderId: string, options: { 
   const botToken = process.env.TELEGRAM_BOT_TOKEN;
   const chatId = process.env.TELEGRAM_CHAT_ID;
 
-  if (!botToken || !chatId) {
-    return null;
-  }
-
   const order = await prisma.order.findUnique({
     where: { id: orderId },
     include: { items: true }
@@ -23,6 +19,14 @@ export async function sendTelegramOrderNotification(orderId: string, options: { 
 
   if (!order) {
     throw new Error(`Order ${orderId} was not found.`);
+  }
+
+  if (!botToken || !chatId) {
+    await prisma.order.update({
+      where: { id: order.id },
+      data: { telegramNotifyError: "Telegram is not configured." }
+    });
+    throw new Error("Telegram is not configured.");
   }
 
   if (order.telegramNotifiedAt && !options.force) {

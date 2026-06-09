@@ -139,7 +139,9 @@ export function OrderAccessPanel({
         </div>
         {order.invoice ? (
           <div className="mt-4 flex flex-col gap-3 rounded-xl bg-primary-soft px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm font-semibold text-primary">{dictionary.checkoutStatus.invoicePrepared}</p>
+            <p className="text-sm font-semibold text-primary">
+              {order.invoice.pdfUrl ? dictionary.checkoutStatus.invoicePrepared : dictionary.checkoutStatus.invoiceProcessing}
+            </p>
             {order.invoice.pdfUrl ? (
               <ButtonLink href={order.invoice.pdfUrl} variant="secondary" className="h-10 shrink-0 bg-white">
                 <Download className="h-4 w-4" />
@@ -187,8 +189,6 @@ export function OrderAccessPanel({
             {dictionary.checkoutStatus.noAccessLinks}
           </p>
         )}
-
-        <p className="mt-5 text-sm leading-6 text-slate-600">{dictionary.checkoutStatus.sentToEmail}</p>
       </div>
     </section>
   );

@@ -42,10 +42,10 @@ export function StripeCheckoutButton({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ locale, items, discountCode, customerEmail, invoiceRequested, invoiceData: invoiceRequested ? invoiceData : undefined, termsAccepted })
       });
-      const data = (await response.json()) as { url?: string; error?: string };
+      const data = (await response.json().catch(() => null)) as { url?: string; error?: string } | null;
 
-      if (!response.ok || !data.url) {
-        throw new Error(data.error ?? dictionary.checkoutPage.unavailable);
+      if (!response.ok || !data?.url) {
+        throw new Error(data?.error ?? dictionary.checkoutPage.unavailable);
       }
 
       window.location.assign(data.url);

@@ -1,4 +1,5 @@
 import { randomBytes } from "node:crypto";
+import fs from "node:fs/promises";
 import { InvoiceStatus, PaymentStatus, Prisma, ProductType } from "@prisma/client";
 import Stripe from "stripe";
 import { getPublicCatalog } from "@/lib/catalog-data";
@@ -6,7 +7,7 @@ import { getActiveDiscountCodes } from "@/lib/discount-code-data";
 import { calculateCartTotals, getDiscountedUnitAmount } from "@/lib/discounts";
 import { isLocale, localeMeta, type Locale } from "@/lib/i18n/config";
 import { parseInvoiceData } from "@/lib/invoice";
-import { generateInvoicePdf } from "@/lib/invoices/pdf";
+import { generateInvoicePdf, getInvoicePdfPath } from "@/lib/invoices/pdf";
 import { type Product } from "@/lib/mock-data";
 import { prisma } from "@/lib/prisma";
 
@@ -183,6 +184,41 @@ async function createInvoiceForOrder(orderId: string, session: Stripe.Checkout.S
   const pdf = await generateInvoicePdf(invoiceForPdf);
 
   await prisma.invoice.update({
+    where: { id: invoice.id },
+    data: {
+      pdfUrl: pdf.pdfUrl
+    }
+  });
+}
+
+export async function ensureInvoicePdfForOrder(orderId: string) {
+  const invoice = await prisma.invoice.findUnique({
+    where: { orderId },
+    include: {
+      order: {
+        include: {
+          items: true
+        }
+      }
+    }
+  });
+
+  if (!invoice) {
+    return null;
+  }
+
+  if (invoice.pdfUrl) {
+    try {
+      await fs.access(getInvoicePdfPath(invoice.id));
+      return invoice;
+    } catch {
+      // The database has a PDF URL, but the file is missing. Regenerate it below.
+    }
+  }
+
+  const pdf = await generateInvoicePdf(invoice);
+
+  return prisma.invoice.update({
     where: { id: invoice.id },
     data: {
       pdfUrl: pdf.pdfUrl

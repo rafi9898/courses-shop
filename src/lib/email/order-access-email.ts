@@ -62,13 +62,6 @@ const copy = {
 } satisfies Record<Locale, Record<string, string>>;
 
 export async function sendOrderAccessEmail(orderId: string, options: { force?: boolean } = {}) {
-  const resendApiKey = process.env.RESEND_API_KEY;
-  const from = process.env.EMAIL_FROM;
-
-  if (!resendApiKey || !from) {
-    throw new Error("Resend is not configured.");
-  }
-
   const order = await prisma.order.findUnique({
     where: { id: orderId },
     include: { items: true, invoice: true }
@@ -76,6 +69,17 @@ export async function sendOrderAccessEmail(orderId: string, options: { force?: b
 
   if (!order) {
     throw new Error(`Order ${orderId} was not found.`);
+  }
+
+  const resendApiKey = process.env.RESEND_API_KEY;
+  const from = process.env.EMAIL_FROM;
+
+  if (!resendApiKey || !from) {
+    await prisma.order.update({
+      where: { id: order.id },
+      data: { accessEmailError: "Resend is not configured." }
+    });
+    throw new Error("Resend is not configured.");
   }
 
   if (order.accessEmailSentAt && !options.force) {
