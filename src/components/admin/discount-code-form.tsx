@@ -72,7 +72,7 @@ export function DiscountCodeForm() {
             value={formValue.code}
             onChange={(event) => setFormValue((value) => ({ ...value, code: event.target.value.toUpperCase() }))}
             className="focus-ring h-11 w-full rounded-[10px] border border-border px-3 text-sm font-mono uppercase"
-            placeholder="START10"
+            placeholder="KOD10"
             required
           />
         </Field>

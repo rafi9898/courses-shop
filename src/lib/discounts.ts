@@ -9,12 +9,7 @@ export type Discount = {
   validUntil?: string | null;
 };
 
-export const fallbackDiscounts: Discount[] = [
-  {
-    code: "START10",
-    percentage: 10
-  }
-];
+export const fallbackDiscounts: Discount[] = [];
 
 export function getDiscount(code?: string | null, discounts: Discount[] = fallbackDiscounts) {
   if (!code) return null;

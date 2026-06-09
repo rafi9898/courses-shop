@@ -180,27 +180,6 @@ async function seedBundles() {
   }
 }
 
-async function seedDiscountCodes() {
-  await prisma.discountCode.upsert({
-    where: { code: "START10" },
-    update: {
-      percentage: 10,
-      description: "Kod startowy widoczny w koszyku i checkoutcie.",
-      validFrom: new Date("2026-01-01T00:00:00.000Z"),
-      validUntil: new Date("2026-12-31T23:59:59.000Z"),
-      isActive: true
-    },
-    create: {
-      code: "START10",
-      percentage: 10,
-      description: "Kod startowy widoczny w koszyku i checkoutcie.",
-      validFrom: new Date("2026-01-01T00:00:00.000Z"),
-      validUntil: new Date("2026-12-31T23:59:59.000Z"),
-      isActive: true
-    }
-  });
-}
-
 function thumbnailVariantMap(variant: "dark" | "blue" | "purple" | "green") {
   const variants = {
     dark: "DARK",
@@ -216,10 +195,9 @@ async function main() {
   await seedCategories();
   await seedCourses();
   await seedBundles();
-  await seedDiscountCodes();
 
   console.info(
-    `Seeded locale catalog: ${categories.length * locales.length} categories, ${courses.length * locales.length} courses, ${bundles.length * locales.length} bundles, 1 discount code.`
+    `Seeded locale catalog: ${categories.length * locales.length} categories, ${courses.length * locales.length} courses, ${bundles.length * locales.length} bundles.`
   );
 }
 

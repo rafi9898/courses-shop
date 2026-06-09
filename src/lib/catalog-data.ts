@@ -26,7 +26,7 @@ export async function getPublicCatalog(locale: Locale): Promise<PublicCatalog> {
       }),
       prisma.course.findMany({
         where: { locale, isActive: true },
-        orderBy: [{ sortOrder: "asc" }, { reviews: "desc" }, { title: "asc" }]
+        orderBy: [{ reviews: "desc" }, { sortOrder: "asc" }, { title: "asc" }]
       }),
       prisma.bundle.findMany({
         where: { locale, isActive: true },
@@ -36,7 +36,7 @@ export async function getPublicCatalog(locale: Locale): Promise<PublicCatalog> {
             orderBy: { position: "asc" }
           }
         },
-        orderBy: [{ sortOrder: "asc" }, { reviews: "desc" }, { title: "asc" }]
+        orderBy: [{ reviews: "desc" }, { sortOrder: "asc" }, { title: "asc" }]
       })
     ]);
 
