@@ -97,6 +97,11 @@ jobs:
               exit 1
             fi
 
+            app_version_env="$(
+              sudo docker inspect --format '{{range .Config.Env}}{{println .}}{{end}}' "$running_container_id" |
+                sed -n 's/^APP_VERSION=//p'
+            )"
+
             for service in app caddy; do
               status="$(sudo docker inspect --format '{{.State.Status}}' "$(compose ps -q "$service")")"
               if [ "$status" != "running" ]; then
@@ -109,8 +114,28 @@ jobs:
             health=""
             health_url="https://rafalpodraza.com/api/health?deploy=${APP_IMAGE_TAG}"
             for attempt in $(seq 1 30); do
-              if health="$(curl -fsSL -H "Cache-Control: no-cache" "$health_url" 2>/dev/null)" &&
-                echo "$health" | grep -Fq "\"version\":\"${APP_IMAGE_TAG}\""; then
+              if health="$(curl -fsSL -H "Cache-Control: no-cache" "$health_url" 2>/dev/null)"; then
+                health_version="$(printf '%s' "$health" | sed -n 's/.*"version":"\([^"]*\)".*/\1/p')"
+              else
+                health=""
+                health_version="no-response"
+              fi
+
+              mkdir -p public/uploads
+              cat > public/uploads/deploy-status.json <<STATUS
+{
+  "generatedAt": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+  "gitSha": "$(git rev-parse --short HEAD)",
+  "appImage": "${running_image}",
+  "appVersionEnv": "${app_version_env}",
+  "publicHealthVersionFromVps": "${health_version:-unknown}",
+  "publicHealthUrl": "${health_url}",
+  "appContainerId": "${running_container_id}",
+  "caddyContainerId": "${caddy_container_id}"
+}
+STATUS
+
+              if [ "$health_version" = "$APP_IMAGE_TAG" ]; then
                 break
               fi
 
