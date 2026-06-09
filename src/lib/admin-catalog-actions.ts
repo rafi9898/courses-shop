@@ -24,9 +24,19 @@ const currencyByLocale: Record<AdminCatalogLocale, string> = {
   en: "USD"
 };
 
+type CategoryFormData = {
+  locale: AdminCatalogLocale;
+  label: string;
+  slug: string;
+  description: string;
+  color: CategoryColor;
+  sortOrder: number;
+  isActive: boolean;
+};
+
 export async function createCategoryAction(formData: FormData) {
   await ensureAdmin();
-  const data = readCategoryForm(formData);
+  const data = readCreateCategoryForm(formData);
 
   await prisma.category.create({ data });
 
@@ -175,14 +185,23 @@ async function ensureAdmin() {
   }
 }
 
-function readCategoryForm(formData: FormData) {
+function readCreateCategoryForm(formData: FormData): Prisma.CategoryCreateInput {
+  const data = readCategoryForm(formData);
+
+  return {
+    ...data,
+    catalogKey: slugify(data.slug) || slugify(data.label) || "kategoria"
+  };
+}
+
+function readCategoryForm(formData: FormData): CategoryFormData {
   const locale = localeValue(formData);
+  const slug = requiredText(formData, "slug");
 
   return {
     locale,
-    catalogKey: requiredText(formData, "catalogKey"),
     label: requiredText(formData, "label"),
-    slug: requiredText(formData, "slug"),
+    slug,
     description: requiredText(formData, "description"),
     color: enumValue(formData, "color", categoryColors, CategoryColor.VIOLET),
     sortOrder: intValue(formData, "sortOrder"),

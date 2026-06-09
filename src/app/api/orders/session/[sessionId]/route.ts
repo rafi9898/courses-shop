@@ -12,6 +12,10 @@ export async function GET(
 ) {
   const { sessionId } = await params;
 
+  if (!isStripeCheckoutSessionId(sessionId)) {
+    return NextResponse.json({ order: null }, { status: 404 });
+  }
+
   try {
     const order = await prisma.order.findUnique({
       where: {
@@ -30,4 +34,8 @@ export async function GET(
   } catch {
     return NextResponse.json({ error: "Order lookup is unavailable." }, { status: 503 });
   }
+}
+
+function isStripeCheckoutSessionId(sessionId: string) {
+  return /^cs_(test|live)_[A-Za-z0-9]+$/.test(sessionId);
 }

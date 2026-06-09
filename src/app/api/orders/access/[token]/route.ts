@@ -12,7 +12,7 @@ export async function GET(
 ) {
   const { token } = await params;
 
-  if (!token || token.length < 32) {
+  if (!isOrderAccessToken(token)) {
     return NextResponse.json({ order: null }, { status: 404 });
   }
 
@@ -34,4 +34,8 @@ export async function GET(
   } catch {
     return NextResponse.json({ error: "Order lookup is unavailable." }, { status: 503 });
   }
+}
+
+function isOrderAccessToken(token: string) {
+  return /^[a-f0-9]{64}$/.test(token);
 }

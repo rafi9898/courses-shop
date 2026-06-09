@@ -37,10 +37,7 @@ export function CategoryForm({ category, locale }: { category?: Category; locale
       {category ? <input type="hidden" name="currentId" value={category.id} /> : null}
       <FormHeader title={isEdit ? "Edytuj kategorię" : "Dodaj kategorię"} description="Tworzysz kategorię tylko dla jednego wybranego języka." />
       <LocaleField locale={currentLocale} readOnly={isEdit} />
-      <div className="grid gap-4 md:grid-cols-4">
-        <Field label="Klucz katalogu">
-          <Input name="catalogKey" defaultValue={category?.catalogKey} required />
-        </Field>
+      <div className="grid gap-4 md:grid-cols-3">
         <Field label="Slug">
           <Input name="slug" defaultValue={category?.slug} required />
         </Field>

@@ -123,7 +123,7 @@ function parseItems(items: unknown): CheckoutCartItemInput[] {
 
   const uniqueItems = new Map<string, CheckoutCartItemInput>();
 
-  for (const item of items) {
+  for (const item of items.slice(0, 50)) {
     if (!isCheckoutItem(item)) continue;
     uniqueItems.set(getCartItemKey(item), item);
   }
@@ -146,11 +146,10 @@ function toStripeAmount(amount: number) {
 }
 
 function getAppOrigin(request: NextRequest) {
+  const configuredOrigin = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL;
+  if (configuredOrigin) return configuredOrigin.replace(/\/$/, "");
+
   const requestOrigin = request.headers.get("origin");
-  if (requestOrigin) return requestOrigin;
-
-  if (process.env.NEXT_PUBLIC_APP_URL) return process.env.NEXT_PUBLIC_APP_URL;
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
-
+  if (process.env.NODE_ENV !== "production" && requestOrigin) return requestOrigin;
   return "http://localhost:3000";
 }
