@@ -70,10 +70,10 @@ jobs:
             }
 
             compose build --no-cache app
+            compose down --remove-orphans
             compose up -d db
             compose run --rm app npm run prisma:migrate:deploy
 
-            sudo docker rm -f app-app-1 || true
             compose up -d --force-recreate --remove-orphans app caddy
 
             running_container_id="$(compose ps -q app)"
