@@ -111,6 +111,44 @@ jobs:
               fi
             done
 
+            write_deploy_diagnostics() {
+              target_path="$1"
+              sudo mkdir -p "$(dirname "$target_path")"
+              {
+                printf 'generatedAt=%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+                printf 'hostname=%s\n' "$(hostname)"
+                printf 'hostnameIps=%s\n' "$(hostname -I 2>/dev/null || true)"
+                printf 'pwd=%s\n' "$PWD"
+                printf 'gitSha=%s\n' "$(git rev-parse --short HEAD)"
+                printf 'appImage=%s\n' "$running_image"
+                printf 'appVersionEnv=%s\n' "$app_version_env"
+                printf 'publicHealthVersionFromVps=%s\n' "${health_version:-unknown}"
+                printf 'publicHealthBodyFromVps=%s\n' "${health:-no-response}"
+                printf 'publicHealthUrl=%s\n' "$health_url"
+                printf 'composeAppContainer=%s\n' "$running_container_id"
+                printf 'composeCaddyContainer=%s\n' "$caddy_container_id"
+                printf 'dockerPs=\n'
+                sudo docker ps --format '  {{.ID}} {{.Image}} {{.Names}} {{.Ports}}' || true
+                printf 'srvUploadsMounts=\n'
+                for container_id in $(sudo docker ps -q); do
+                  sudo docker inspect --format '{{range .Mounts}}{{if eq .Destination "/srv/uploads"}}{{.Source}}{{"\n"}}{{end}}{{end}}' "$container_id" |
+                    while IFS= read -r upload_mount; do
+                      [ -n "$upload_mount" ] && printf '  %s %s\n' "$container_id" "$upload_mount"
+                    done
+                done
+              } | sudo tee "$target_path" >/dev/null
+            }
+
+            publish_deploy_diagnostics() {
+              write_deploy_diagnostics "public/uploads/deploy-status.txt"
+              for container_id in $(sudo docker ps -q); do
+                sudo docker inspect --format '{{range .Mounts}}{{if eq .Destination "/srv/uploads"}}{{.Source}}{{"\n"}}{{end}}{{end}}' "$container_id" |
+                  while IFS= read -r upload_mount; do
+                    [ -n "$upload_mount" ] && write_deploy_diagnostics "${upload_mount}/deploy-status.txt"
+                  done
+              done
+            }
+
             health=""
             health_url="https://rafalpodraza.com/api/health?deploy=${APP_IMAGE_TAG}"
             for attempt in $(seq 1 30); do
@@ -122,6 +160,7 @@ jobs:
               fi
 
               mkdir -p public/uploads
+              publish_deploy_diagnostics || true
               {
                 printf '{\n'
                 printf '  "generatedAt": "%s",\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
