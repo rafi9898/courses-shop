@@ -64,11 +64,25 @@ jobs:
             git fetch origin main
             git reset --hard FETCH_HEAD
             export APP_IMAGE_TAG="$(git rev-parse --short HEAD)"
+            DEPLOY_OVERRIDE_FILE="/tmp/courses-shop-deploy-${APP_IMAGE_TAG}.yml"
+            trap 'rm -f "$DEPLOY_OVERRIDE_FILE"' EXIT
+            {
+              printf 'services:\n'
+              printf '  app:\n'
+              printf '    image: courses-shop-app:%s\n' "$APP_IMAGE_TAG"
+              printf '    build:\n'
+              printf '      args:\n'
+              printf '        APP_VERSION: %s\n' "$APP_IMAGE_TAG"
+              printf '    environment:\n'
+              printf '      APP_VERSION: %s\n' "$APP_IMAGE_TAG"
+            } > "$DEPLOY_OVERRIDE_FILE"
 
             compose() {
-              sudo env APP_IMAGE_TAG="$APP_IMAGE_TAG" docker compose --env-file .env.production -f docker-compose.prod.yml "$@"
+              sudo env APP_IMAGE_TAG="$APP_IMAGE_TAG" docker compose --env-file .env.production -f docker-compose.prod.yml -f "$DEPLOY_OVERRIDE_FILE" "$@"
             }
 
+            expected_image="courses-shop-app:${APP_IMAGE_TAG}"
+            echo "Deploying ${expected_image}"
             compose build --no-cache app
             compose up -d db
             compose run --rm app npm run prisma:migrate:deploy
@@ -86,7 +100,6 @@ jobs:
             fi
 
             running_image="$(sudo docker inspect --format '{{.Config.Image}}' "$running_container_id")"
-            expected_image="courses-shop-app:${APP_IMAGE_TAG}"
             if [ "$running_image" != "$expected_image" ]; then
               echo "Deploy verification failed: expected ${expected_image}, got ${running_image}"
               exit 1
