@@ -1,4 +1,5 @@
 import {
+  ArrowRight,
   Award,
   BookOpen,
   CheckCircle2,
@@ -8,6 +9,7 @@ import {
   GraduationCap,
   Layers,
   Lock,
+  PackageCheck,
   PlayCircle,
   ShieldCheck,
   Star,
@@ -62,12 +64,13 @@ export function ProductDetailPage({
   const bundleCourses = !isCourse
     ? product.courseIds.map((courseId) => courseById.get(courseId)).filter((course): course is Course => Boolean(course))
     : [];
+  const containingBundles = isCourse ? bundles.filter((bundle) => bundle.courseIds.includes(product.id)).slice(0, 3) : [];
   const recommendedCourses = courses.filter((course) => course.id !== product.id && course.categoryId === product.categoryId).slice(0, 3);
   const recommendedBundles = bundles.filter((bundle) => bundle.id !== product.id && bundle.categoryId === product.categoryId).slice(0, 2);
   const productPath = isCourse ? getCoursePath(product, locale) : getBundlePath(product, locale);
 
   return (
-    <div className="bg-gradient-to-b from-white to-[#fbfaff]">
+    <div className="bg-gradient-to-b from-white to-[#fbfaff] pb-28 md:pb-0">
       <JsonLd
         data={createProductJsonLd({
           locale,
@@ -110,7 +113,7 @@ export function ProductDetailPage({
                 </span>
               </div>
 
-              <div className="mt-8 w-full max-w-[430px]">
+              <div className="mt-8 w-full max-w-[430px] space-y-4 lg:sticky lg:top-24 lg:self-start">
                 <PriceCard
                   product={product}
                   price={product.price[locale]}
@@ -119,6 +122,7 @@ export function ProductDetailPage({
                   locale={locale}
                   dictionary={dictionary}
                 />
+                {isCourse ? <CourseBundleUpsell bundles={containingBundles} locale={locale} /> : null}
               </div>
             </div>
 
@@ -141,7 +145,7 @@ export function ProductDetailPage({
               )}
 
               <div className="mt-8 md:-ml-8 lg:-ml-10">
-                <FeatureStrip dictionary={dictionary} />
+                <FeatureStrip locale={locale} />
               </div>
             </div>
           </div>
@@ -247,6 +251,15 @@ export function ProductDetailPage({
           </div>
         </section>
       </section>
+
+      <StickyPurchaseBar
+        product={product}
+        title={title}
+        price={product.price[locale]}
+        regularPrice={product.regularPrice[locale]}
+        locale={locale}
+        dictionary={dictionary}
+      />
     </div>
   );
 }
@@ -301,16 +314,94 @@ function PriceCard({
   );
 }
 
-function FeatureStrip({ dictionary }: { dictionary: Dictionary }) {
+function CourseBundleUpsell({ bundles, locale }: { bundles: Bundle[]; locale: Locale }) {
+  if (bundles.length === 0) return null;
+
+  const copy = getCourseBundleUpsellCopy(locale);
+
+  return (
+    <aside className="rounded-2xl border border-primary/20 bg-primary-soft p-5 shadow-soft">
+      <div className="flex items-start gap-3">
+        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-white text-primary">
+          <PackageCheck className="h-5 w-5" />
+        </span>
+        <div>
+          <h2 className="text-base font-black">{copy.title}</h2>
+          <p className="mt-1 text-sm leading-6 text-slate-600">{copy.lead}</p>
+        </div>
+      </div>
+
+      <div className="mt-4 space-y-3">
+        {bundles.map((bundle) => (
+          <Link
+            key={bundle.id}
+            href={getBundlePath(bundle, locale)}
+            className="group grid gap-3 rounded-xl border border-border bg-white p-4 transition hover:border-primary/40 hover:shadow-card"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-sm font-black leading-5 group-hover:text-primary">{bundle.title[locale]}</p>
+                <p className="mt-1 text-xs font-semibold text-muted-foreground">{copy.courseCount.replace("{count}", String(bundle.courseCount))}</p>
+              </div>
+              <ArrowRight className="mt-0.5 h-4 w-4 shrink-0 text-primary transition group-hover:translate-x-0.5" />
+            </div>
+            <div className="flex flex-wrap items-baseline gap-2">
+              <span className="text-lg font-black">{formatPrice(bundle.price[locale], locale)}</span>
+              <span className="text-xs text-muted-foreground line-through">{formatPrice(bundle.regularPrice[locale], locale)}</span>
+            </div>
+          </Link>
+        ))}
+      </div>
+    </aside>
+  );
+}
+
+function StickyPurchaseBar({
+  product,
+  title,
+  price,
+  regularPrice,
+  locale,
+  dictionary
+}: {
+  product: Course | Bundle;
+  title: string;
+  price: number;
+  regularPrice: number;
+  locale: Locale;
+  dictionary: Dictionary;
+}) {
+  return (
+    <div className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-white/95 shadow-[0_-8px_24px_rgba(15,23,42,0.08)] backdrop-blur md:hidden">
+      <div className="container-shell flex items-center gap-3 py-3">
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-semibold text-slate-600">{title}</p>
+          <div className="flex items-baseline gap-2">
+            <span className="text-lg font-black text-foreground">{formatPrice(price, locale)}</span>
+            <span className="text-xs text-muted-foreground line-through">{formatPrice(regularPrice, locale)}</span>
+          </div>
+        </div>
+        <AddToCartButton product={product} dictionary={dictionary} label={dictionary.detail.buyNow} redirectToCart className="h-12 shrink-0 px-5" />
+      </div>
+    </div>
+  );
+}
+
+function FeatureStrip({ locale }: { locale: Locale }) {
+  const copy = getProductTrustCopy(locale);
   const features = [
-    { icon: PlayCircle, title: dictionary.detail.instantAccess, text: dictionary.benefits.access },
-    { icon: BookOpen, title: dictionary.detail.udemyCode, text: dictionary.detail.lifetimeAccess },
-    { icon: ShieldCheck, title: dictionary.detail.lifetimeAccess, text: dictionary.detail.unlimited },
-    { icon: FileText, title: dictionary.detail.invoice, text: dictionary.detail.invoice }
+    { icon: PlayCircle, title: copy.items[0].title, text: copy.items[0].text },
+    { icon: BookOpen, title: copy.items[1].title, text: copy.items[1].text },
+    { icon: ShieldCheck, title: copy.items[2].title, text: copy.items[2].text },
+    { icon: FileText, title: copy.items[3].title, text: copy.items[3].text }
   ];
 
   return (
     <div className="grid w-full gap-5 rounded-2xl border border-border bg-white p-6 shadow-soft sm:grid-cols-2 md:grid-cols-4 lg:p-7">
+      <div className="sm:col-span-2 md:col-span-4">
+        <h2 className="text-xl font-black">{copy.title}</h2>
+        <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">{copy.lead}</p>
+      </div>
       {features.map((feature) => (
         <div key={feature.title} className="min-w-0">
           <span className="grid h-11 w-11 place-items-center rounded-xl bg-primary-soft text-primary">
@@ -427,4 +518,67 @@ function getBundleAboutCopy(locale: Locale) {
   }
 
   return "Kupując pakiet otrzymujesz linki Udemy do wszystkich kursów w zestawie. System deduplikuje kursy, więc ten sam dostęp nie pojawi się dwa razy.";
+}
+
+function getCourseBundleUpsellCopy(locale: Locale) {
+  if (locale === "de") {
+    return {
+      title: "Dieser Kurs ist in einem Paket",
+      lead: "Wenn du mehr als einen Kurs planst, ist ein Paket meist die bessere Wahl.",
+      courseCount: "{count} Kurse im Paket"
+    };
+  }
+
+  if (locale === "en") {
+    return {
+      title: "This course is included in a bundle",
+      lead: "If you plan to learn more than one topic, a bundle is usually the better deal.",
+      courseCount: "{count} courses in the bundle"
+    };
+  }
+
+  return {
+    title: "Ten kurs jest w pakiecie",
+    lead: "Jeśli planujesz więcej niż jeden kurs, pakiet zwykle wychodzi korzystniej.",
+    courseCount: "{count} kursów w pakiecie"
+  };
+}
+
+function getProductTrustCopy(locale: Locale) {
+  if (locale === "de") {
+    return {
+      title: "Sicher kaufen und sofort lernen",
+      lead: "Nach dem Kauf bekommst du direkten Zugriff, Udemy-Links und eine klare Bestätigung per E-Mail.",
+      items: [
+        { title: "Sofortiger Zugriff", text: "Links sind direkt nach der Zahlung verfügbar." },
+        { title: "Udemy-Code", text: "Du aktivierst den Kurs in deinem Udemy-Konto." },
+        { title: "Sichere Zahlung", text: "Zahlung läuft über Stripe." },
+        { title: "Rechnung", text: "Rechnungsdaten kannst du beim Checkout angeben." }
+      ]
+    };
+  }
+
+  if (locale === "en") {
+    return {
+      title: "Buy safely and start learning right away",
+      lead: "After purchase you get immediate access, Udemy links and a clear confirmation by e-mail.",
+      items: [
+        { title: "Instant access", text: "Links are available right after payment." },
+        { title: "Udemy code", text: "You redeem the course in your Udemy account." },
+        { title: "Secure payment", text: "Payments are handled by Stripe." },
+        { title: "Invoice", text: "You can add invoice details at checkout." }
+      ]
+    };
+  }
+
+  return {
+    title: "Kupujesz bezpiecznie i od razu zaczynasz naukę",
+    lead: "Po zakupie dostajesz dostęp do kursu, link Udemy i potwierdzenie na e-mail. Bez zakładania konta w sklepie.",
+    items: [
+      { title: "Dostęp od razu", text: "Linki są dostępne natychmiast po płatności." },
+      { title: "Kod Udemy", text: "Aktywujesz kurs na swoim koncie Udemy." },
+      { title: "Płatność Stripe", text: "Transakcja przechodzi przez bezpieczną bramkę." },
+      { title: "Faktura", text: "Dane do faktury podasz bezpośrednio w checkout." }
+    ]
+  };
 }

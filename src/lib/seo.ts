@@ -249,6 +249,21 @@ export function getProductMetadata({
   });
 }
 
+export function getCatalogListingMetadata(locale: Locale, kind: "courses" | "bundles"): Metadata {
+  const path = publicPagePaths[kind][locale];
+  const title = catalogListingTitles[locale][kind];
+  const description = catalogListingDescriptions[locale][kind];
+
+  return createMetadata({
+    locale,
+    path,
+    title,
+    description,
+    keywords: createKeywords(defaultKeywords[locale], publicPageKeywords[kind][locale], catalogListingTopics[locale][kind], title, description),
+    alternates: publicPagePaths[kind]
+  });
+}
+
 export function getProductKeywords({
   locale,
   kind,
@@ -462,6 +477,51 @@ function getPublicPageDescription(locale: Locale, page: PublicPage, dictionary: 
 
   return locale === "pl" ? defaultDescription : defaultDescription;
 }
+
+const catalogListingTitles: Record<Locale, Record<"courses" | "bundles", string>> = {
+  pl: {
+    courses: "Kursy online IT - testowanie, programowanie, AI i DevOps",
+    bundles: "Pakiety kursów IT - zestawy do nauki w lepszej cenie"
+  },
+  de: {
+    courses: "Online-IT-Kurse - Testing, Programmierung, KI und DevOps",
+    bundles: "IT-Kurspakete - Lernpfade zum besseren Preis"
+  },
+  en: {
+    courses: "Online IT courses - testing, programming, AI and DevOps",
+    bundles: "IT course bundles - learning paths at a better price"
+  }
+};
+
+const catalogListingDescriptions: Record<Locale, Record<"courses" | "bundles", string>> = {
+  pl: {
+    courses: "Przeglądaj praktyczne kursy online z testowania, programowania, SQL, Postman, Docker, AWS i AI. Wybierz poziom i ucz się we własnym tempie.",
+    bundles: "Wybierz pakiet kursów online z testowania, programowania, DevOps, chmury albo AI. Ucz się więcej w lepszej cenie."
+  },
+  de: {
+    courses: "Entdecke praktische Online-Kurse zu Testing, Programmierung, SQL, Postman, Docker, AWS und KI. Wähle dein Niveau und lerne in deinem Tempo.",
+    bundles: "Wähle ein Online-Kurspaket für Testing, Programmierung, DevOps, Cloud oder KI und lerne mehr zum besseren Preis."
+  },
+  en: {
+    courses: "Browse practical online courses in testing, programming, SQL, Postman, Docker, AWS and AI. Pick your level and learn at your own pace.",
+    bundles: "Choose an online course bundle for testing, programming, DevOps, cloud or AI and learn more at a better price."
+  }
+};
+
+const catalogListingTopics: Record<Locale, Record<"courses" | "bundles", string[]>> = {
+  pl: {
+    courses: ["kurs testowania online", "kurs programowania online", "kurs SQL", "kurs Postman", "kurs Docker", "kurs AWS", "kurs AI"],
+    bundles: ["pakiety kursów IT", "pakiet testera", "pakiet programowania", "pakiet DevOps", "pakiet AI"]
+  },
+  de: {
+    courses: ["Testing Online-Kurs", "Programmierkurs online", "SQL-Kurs", "Postman-Kurs", "Docker-Kurs", "AWS-Kurs", "KI-Kurs"],
+    bundles: ["IT-Kurspakete", "Tester-Paket", "Programmierpaket", "DevOps-Paket", "KI-Paket"]
+  },
+  en: {
+    courses: ["testing online course", "programming online course", "SQL course", "Postman course", "Docker course", "AWS course", "AI course"],
+    bundles: ["IT course bundles", "software tester bundle", "programming bundle", "DevOps bundle", "AI bundle"]
+  }
+};
 
 export const defaultMetadata: Metadata = {
   metadataBase: new URL(getSiteUrl("/")),

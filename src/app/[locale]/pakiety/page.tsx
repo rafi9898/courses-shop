@@ -3,7 +3,7 @@ import { CatalogListPage } from "@/components/catalog/catalog-list-page";
 import { getPublicCatalog } from "@/lib/catalog-data";
 import { isLocale, type Locale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionaries";
-import { getPublicPageMetadata } from "@/lib/seo";
+import { getCatalogListingMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
@@ -11,8 +11,8 @@ export function generateStaticParams() {
   return [{ locale: "pl" }];
 }
 
-export function generateMetadata() {
-  return getPublicPageMetadata("pl", "bundles");
+export async function generateMetadata() {
+  return getCatalogListingMetadata("pl", "bundles");
 }
 
 export default async function BundlesPlPage({

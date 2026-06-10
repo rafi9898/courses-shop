@@ -16,6 +16,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 }
 
 export function AdminFrame({ children }: { children: React.ReactNode }) {
+  const appVersion = process.env.APP_VERSION || "local";
+  const runtimeLabel = process.env.NODE_ENV === "production" ? "prod" : "local";
+
   return (
     <AdminShell>
       <div className="mx-auto max-w-7xl">
@@ -30,6 +33,11 @@ export function AdminFrame({ children }: { children: React.ReactNode }) {
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
+            <div className="flex h-10 items-center gap-2 rounded-[10px] border border-border bg-slate-50 px-3 text-xs font-semibold text-slate-600">
+              <span className="text-slate-500">Wersja</span>
+              <code className="rounded bg-white px-2 py-1 font-mono text-[11px] font-black text-foreground">{appVersion}</code>
+              <span className="rounded bg-primary-soft px-2 py-1 text-[11px] font-black uppercase text-primary">{runtimeLabel}</span>
+            </div>
             {adminNavItems.map((item) => {
               const Icon = item.icon;
 

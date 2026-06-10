@@ -4,7 +4,10 @@ import { adminInternalBasePath, adminPublicBasePath } from "@/lib/admin-routes";
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  if (pathname === adminInternalBasePath || pathname.startsWith(`${adminInternalBasePath}/`)) {
+  if (
+    process.env.NODE_ENV === "production" &&
+    (pathname === adminInternalBasePath || pathname.startsWith(`${adminInternalBasePath}/`))
+  ) {
     return new NextResponse("Not Found", { status: 404 });
   }
 
