@@ -206,7 +206,7 @@ export function CatalogListPage({
                 <span className="text-sm font-semibold text-slate-600">{dictionary.catalog.sortLabel}</span>
                 <select
                   value={sort}
-                  onChange={(event) => setSort(event.target.value)}
+                  onChange={(event) => setSort(event.target.value as CatalogSort)}
                   className="focus-ring h-11 rounded-xl border border-border bg-white px-4 text-sm font-semibold text-slate-700"
                 >
                   <option value="popular">{dictionary.catalog.popular}</option>
