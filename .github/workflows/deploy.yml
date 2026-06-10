@@ -85,11 +85,31 @@ jobs:
             echo "Deploying ${expected_image}"
             compose build --no-cache app
             compose up -d db
-            compose run --rm app npm run prisma:migrate:deploy
 
+            db_container_id="$(compose ps -q db)"
+            db_network="$(
+              sudo docker inspect --format '{{range $name, $_ := .NetworkSettings.Networks}}{{println $name}}{{end}}' "$db_container_id" |
+                sed -n '1p'
+            )"
+            if [ -z "$db_network" ]; then
+              echo "Deploy verification failed: could not detect Docker network for db"
+              compose ps
+              exit 1
+            fi
+
+            echo "Running migrations with ${expected_image} on network ${db_network}"
+            sudo docker run --rm \
+              --network "$db_network" \
+              --env-file .env.production \
+              -e "APP_VERSION=${APP_IMAGE_TAG}" \
+              "$expected_image" \
+              npm run prisma:migrate:deploy
+
+            echo "Recreating production app and caddy containers"
             compose stop app caddy || true
             compose rm -f app caddy || true
-            compose up -d --force-recreate --remove-orphans app caddy
+            compose up -d --no-build --force-recreate --remove-orphans app caddy
+            compose ps
 
             running_container_id="$(compose ps -q app)"
             caddy_container_id="$(compose ps -q caddy)"
