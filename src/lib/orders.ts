@@ -3,6 +3,7 @@ import fs from "node:fs/promises";
 import { InvoiceStatus, PaymentStatus, Prisma, ProductType } from "@prisma/client";
 import Stripe from "stripe";
 import { getPublicCatalog } from "@/lib/catalog-data";
+import { buildCustomBundlePricingCourses, normalizeCustomBundleCourseIds } from "@/lib/custom-bundle";
 import { getActiveDiscountCodes } from "@/lib/discount-code-data";
 import { calculateCartTotals, getDiscountedUnitAmount } from "@/lib/discounts";
 import { isLocale, localeMeta, type Locale } from "@/lib/i18n/config";
@@ -14,17 +15,27 @@ import { prisma } from "@/lib/prisma";
 export async function savePaidOrderFromCheckoutSession(session: Stripe.Checkout.Session) {
   const locale = parseSessionLocale(session);
   const productKeys = parseProductKeys(session.metadata?.product_keys);
+  const customBundleCourseIds = parseCustomBundleCourseIds(session.metadata?.custom_bundle_course_ids);
   const discountCode = session.metadata?.discount_code || null;
   const catalog = await getPublicCatalog(locale);
   const discounts = await getActiveDiscountCodes();
   const discountPool = discounts.length > 0 ? discounts : undefined;
   const products: Product[] = [...catalog.courses, ...catalog.bundles];
-  const orderProducts = productKeys
+  const customBundleCourseIdSet = new Set(customBundleCourseIds);
+  const regularProductKeys = productKeys.filter((item) => !(item.productType === "course" && customBundleCourseIdSet.has(item.productId)));
+  const regularOrderProducts = regularProductKeys
     .map((item) => products.find((product) => product.id === item.productId && product.type === item.productType))
     .filter((product): product is Product => Boolean(product));
+  const normalCourseIds = regularProductKeys.filter((item) => item.productType === "course").map((item) => item.productId);
+  const customBundle = buildCustomBundlePricingCourses(catalog.courses, locale, customBundleCourseIds, normalCourseIds);
+  const orderProducts = [...regularOrderProducts, ...customBundle.courses];
 
   if (orderProducts.length === 0 || orderProducts.length !== productKeys.length) {
     throw new Error(`Cannot save order for checkout session ${session.id}: invalid products.`);
+  }
+
+  if (customBundleCourseIds.length > 0 && customBundle.courses.length < 2) {
+    throw new Error(`Cannot save order for checkout session ${session.id}: invalid custom bundle.`);
   }
 
   const totals = calculateCartTotals(orderProducts, locale, discountCode, discountPool);
@@ -251,6 +262,11 @@ function parseProductKeys(productKeys?: string | null) {
       };
     })
     .filter((item): item is { productType: Product["type"]; productId: string } => Boolean(item));
+}
+
+function parseCustomBundleCourseIds(value?: string | null) {
+  if (!value) return [];
+  return normalizeCustomBundleCourseIds(value.split(","));
 }
 
 function getStripeId(value: string | Stripe.PaymentIntent | null) {

@@ -6,8 +6,10 @@ import { useEffect, useMemo, useState } from "react";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { useCart } from "@/components/cart/cart-provider";
 import { AddToCartButton } from "@/components/commerce/add-to-cart-button";
+import { CustomBundleCard } from "@/components/commerce/custom-bundle-card";
 import { Thumbnail } from "@/components/commerce/product-card";
 import { calculateCartTotals } from "@/lib/discounts";
+import { summarizeCustomBundle } from "@/lib/custom-bundle";
 import { type Dictionary } from "@/lib/i18n/dictionaries";
 import { formatPrice, type Locale } from "@/lib/i18n/config";
 import { type Bundle, type Category, type Course, type Product } from "@/lib/mock-data";
@@ -26,12 +28,17 @@ export function CartPage({
   courses: Course[];
   bundles: Bundle[];
 }) {
-  const { items, hydrated, removeItem, clearCart, appliedDiscountCode, discounts } = useCart();
+  const { items, customBundleCourseIds, hydrated, removeItem, clearCustomBundle, clearCart, appliedDiscountCode, discounts } = useCart();
   const products: Product[] = useMemo(() => [...courses, ...bundles], [bundles, courses]);
   const discountPool = discounts.length > 0 ? discounts : undefined;
   const cartProducts = items
     .map((item) => products.find((product) => product.id === item.productId && product.type === item.productType))
     .filter((product): product is Product => Boolean(product));
+  const normalCartCourseIds = items.filter((item) => item.productType === "course").map((item) => item.productId);
+  const customBundleSummary = summarizeCustomBundle(courses, locale, customBundleCourseIds, normalCartCourseIds);
+  const customBundleProducts = customBundleSummary.courses.length >= 2 ? customBundleSummary.courses : [];
+  const pricingProducts = [...cartProducts, ...customBundleProducts];
+  const cartEntryCount = cartProducts.length + (customBundleProducts.length > 0 ? 1 : 0);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -45,9 +52,10 @@ export function CartPage({
     });
   }, [hydrated, items, products, removeItem]);
 
-  const totals = calculateCartTotals(cartProducts, locale, appliedDiscountCode, discountPool);
+  const totals = calculateCartTotals(pricingProducts, locale, appliedDiscountCode, discountPool);
+  const selectedProductKeys = new Set(pricingProducts.map((product) => `${product.type}:${product.id}`));
   const recommendedProducts = products
-    .filter((product) => !cartProducts.some((cartProduct) => cartProduct.id === product.id && cartProduct.type === product.type))
+    .filter((product) => !selectedProductKeys.has(`${product.type}:${product.id}`))
     .slice(0, 2);
 
   return (
@@ -66,9 +74,9 @@ export function CartPage({
               <h1 className="text-4xl font-black leading-tight tracking-normal sm:text-5xl">{dictionary.cartPage.title}</h1>
               <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600">{dictionary.cartPage.lead}</p>
             </div>
-            {cartProducts.length > 0 ? (
+            {pricingProducts.length > 0 ? (
               <span className="inline-flex w-fit rounded-full bg-primary-soft px-4 py-2 text-sm font-black text-primary">
-                {dictionary.cartPage.itemCount.replace("{count}", String(cartProducts.length))}
+                {dictionary.cartPage.itemCount.replace("{count}", String(cartEntryCount))}
               </span>
             ) : null}
           </div>
@@ -80,12 +88,21 @@ export function CartPage({
           <div className="rounded-2xl border border-border bg-white p-8 text-sm font-semibold text-slate-600 shadow-soft">
             {dictionary.cartPage.loading}
           </div>
-        ) : cartProducts.length === 0 ? (
+        ) : pricingProducts.length === 0 ? (
           <EmptyCart dictionary={dictionary} />
         ) : (
           <>
             <div className="grid gap-8 lg:grid-cols-[1fr_360px] lg:items-start">
               <div className="space-y-4">
+                {customBundleProducts.length > 0 ? (
+                  <CustomBundleCard
+                    courseIds={customBundleSummary.courseIds}
+                    courses={courses}
+                    locale={locale}
+                    dictionary={dictionary}
+                    onRemove={clearCustomBundle}
+                  />
+                ) : null}
                 {cartProducts.map((product) => (
                   <CartProductRow
                     key={`${product.type}:${product.id}`}
@@ -114,7 +131,7 @@ export function CartPage({
               <aside className="rounded-2xl border border-border bg-white p-6 shadow-card lg:sticky lg:top-24">
                 <h2 className="text-2xl font-black">{dictionary.cartPage.summary}</h2>
                 <dl className="mt-6 space-y-4 text-sm">
-                  <SummaryRow label={dictionary.cartPage.productCount} value={String(cartProducts.length)} />
+                  <SummaryRow label={dictionary.cartPage.productCount} value={String(cartEntryCount)} />
                   <SummaryRow label={dictionary.cartPage.regularTotal} value={formatPrice(totals.regularTotal, locale)} muted />
                   <SummaryRow label={dictionary.cartPage.subtotal} value={formatPrice(totals.subtotal, locale)} />
                   <SummaryRow

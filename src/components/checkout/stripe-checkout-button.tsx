@@ -11,6 +11,7 @@ import { type InvoiceData } from "@/lib/invoice";
 export function StripeCheckoutButton({
   locale,
   items,
+  customBundleCourseIds = [],
   dictionary,
   discountCode,
   customerEmail,
@@ -21,6 +22,7 @@ export function StripeCheckoutButton({
 }: {
   locale: Locale;
   items: CheckoutCartItemInput[];
+  customBundleCourseIds?: string[];
   dictionary: Dictionary;
   discountCode?: string | null;
   customerEmail: string;
@@ -40,7 +42,16 @@ export function StripeCheckoutButton({
       const response = await fetch("/api/checkout/session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ locale, items, discountCode, customerEmail, invoiceRequested, invoiceData: invoiceRequested ? invoiceData : undefined, termsAccepted })
+        body: JSON.stringify({
+          locale,
+          items,
+          customBundleCourseIds,
+          discountCode,
+          customerEmail,
+          invoiceRequested,
+          invoiceData: invoiceRequested ? invoiceData : undefined,
+          termsAccepted
+        })
       });
       const data = (await response.json().catch(() => null)) as { url?: string; error?: string } | null;
 

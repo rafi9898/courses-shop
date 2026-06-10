@@ -15,6 +15,10 @@ export type AddCartItemInput = {
 
 export type CheckoutCartItemInput = AddCartItemInput;
 
+export type CustomBundleCheckoutInput = {
+  courseIds: string[];
+};
+
 export function getCartStorageKey(locale: Locale) {
   return `courses-shop:cart:${locale}`;
 }

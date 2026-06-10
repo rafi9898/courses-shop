@@ -6,6 +6,7 @@ import { BundleCard } from "@/components/commerce/bundle-card";
 import { ProductCard } from "@/components/commerce/product-card";
 import { CatalogCta } from "@/components/catalog/catalog-cta";
 import { CatalogHero } from "@/components/catalog/catalog-hero";
+import { CustomBundleBuilder } from "@/components/home/custom-bundle-builder";
 import { type Bundle, type Category, type Course } from "@/lib/mock-data";
 import { type Locale } from "@/lib/i18n/config";
 import { type Dictionary } from "@/lib/i18n/dictionaries";
@@ -163,6 +164,16 @@ export function CatalogListPage({
             </div>
           ) : null}
         </div>
+
+        {!isCourses && courses.length > 0 ? (
+          <div className="mt-5 flex flex-col gap-4 rounded-2xl border border-primary/15 bg-primary-soft/45 p-5 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-lg font-black text-foreground">{dictionary.home.customBundleTitle}</h2>
+              <p className="mt-1 text-sm leading-6 text-slate-600">{dictionary.home.customBundleLead}</p>
+            </div>
+            <CustomBundleBuilder locale={locale} dictionary={dictionary} categories={categories} courses={courses} />
+          </div>
+        ) : null}
 
         <div className="mt-8 grid gap-7 lg:grid-cols-[260px_1fr]">
           <aside className="space-y-5">

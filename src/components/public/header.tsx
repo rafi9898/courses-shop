@@ -118,8 +118,8 @@ function LanguageSwitcher({ locale }: { locale: Locale }) {
 }
 
 function CartLink({ href, label }: { href: string; label: string }) {
-  const { items, hydrated } = useCart();
-  const count = hydrated ? items.length : 0;
+  const { items, customBundleCourseIds, hydrated } = useCart();
+  const count = hydrated ? items.length + (customBundleCourseIds.length >= 2 ? 1 : 0) : 0;
 
   return (
     <Link

@@ -2,6 +2,7 @@ import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { BundleCard } from "@/components/commerce/bundle-card";
 import { ProductCard } from "@/components/commerce/product-card";
+import { CustomBundleBuilder } from "@/components/home/custom-bundle-builder";
 import { ButtonLink } from "@/components/ui/button";
 import { type Bundle, type Category, type Course } from "@/lib/mock-data";
 import { type Locale } from "@/lib/i18n/config";
@@ -47,11 +48,19 @@ export function ProductShowcase({
       </div>
 
       <div className="mt-12 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <h2 className="text-2xl font-black tracking-normal sm:text-3xl">{dictionary.home.bundlesTitle}</h2>
-        <ButtonLink href={dictionary.routes.bundles} variant="secondary" className="w-full sm:w-auto">
-          {dictionary.home.secondaryCta}
-          <ArrowRight className="h-4 w-4" />
-        </ButtonLink>
+        <div>
+          <h2 className="text-2xl font-black tracking-normal sm:text-3xl">{dictionary.home.bundlesTitle}</h2>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">{dictionary.home.customBundleTitle}</p>
+        </div>
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <ButtonLink href={dictionary.routes.bundles} variant="secondary" className="w-full sm:w-auto">
+            {dictionary.home.secondaryCta}
+            <ArrowRight className="h-4 w-4" />
+          </ButtonLink>
+          {courses.length > 0 ? (
+            <CustomBundleBuilder locale={locale} dictionary={dictionary} categories={categories} courses={courses} />
+          ) : null}
+        </div>
       </div>
       <div className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
         {bundles.slice(0, 3).map((bundle) => (

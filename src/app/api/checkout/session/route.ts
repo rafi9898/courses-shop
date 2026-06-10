@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import Stripe from "stripe";
 import { type CheckoutCartItemInput, getCartItemKey } from "@/lib/cart";
 import { getPublicCatalog } from "@/lib/catalog-data";
+import { buildCustomBundlePricingCourses, normalizeCustomBundleCourseIds } from "@/lib/custom-bundle";
 import { getActiveDiscountCodes } from "@/lib/discount-code-data";
 import { calculateCartTotals, getDiscount, getDiscountedUnitAmount } from "@/lib/discounts";
 import { isLocale, localeMeta } from "@/lib/i18n/config";
@@ -13,6 +14,7 @@ import { getCheckoutCancelPath, getCheckoutSuccessPath } from "@/lib/routes";
 type CheckoutRequestBody = {
   locale?: unknown;
   items?: unknown;
+  customBundleCourseIds?: unknown;
   discountCode?: unknown;
   customerEmail?: unknown;
   invoiceRequested?: unknown;
@@ -30,12 +32,13 @@ export async function POST(request: NextRequest) {
   const body = (await request.json().catch(() => null)) as CheckoutRequestBody | null;
   const locale = typeof body?.locale === "string" && isLocale(body.locale) ? body.locale : null;
   const items = parseItems(body?.items);
+  const customBundleCourseIds = parseCustomBundleCourseIds(body?.customBundleCourseIds);
   const customerEmail = parseEmail(body?.customerEmail);
   const invoiceRequested = body?.invoiceRequested === true;
   const invoiceData = invoiceRequested ? parseInvoiceData(body?.invoiceData) : null;
   const termsAccepted = body?.termsAccepted === true;
 
-  if (!locale || items.length === 0 || !customerEmail || (invoiceRequested && !invoiceData)) {
+  if (!locale || (items.length === 0 && customBundleCourseIds.length === 0) || !customerEmail || (invoiceRequested && !invoiceData)) {
     return NextResponse.json({ error: "Invalid checkout payload." }, { status: 400 });
   }
 
@@ -51,12 +54,19 @@ export async function POST(request: NextRequest) {
   const checkoutProducts = items
     .map((item) => products.find((product) => product.type === item.productType && product.id === item.productId))
     .filter((product): product is Product => Boolean(product));
+  const normalCourseIds = items.filter((item) => item.productType === "course").map((item) => item.productId);
+  const customBundle = buildCustomBundlePricingCourses(catalog.courses, locale, customBundleCourseIds, normalCourseIds);
 
   if (checkoutProducts.length !== items.length) {
     return NextResponse.json({ error: "One or more products are unavailable." }, { status: 400 });
   }
 
-  const totals = calculateCartTotals(checkoutProducts, locale, discountCode, discountPool);
+  if (customBundleCourseIds.length > 0 && customBundle.courses.length < 2) {
+    return NextResponse.json({ error: "Custom bundle requires at least two available courses." }, { status: 400 });
+  }
+
+  const checkoutPricingProducts = [...checkoutProducts, ...customBundle.courses];
+  const totals = calculateCartTotals(checkoutPricingProducts, locale, discountCode, discountPool);
   const stripe = new Stripe(stripeSecretKey);
   const origin = getAppOrigin(request);
   const successUrl = `${origin}${getCheckoutSuccessPath(locale)}?session_id={CHECKOUT_SESSION_ID}`;
@@ -74,8 +84,10 @@ export async function POST(request: NextRequest) {
       currency: localeMeta[locale].currency,
       customer_email: customerEmail,
       discount_code: discountCode ?? "",
-      product_keys: items.map(getCartItemKey).join(","),
-      product_count: String(items.length),
+      product_keys: checkoutPricingProducts.map((product) => getCartItemKey({ productId: product.id, productType: product.type })).join(","),
+      product_count: String(checkoutPricingProducts.length),
+      custom_bundle_course_ids: customBundle.courses.length > 0 ? customBundle.courseIds.join(",") : "",
+      custom_bundle_discount_percent: String(customBundle.discountPercent),
       regular_total: String(totals.regularTotal),
       subtotal: String(totals.subtotal),
       discount_amount: String(totals.discountAmount),
@@ -91,7 +103,7 @@ export async function POST(request: NextRequest) {
       invoice_buyer_postal_code: invoiceData?.buyerPostalCode ?? "",
       invoice_buyer_city: invoiceData?.buyerCity ?? ""
     },
-    line_items: checkoutProducts.map((product) => ({
+    line_items: checkoutPricingProducts.map((product) => ({
       quantity: 1,
       price_data: {
         currency: localeMeta[locale].currency.toLowerCase(),
@@ -109,6 +121,16 @@ export async function POST(request: NextRequest) {
   });
 
   return NextResponse.json({ url: session.url });
+}
+
+function parseCustomBundleCourseIds(value: unknown) {
+  if (!Array.isArray(value)) return [];
+
+  return normalizeCustomBundleCourseIds(
+    value
+      .slice(0, 50)
+      .filter((item): item is string => typeof item === "string")
+  );
 }
 
 function parseEmail(value: unknown) {

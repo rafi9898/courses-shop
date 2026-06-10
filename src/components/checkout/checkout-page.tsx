@@ -5,9 +5,11 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { StripeCheckoutButton } from "@/components/checkout/stripe-checkout-button";
 import { useCart } from "@/components/cart/cart-provider";
+import { CustomBundleCard } from "@/components/commerce/custom-bundle-card";
 import { Thumbnail } from "@/components/commerce/product-card";
 import { ButtonLink } from "@/components/ui/button";
 import { type CheckoutCartItemInput } from "@/lib/cart";
+import { summarizeCustomBundle } from "@/lib/custom-bundle";
 import { calculateCartTotals } from "@/lib/discounts";
 import { formatPrice, type Locale } from "@/lib/i18n/config";
 import { type Dictionary } from "@/lib/i18n/dictionaries";
@@ -26,7 +28,7 @@ export function CheckoutPage({
   courses: Course[];
   bundles: Bundle[];
 }) {
-  const { items, hydrated, removeItem, appliedDiscountCode, discounts } = useCart();
+  const { items, customBundleCourseIds, hydrated, removeItem, clearCustomBundle, appliedDiscountCode, discounts } = useCart();
   const [customerEmail, setCustomerEmail] = useState("");
   const [invoiceRequested, setInvoiceRequested] = useState(false);
   const [invoiceData, setInvoiceData] = useState<InvoiceData>(emptyInvoiceData);
@@ -36,6 +38,10 @@ export function CheckoutPage({
   const checkoutProducts = items
     .map((item) => products.find((product) => product.id === item.productId && product.type === item.productType))
     .filter((product): product is Product => Boolean(product));
+  const normalCartCourseIds = items.filter((item) => item.productType === "course").map((item) => item.productId);
+  const customBundleSummary = summarizeCustomBundle(courses, locale, customBundleCourseIds, normalCartCourseIds);
+  const customBundleProducts = customBundleSummary.courses.length >= 2 ? customBundleSummary.courses : [];
+  const pricingProducts = [...checkoutProducts, ...customBundleProducts];
 
   useEffect(() => {
     if (!hydrated) return;
@@ -53,7 +59,7 @@ export function CheckoutPage({
     productId: product.id,
     productType: product.type
   }));
-  const totals = calculateCartTotals(checkoutProducts, locale, appliedDiscountCode, discountPool);
+  const totals = calculateCartTotals(pricingProducts, locale, appliedDiscountCode, discountPool);
   const customerEmailComplete = isEmailLike(customerEmail);
   const invoiceComplete = !invoiceRequested || isInvoiceDataComplete(invoiceData);
   const checkoutReady = customerEmailComplete && invoiceComplete && termsAccepted;
@@ -83,7 +89,7 @@ export function CheckoutPage({
           <div className="rounded-2xl border border-border bg-white p-8 text-sm font-semibold text-slate-600 shadow-soft">
             {dictionary.cartPage.loading}
           </div>
-        ) : checkoutProducts.length === 0 ? (
+        ) : pricingProducts.length === 0 ? (
           <EmptyCheckout dictionary={dictionary} />
         ) : (
           <div className="grid gap-8 lg:grid-cols-[1fr_360px] lg:items-start">
@@ -96,6 +102,15 @@ export function CheckoutPage({
                 </ButtonLink>
               </div>
               <div className="space-y-4">
+                {customBundleProducts.length > 0 ? (
+                  <CustomBundleCard
+                    courseIds={customBundleSummary.courseIds}
+                    courses={courses}
+                    locale={locale}
+                    dictionary={dictionary}
+                    onRemove={clearCustomBundle}
+                  />
+                ) : null}
                 {checkoutProducts.map((product) => (
                   <CheckoutProductRow key={`${product.type}:${product.id}`} product={product} locale={locale} dictionary={dictionary} />
                 ))}
@@ -143,6 +158,7 @@ export function CheckoutPage({
                 <StripeCheckoutButton
                   locale={locale}
                   items={checkoutItems}
+                  customBundleCourseIds={customBundleProducts.length > 0 ? customBundleSummary.courseIds : []}
                   dictionary={dictionary}
                   discountCode={appliedDiscountCode}
                   customerEmail={customerEmail}
