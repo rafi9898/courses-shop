@@ -9,7 +9,6 @@ import { type Bundle, type Category, type Course, type Product } from "@/lib/moc
 import { formatPrice, type Locale } from "@/lib/i18n/config";
 import { type Dictionary } from "@/lib/i18n/dictionaries";
 import { getBundlePath, getCoursePath } from "@/lib/routes";
-import { cn } from "@/lib/utils";
 
 export function SearchPanel({
   locale,
@@ -107,29 +106,6 @@ export function SearchPanel({
             {dictionary.home.searchButton}
           </button>
         </form>
-
-        <div className="mt-4 flex flex-wrap items-center gap-2">
-          {categories.length > 0 ? (
-            <>
-              <span className="mr-1 text-sm font-bold">{dictionary.home.popularCategories}</span>
-              {categories.map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => setCategory(item.id)}
-                  className={cn(
-                    "focus-ring rounded-lg border px-4 py-2 text-xs font-semibold transition",
-                    category === item.id
-                      ? "border-primary bg-primary text-white"
-                      : "border-border bg-white text-slate-600 hover:border-primary hover:text-primary"
-                  )}
-                >
-                  {item.label[locale]}
-                </button>
-              ))}
-            </>
-          ) : null}
-        </div>
 
         {(query || category !== "all") && (
           <div className="mt-5 rounded-xl border border-border bg-slate-50/70 p-3">

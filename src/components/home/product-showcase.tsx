@@ -31,7 +31,10 @@ export function ProductShowcase({
           <p className="text-sm font-bold uppercase tracking-[0.18em] text-primary">Featured</p>
           <h2 className="mt-2 text-3xl font-black tracking-normal sm:text-4xl">{dictionary.home.featuredTitle}</h2>
         </div>
-        <Link href={dictionary.routes.courses} className="inline-flex items-center gap-2 text-sm font-bold text-primary hover:underline">
+        <Link
+          href={dictionary.routes.courses}
+          className="inline-flex min-h-11 w-fit items-center gap-2 self-start py-2 text-sm font-bold text-primary hover:underline sm:self-auto"
+        >
           {dictionary.home.seeAll}
           <ArrowRight className="h-4 w-4" />
         </Link>
