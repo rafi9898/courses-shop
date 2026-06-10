@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { type Bundle, type Category, type Course, type Product } from "@/lib/mock-data";
 import { formatPrice, type Locale } from "@/lib/i18n/config";
 import { type Dictionary } from "@/lib/i18n/dictionaries";
+import { getCatalogItemSearchRank, matchesCatalogItem, normalizeCatalogSearchText } from "@/lib/catalog-search";
 import { getBundlePath, getCoursePath } from "@/lib/routes";
 
 export function SearchPanel({
@@ -27,22 +28,30 @@ export function SearchPanel({
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("all");
   const products: Product[] = useMemo(() => [...courses, ...bundles], [bundles, courses]);
+  const categoryLabels = useMemo(
+    () => new Map(categories.map((item) => [item.id, item.label[locale]])),
+    [categories, locale]
+  );
 
   const results = useMemo(() => {
-    const normalized = query.trim().toLowerCase();
-
-    return products
+    const normalized = normalizeCatalogSearchText(query);
+    const filtered = products
       .filter((product) => category === "all" || product.categoryId === category)
-      .filter((product) => {
-        if (!normalized) {
-          return true;
-        }
+      .filter((product) => !normalized || matchesCatalogItem(product, categoryLabels.get(product.categoryId) ?? "", locale, normalized));
 
-        const categoryLabel = categories.find((item) => item.id === product.categoryId)?.label[locale] ?? "";
-        return getProductSearchText(product, categoryLabel, locale).includes(normalized);
+    if (!normalized) {
+      return filtered.slice(0, 5);
+    }
+
+    return [...filtered]
+      .sort((a, b) => {
+        const rankA = getCatalogItemSearchRank(a, categoryLabels.get(a.categoryId) ?? "", locale, normalized);
+        const rankB = getCatalogItemSearchRank(b, categoryLabels.get(b.categoryId) ?? "", locale, normalized);
+        if (rankA !== rankB) return rankA - rankB;
+        return b.reviews - a.reviews;
       })
       .slice(0, 5);
-  }, [categories, category, locale, products, query]);
+  }, [category, categoryLabels, locale, products, query]);
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -141,18 +150,4 @@ export function SearchPanel({
       </div>
     </section>
   );
-}
-
-function getProductSearchText(product: Product, categoryLabel: string, locale: Locale) {
-  const values = [
-    product.title[locale],
-    product.subtitle?.[locale],
-    categoryLabel
-  ].filter(Boolean);
-
-  if ("description" in product) {
-    values.push(product.description[locale]);
-  }
-
-  return values.join(" ").toLowerCase();
 }

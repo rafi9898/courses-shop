@@ -9,6 +9,7 @@ import { CatalogHero } from "@/components/catalog/catalog-hero";
 import { type Bundle, type Category, type Course } from "@/lib/mock-data";
 import { type Locale } from "@/lib/i18n/config";
 import { type Dictionary } from "@/lib/i18n/dictionaries";
+import { type CatalogSort, getCatalogItemSearchRank, matchesCatalogItem, normalizeCatalogSearchText } from "@/lib/catalog-search";
 import { cn } from "@/lib/utils";
 
 type ProductKind = "courses" | "bundles";
@@ -35,31 +36,39 @@ export function CatalogListPage({
 }) {
   const [query, setQuery] = useState(initialQuery);
   const [categoryId, setCategoryId] = useState(initialCategoryId);
-  const [sort, setSort] = useState("popular");
+  const [sort, setSort] = useState<CatalogSort>("popular");
   const [page, setPage] = useState(1);
   const resultsTopRef = useRef<HTMLDivElement>(null);
 
   const isCourses = kind === "courses";
   const source = isCourses ? courses : bundles;
+  const categoryLabels = useMemo(
+    () => new Map(categories.map((category) => [category.id, category.label[locale]])),
+    [categories, locale]
+  );
 
   const filteredItems = useMemo(() => {
-    const normalized = query.trim().toLowerCase();
+    const normalized = normalizeCatalogSearchText(query);
     const filtered = source.filter((item) => {
       const matchesCategory = categoryId === "all" || item.categoryId === categoryId;
-      const category = categories.find((entry) => entry.id === item.categoryId);
-      const matchesQuery =
-        !normalized ||
-        getCatalogItemSearchText(item, category?.label[locale] ?? "", locale).includes(normalized);
+      const categoryLabel = categoryLabels.get(item.categoryId) ?? "";
+      const matchesQuery = !normalized || matchesCatalogItem(item, categoryLabel, locale, normalized);
 
       return matchesCategory && matchesQuery;
     });
 
     return [...filtered].sort((a, b) => {
+      if (normalized) {
+        const rankA = getCatalogItemSearchRank(a, categoryLabels.get(a.categoryId) ?? "", locale, normalized);
+        const rankB = getCatalogItemSearchRank(b, categoryLabels.get(b.categoryId) ?? "", locale, normalized);
+        if (rankA !== rankB) return rankA - rankB;
+      }
+
       if (sort === "price-low") return a.price[locale] - b.price[locale];
       if (sort === "price-high") return b.price[locale] - a.price[locale];
       return b.reviews - a.reviews;
     });
-  }, [categories, categoryId, locale, query, sort, source]);
+  }, [categoryId, categoryLabels, locale, query, sort, source]);
 
   const totalPages = Math.max(1, Math.ceil(filteredItems.length / ITEMS_PER_PAGE));
   const paginatedItems = filteredItems.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
@@ -236,24 +245,6 @@ export function CatalogListPage({
       </section>
     </>
   );
-}
-
-function getCatalogItemSearchText(item: Course | Bundle, categoryLabel: string, locale: Locale) {
-  const values = [
-    item.title[locale],
-    item.subtitle?.[locale],
-    categoryLabel
-  ].filter(Boolean);
-
-  if ("description" in item) {
-    values.push(item.description[locale]);
-  }
-
-  if ("highlights" in item) {
-    values.push(...item.highlights[locale]);
-  }
-
-  return values.join(" ").toLowerCase();
 }
 
 function FilterPill({
