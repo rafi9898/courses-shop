@@ -618,9 +618,13 @@ export const defaultMetadata: Metadata = {
   creator: "Rafał Podraza",
   publisher: "Rafał Podraza",
   icons: {
-    icon: "/icon.svg",
-    shortcut: "/icon.svg",
-    apple: "/icon.svg"
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/favicon-48x48.png", sizes: "48x48", type: "image/png" },
+      { url: "/icon.svg", type: "image/svg+xml" }
+    ],
+    shortcut: "/favicon.ico",
+    apple: "/icon-192.png"
   },
   openGraph: {
     type: "website",
