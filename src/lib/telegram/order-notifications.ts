@@ -33,6 +33,23 @@ export async function sendTelegramOrderNotification(orderId: string, options: { 
     return order;
   }
 
+  if (!options.force) {
+    const claim = await prisma.order.updateMany({
+      where: {
+        id: order.id,
+        telegramNotifiedAt: null
+      },
+      data: {
+        telegramNotifiedAt: new Date(),
+        telegramNotifyError: null
+      }
+    });
+
+    if (claim.count === 0) {
+      return order;
+    }
+  }
+
   try {
     const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
       method: "POST",
@@ -52,6 +69,10 @@ export async function sendTelegramOrderNotification(orderId: string, options: { 
       throw new Error(`Telegram API returned ${response.status}: ${body.slice(0, 500)}`);
     }
 
+    if (!options.force) {
+      return order;
+    }
+
     return prisma.order.update({
       where: { id: order.id },
       data: {
@@ -65,6 +86,7 @@ export async function sendTelegramOrderNotification(orderId: string, options: { 
     await prisma.order.update({
       where: { id: order.id },
       data: {
+        telegramNotifiedAt: options.force ? order.telegramNotifiedAt : null,
         telegramNotifyError: message.slice(0, 1000)
       }
     });

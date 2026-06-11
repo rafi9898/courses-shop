@@ -94,20 +94,39 @@ export async function sendOrderAccessEmail(orderId: string, options: { force?: b
     throw new Error(`Order ${order.id} has no customer e-mail.`);
   }
 
+  if (!options.force) {
+    const claim = await prisma.order.updateMany({
+      where: {
+        id: order.id,
+        accessEmailSentAt: null
+      },
+      data: {
+        accessEmailSentAt: new Date(),
+        accessEmailError: null
+      }
+    });
+
+    if (claim.count === 0) {
+      return order;
+    }
+  }
+
   const locale = parseLocale(order.locale);
   const orderAccessUrl = getAbsoluteUrl(getOrderAccessPath(locale, order.accessToken));
   const invoiceUrl = order.invoice?.pdfUrl ? getAbsoluteUrl(getInvoiceDownloadPath(order.invoice.id, order.accessToken)) : null;
-  const accessLinks = await getUdemyAccessLinks(
-    order.items.map((item) => ({
-      productId: item.productId,
-      productType: item.productType
-    })),
-    order.locale
-  );
 
   const resend = new Resend(resendApiKey);
+  let emailAccepted = false;
 
   try {
+    const accessLinks = await getUdemyAccessLinks(
+      order.items.map((item) => ({
+        productId: item.productId,
+        productType: item.productType
+      })),
+      order.locale
+    );
+
     await resend.emails.send({
       from,
       to: order.customerEmail,
@@ -115,6 +134,7 @@ export async function sendOrderAccessEmail(orderId: string, options: { force?: b
       html: renderOrderAccessEmailHtml(order, accessLinks, locale, orderAccessUrl, invoiceUrl),
       text: renderOrderAccessEmailText(order, accessLinks, locale, orderAccessUrl, invoiceUrl)
     });
+    emailAccepted = true;
 
     if (order.invoice) {
       await prisma.invoice.update({
@@ -132,11 +152,20 @@ export async function sendOrderAccessEmail(orderId: string, options: { force?: b
       include: { items: true, invoice: true }
     });
   } catch (error) {
+    const data: {
+      accessEmailSentAt?: Date | null;
+      accessEmailError: string;
+    } = {
+      accessEmailError: error instanceof Error ? error.message : "Unknown e-mail delivery error."
+    };
+
+    if (!emailAccepted && !options.force) {
+      data.accessEmailSentAt = null;
+    }
+
     await prisma.order.update({
       where: { id: order.id },
-      data: {
-        accessEmailError: error instanceof Error ? error.message : "Unknown e-mail delivery error."
-      }
+      data
     });
     throw error;
   }

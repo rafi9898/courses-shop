@@ -83,6 +83,13 @@ jobs:
 
             expected_image="courses-shop-app:${APP_IMAGE_TAG}"
             echo "Deploying ${expected_image}"
+            echo "Docker disk usage before cleanup"
+            sudo docker system df || true
+            sudo docker builder prune -af || true
+            sudo docker image prune -af || true
+            sudo docker container prune -f || true
+            echo "Docker disk usage after cleanup"
+            sudo docker system df || true
             compose build --no-cache app
             compose up -d db
 
