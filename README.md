@@ -18,6 +18,7 @@ Minimalistyczny, wielojęzyczny sklep z kursami online Rafała Podrazy. Aplikacj
 ## Najważniejsze funkcje
 
 - Publiczny katalog kursów, pakietów i kategorii.
+- Blog w trzech językach z wpisami zarządzanymi z panelu admina.
 - Trzy wersje językowe: `pl`, `de`, `en`.
 - Automatyczne przekierowanie z `/` na język z nagłówka `Accept-Language`; jeśli język nie jest obsługiwany, fallback to `/en`.
 - Dedykowana strona 404 z lokalizowanymi treściami.
@@ -27,6 +28,7 @@ Minimalistyczny, wielojęzyczny sklep z kursami online Rafała Podrazy. Aplikacj
 - Linki i kupony Udemy przypisane do kursów.
 - Faktury PDF.
 - Panel admina do katalogu, kuponów Udemy, rabatów i zamówień.
+- Panel admina do bloga, SEO wpisów i miniaturek.
 
 ## Wymagania
 
@@ -170,6 +172,7 @@ Polski:
 - `/pl/kursy`
 - `/pl/pakiety`
 - `/pl/kategorie`
+- `/pl/blog`
 - `/pl/o-mnie`
 - `/pl/faq`
 - `/pl/koszyk`
@@ -180,6 +183,7 @@ Niemiecki:
 - `/de/kurse`
 - `/de/pakete`
 - `/de/kategorien`
+- `/de/blog`
 - `/de/uber-mich`
 - `/de/faq`
 - `/de/warenkorb`
@@ -190,6 +194,7 @@ Angielski:
 - `/en/courses`
 - `/en/bundles`
 - `/en/categories`
+- `/en/blog`
 - `/en/about`
 - `/en/faq`
 - `/en/cart`
@@ -210,6 +215,7 @@ Wybrane sekcje:
 - `/rp-panel-2026/catalog/categories`
 - `/rp-panel-2026/catalog/courses`
 - `/rp-panel-2026/catalog/bundles`
+- `/rp-panel-2026/blog`
 - `/rp-panel-2026/discounts`
 - `/rp-panel-2026/orders/[orderId]`
 

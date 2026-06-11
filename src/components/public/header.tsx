@@ -21,6 +21,7 @@ export function Header({
     { label: dictionary.nav.courses, href: dictionary.routes.courses },
     { label: dictionary.nav.bundles, href: dictionary.routes.bundles },
     { label: dictionary.nav.categories, href: dictionary.routes.categories },
+    { label: dictionary.nav.blog, href: dictionary.routes.blog },
     { label: dictionary.nav.about, href: dictionary.routes.about },
     { label: dictionary.nav.faq, href: dictionary.routes.faq }
   ];

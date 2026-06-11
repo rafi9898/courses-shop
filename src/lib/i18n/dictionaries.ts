@@ -6,6 +6,7 @@ export const dictionaries = {
       courses: "Kursy",
       bundles: "Pakiety",
       categories: "Kategorie",
+      blog: "Blog",
       about: "O mnie",
       faq: "FAQ",
       cart: "Koszyk"
@@ -14,6 +15,7 @@ export const dictionaries = {
       courses: "/pl/kursy",
       bundles: "/pl/pakiety",
       categories: "/pl/kategorie",
+      blog: "/pl/blog",
       about: "/pl/o-mnie",
       faq: "/pl/faq",
       cart: "/pl/koszyk",
@@ -328,6 +330,7 @@ export const dictionaries = {
       courses: "Kurse",
       bundles: "Pakete",
       categories: "Kategorien",
+      blog: "Blog",
       about: "Über mich",
       faq: "FAQ",
       cart: "Warenkorb"
@@ -336,6 +339,7 @@ export const dictionaries = {
       courses: "/de/kurse",
       bundles: "/de/pakete",
       categories: "/de/kategorien",
+      blog: "/de/blog",
       about: "/de/uber-mich",
       faq: "/de/faq",
       cart: "/de/warenkorb",
@@ -650,6 +654,7 @@ export const dictionaries = {
       courses: "Courses",
       bundles: "Bundles",
       categories: "Categories",
+      blog: "Blog",
       about: "About",
       faq: "FAQ",
       cart: "Cart"
@@ -658,6 +663,7 @@ export const dictionaries = {
       courses: "/en/courses",
       bundles: "/en/bundles",
       categories: "/en/categories",
+      blog: "/en/blog",
       about: "/en/about",
       faq: "/en/faq",
       cart: "/en/cart",
@@ -967,10 +973,10 @@ export const dictionaries = {
       access: "Code delivered by e-mail"
     }
   }
-} as const;
+};
 
-export type Dictionary = (typeof dictionaries)[Locale];
+export type Dictionary = Record<string, any>;
 
-export function getDictionary(locale: Locale) {
+export function getDictionary(locale: Locale): Dictionary {
   return dictionaries[locale];
 }

@@ -1,4 +1,4 @@
-const allowedTags = new Set(["p", "br", "strong", "b", "em", "i", "u", "ul", "ol", "li", "a", "blockquote", "h3", "h4"]);
+const allowedTags = new Set(["p", "br", "strong", "b", "em", "i", "u", "ul", "ol", "li", "a", "blockquote", "h1", "h2", "h3", "h4", "h5", "pre", "code", "hr"]);
 
 export function sanitizeRichText(value: string) {
   return value
@@ -17,7 +17,9 @@ export function sanitizeRichText(value: string) {
       }
 
       if (normalizedTag !== "a") {
-        return normalizedTag === "br" ? "<br>" : `<${normalizedTag}>`;
+        if (normalizedTag === "br") return "<br>";
+        if (normalizedTag === "hr") return "<hr>";
+        return `<${normalizedTag}>`;
       }
 
       const href = attributes.match(/\shref=(["'])(.*?)\1/i)?.[2] ?? "";

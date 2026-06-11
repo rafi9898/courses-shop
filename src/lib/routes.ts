@@ -11,6 +11,14 @@ export function getBundlePath(bundle: Bundle, locale: Locale) {
   return `/${locale}/${base}/${bundle.slug[locale]}`;
 }
 
+export function getBlogIndexPath(locale: Locale) {
+  return `/${locale}/blog`;
+}
+
+export function getBlogPostPath(locale: Locale, slug: string) {
+  return `/${locale}/blog/${slug}`;
+}
+
 export function getCheckoutPath(locale: Locale) {
   return `/${locale}/checkout`;
 }

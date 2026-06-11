@@ -1,7 +1,8 @@
 import { type MetadataRoute } from "next";
+import { getPublishedBlogPosts } from "@/lib/blog-data";
 import { getPublicCatalog } from "@/lib/catalog-data";
 import { locales } from "@/lib/i18n/config";
-import { getBundlePath, getCoursePath } from "@/lib/routes";
+import { getBlogPostPath, getBundlePath, getCoursePath } from "@/lib/routes";
 import { getSiteUrl, publicPagePaths } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
@@ -40,5 +41,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     )
   ).flat();
 
-  return [...staticEntries, ...productEntries];
+  const blogEntries = (
+    await Promise.all(
+      locales.map(async (locale) => {
+        const posts = await getPublishedBlogPosts(locale);
+
+        return posts.map((post) => ({
+          url: getSiteUrl(getBlogPostPath(locale, post.slug)),
+          lastModified: post.updatedAt,
+          changeFrequency: "monthly" as const,
+          priority: 0.75
+        }));
+      })
+    )
+  ).flat();
+
+  return [...staticEntries, ...productEntries, ...blogEntries];
 }

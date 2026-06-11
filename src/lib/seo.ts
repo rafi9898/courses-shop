@@ -4,7 +4,7 @@ import { getDictionary } from "@/lib/i18n/dictionaries";
 import { legalDocuments, legalPagePaths } from "@/lib/legal-pages";
 import { getAbsoluteUrl } from "@/lib/routes";
 
-type PublicPage = "home" | "courses" | "bundles" | "categories" | "about" | "faq" | "terms" | "privacy";
+type PublicPage = "home" | "courses" | "bundles" | "categories" | "blog" | "about" | "faq" | "terms" | "privacy";
 
 const siteName = "Rafał Podraza";
 const defaultTitle = "Rafał Podraza - praktyczne kursy online IT";
@@ -33,6 +33,11 @@ export const publicPagePaths: Record<PublicPage, Record<Locale, string>> = {
     pl: "/pl/kategorie",
     de: "/de/kategorien",
     en: "/en/categories"
+  },
+  blog: {
+    pl: "/pl/blog",
+    de: "/de/blog",
+    en: "/en/blog"
   },
   about: {
     pl: "/pl/o-mnie",
@@ -74,6 +79,11 @@ const publicPageTitles: Record<PublicPage, Record<Locale, string>> = {
     pl: "Kategorie kursów IT",
     de: "IT-Kurskategorien",
     en: "IT course categories"
+  },
+  blog: {
+    pl: "Blog o IT, testowaniu i AI",
+    de: "Blog über IT, Testing und KI",
+    en: "Blog about IT, testing and AI"
   },
   about: {
     pl: "O mnie",
@@ -150,6 +160,11 @@ const publicPageKeywords: Record<PublicPage, Record<Locale, string[]>> = {
     pl: ["kategorie kursów IT", "testowanie", "programowanie", "DevOps", "AWS", "SQL", "cyberbezpieczeństwo"],
     de: ["IT-Kurskategorien", "Testing", "Programmierung", "DevOps", "AWS", "SQL", "Cybersicherheit"],
     en: ["IT course categories", "testing", "programming", "DevOps", "AWS", "SQL", "cybersecurity"]
+  },
+  blog: {
+    pl: ["blog IT", "poradniki IT", "testowanie oprogramowania", "AI w IT", "nauka programowania"],
+    de: ["IT Blog", "IT Leitfäden", "Software Testing", "KI in IT", "Programmierung lernen"],
+    en: ["IT blog", "IT guides", "software testing", "AI in IT", "learn programming"]
   },
   about: {
     pl: ["Rafał Podraza", "autor kursów online", "instruktor Udemy", "praktyczne szkolenia IT"],
@@ -246,6 +261,34 @@ export function getProductMetadata({
     description,
     keywords: createKeywords(defaultKeywords[locale], title, description, keywords),
     images: [image]
+  });
+}
+
+export function getBlogPostMetadata({
+  locale,
+  path,
+  title,
+  description,
+  imageUrl,
+  keywords = []
+}: {
+  locale: Locale;
+  path: string;
+  title: string;
+  description: string;
+  imageUrl?: string | null;
+  keywords?: string[];
+}): Metadata {
+  const image = getMetadataImageUrl(imageUrl);
+
+  return createMetadata({
+    locale,
+    path,
+    title,
+    description,
+    keywords: createKeywords(defaultKeywords[locale], publicPageKeywords.blog[locale], title, description, keywords),
+    images: [image],
+    openGraphType: "article"
   });
 }
 
@@ -365,6 +408,38 @@ export function createProductJsonLd({
   };
 }
 
+export function createBlogPostingJsonLd({
+  locale,
+  path,
+  title,
+  description,
+  imageUrl,
+  publishedAt,
+  updatedAt
+}: {
+  locale: Locale;
+  path: string;
+  title: string;
+  description: string;
+  imageUrl?: string | null;
+  publishedAt: Date;
+  updatedAt: Date;
+}) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: title,
+    description,
+    inLanguage: locale,
+    image: imageUrl ? getSiteUrl(imageUrl) : getSiteUrl(defaultSocialImagePath),
+    datePublished: publishedAt.toISOString(),
+    dateModified: updatedAt.toISOString(),
+    mainEntityOfPage: getSiteUrl(path),
+    author: createPersonJsonLd(locale),
+    publisher: createPersonJsonLd(locale)
+  };
+}
+
 function createMetadata({
   locale,
   path,
@@ -372,7 +447,8 @@ function createMetadata({
   description,
   alternates,
   images,
-  keywords
+  keywords,
+  openGraphType = "website"
 }: {
   locale: Locale;
   path: string;
@@ -381,6 +457,7 @@ function createMetadata({
   alternates?: Record<Locale, string>;
   images?: string[];
   keywords?: string[];
+  openGraphType?: "website" | "article";
 }): Metadata {
   const url = getSiteUrl(path);
   const metadataImages = images?.length ? images : [getSiteUrl(defaultSocialImagePath)];
@@ -395,7 +472,7 @@ function createMetadata({
       languages: alternates ? getLanguageAlternates(alternates) : undefined
     },
     openGraph: {
-      type: "website",
+      type: openGraphType,
       locale: localeNames[locale],
       siteName,
       title: `${title} | ${siteName}`,
@@ -470,6 +547,11 @@ function getPublicPageDescription(locale: Locale, page: PublicPage, dictionary: 
   if (page === "courses") return dictionary.catalog.coursesLead;
   if (page === "bundles") return dictionary.catalog.bundlesLead;
   if (page === "categories") return dictionary.catalog.categoriesLead;
+  if (page === "blog") {
+    if (locale === "pl") return "Praktyczne wpisy o IT, testowaniu, automatyzacji, AI i nauce technologii od Rafała Podrazy.";
+    if (locale === "de") return "Praktische Beiträge zu IT, Testing, Automatisierung, KI und dem Lernen neuer Technologien von Rafał Podraza.";
+    return "Practical posts about IT, testing, automation, AI and learning technology from Rafał Podraza.";
+  }
   if (page === "about") return dictionary.aboutPage.mission;
   if (page === "faq") return dictionary.faqPage.lead;
   if (page === "terms") return legalDocuments[locale].terms.description;

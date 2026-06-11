@@ -1,6 +1,6 @@
 "use client";
 
-import { Bold, Italic, LinkIcon, List, ListOrdered, Underline } from "lucide-react";
+import { Bold, Code2, Italic, LinkIcon, List, ListOrdered, Underline } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -9,10 +9,21 @@ const toolbarActions = [
   { command: "italic", label: "Kursywa", icon: Italic },
   { command: "underline", label: "Podkreślenie", icon: Underline },
   { command: "insertUnorderedList", label: "Lista punktowana", icon: List },
-  { command: "insertOrderedList", label: "Lista numerowana", icon: ListOrdered }
+  { command: "insertOrderedList", label: "Lista numerowana", icon: ListOrdered },
+  { command: "insertCodeBlock", label: "Blok kodu", icon: Code2 }
 ] as const;
 
 type ToolbarCommand = (typeof toolbarActions)[number]["command"];
+type BlockFormat = "p" | "h1" | "h2" | "h3" | "h4" | "h5";
+
+const blockFormats: Array<{ value: BlockFormat; label: string }> = [
+  { value: "p", label: "Akapit" },
+  { value: "h1", label: "H1" },
+  { value: "h2", label: "H2" },
+  { value: "h3", label: "H3" },
+  { value: "h4", label: "H4" },
+  { value: "h5", label: "H5" }
+];
 
 export function RichTextEditor({
   name,
@@ -62,16 +73,10 @@ export function RichTextEditor({
     restoreSelection();
     editorRef.current?.focus();
 
-    if (command === "bold") {
-      wrapSelection("strong");
-    } else if (command === "italic") {
-      wrapSelection("em");
-    } else if (command === "underline") {
-      wrapSelection("u");
-    } else if (command === "insertUnorderedList") {
-      insertList("ul");
-    } else if (command === "insertOrderedList") {
-      insertList("ol");
+    if (command === "insertCodeBlock") {
+      insertCodeBlock();
+    } else {
+      document.execCommand(command, false);
     }
 
     syncValue();
@@ -98,6 +103,15 @@ export function RichTextEditor({
   function handleLinkMouseDown(event: React.MouseEvent<HTMLButtonElement>) {
     event.preventDefault();
     addLink();
+  }
+
+  function handleBlockFormatChange(event: React.ChangeEvent<HTMLSelectElement>) {
+    restoreSelection();
+    editorRef.current?.focus();
+    document.execCommand("formatBlock", false, event.target.value);
+    syncValue();
+    saveSelection();
+    event.currentTarget.value = "p";
   }
 
   function getEditorRange() {
@@ -135,23 +149,18 @@ export function RichTextEditor({
     selectNodeContents(wrapper);
   }
 
-  function insertList(listType: "ul" | "ol") {
+  function insertCodeBlock() {
     const range = getEditorRange();
     if (!range) return;
 
-    const selectedText = range.toString().trim();
-    const list = document.createElement(listType);
-    const items = selectedText ? selectedText.split(/\n+/).map((item) => item.trim()).filter(Boolean) : ["Nowy punkt"];
-
-    items.forEach((item) => {
-      const listItem = document.createElement("li");
-      listItem.textContent = item;
-      list.appendChild(listItem);
-    });
-
+    const selectedText = range.toString();
+    const pre = document.createElement("pre");
+    const code = document.createElement("code");
+    code.textContent = selectedText || "const example = \"Wklej tutaj kod\";";
+    pre.appendChild(code);
     range.deleteContents();
-    range.insertNode(list);
-    selectNodeContents(list);
+    range.insertNode(pre);
+    selectNodeContents(code);
   }
 
   function selectNodeContents(node: Node) {
@@ -165,10 +174,99 @@ export function RichTextEditor({
     selectionRef.current = range.cloneRange();
   }
 
+  function insertPastedHtml(html: string) {
+    const range = getEditorRange();
+    if (!range) return;
+
+    const template = document.createElement("template");
+    template.innerHTML = html;
+    const fragment = document.createDocumentFragment();
+
+    Array.from(template.content.childNodes).forEach((node) => {
+      fragment.appendChild(normalizePastedNode(node));
+    });
+
+    range.deleteContents();
+    range.insertNode(fragment);
+  }
+
+  function normalizePastedNode(node: Node): Node {
+    if (node.nodeType === Node.TEXT_NODE) {
+      return document.createTextNode(node.textContent ?? "");
+    }
+
+    if (!(node instanceof HTMLElement)) {
+      return document.createTextNode(node.textContent ?? "");
+    }
+
+    const tagName = node.tagName.toLowerCase();
+    const normalizedTag = getNormalizedTagName(node);
+    const element = document.createElement(normalizedTag);
+
+    if (normalizedTag === "a") {
+      const href = node.getAttribute("href") ?? "";
+      if (href && !href.trim().toLowerCase().startsWith("javascript:")) {
+        element.setAttribute("href", href);
+        element.setAttribute("target", "_blank");
+        element.setAttribute("rel", "noreferrer");
+      }
+    }
+
+    if (tagName === "br") return document.createElement("br");
+    if (tagName === "hr") return document.createElement("hr");
+
+    Array.from(node.childNodes).forEach((child) => {
+      element.appendChild(normalizePastedNode(child));
+    });
+
+    return wrapStyledElement(node, element);
+  }
+
+  function getNormalizedTagName(node: HTMLElement) {
+    const tagName = node.tagName.toLowerCase();
+    if (["p", "strong", "b", "em", "i", "u", "ul", "ol", "li", "a", "blockquote", "h1", "h2", "h3", "h4", "h5", "pre", "code"].includes(tagName)) return tagName;
+    if (tagName === "div" || tagName === "section" || tagName === "article") return "p";
+    return "span";
+  }
+
+  function wrapStyledElement(source: HTMLElement, node: Node) {
+    let current = node;
+    const fontWeight = source.style.fontWeight;
+    const isBold = source.style.fontWeight === "bold" || (Number.isFinite(Number(fontWeight)) && Number(fontWeight) >= 600);
+    const isItalic = source.style.fontStyle === "italic";
+    const isUnderline = source.style.textDecoration.includes("underline");
+
+    if (isUnderline) current = wrapNode("u", current);
+    if (isItalic) current = wrapNode("em", current);
+    if (isBold) current = wrapNode("strong", current);
+
+    return current;
+  }
+
+  function wrapNode(tagName: "strong" | "em" | "u", node: Node) {
+    const element = document.createElement(tagName);
+    element.appendChild(node);
+    return element;
+  }
+
   return (
     <div className="overflow-hidden rounded-lg border border-border bg-white">
       <input type="hidden" name={name} value={value} />
       <div className="flex flex-wrap gap-1 border-b border-border bg-slate-50 p-2">
+        <select
+          defaultValue="p"
+          onMouseDown={saveSelection}
+          onChange={handleBlockFormatChange}
+          className="focus-ring h-9 rounded-md border border-border bg-white px-2 text-xs font-black text-slate-700 outline-none"
+          aria-label="Nagłówek"
+          title="Nagłówek"
+        >
+          {blockFormats.map((format) => (
+            <option key={format.value} value={format.value}>
+              {format.label}
+            </option>
+          ))}
+        </select>
         {toolbarActions.map((action) => {
           const Icon = action.icon;
 
@@ -207,6 +305,15 @@ export function RichTextEditor({
         onFocus={saveSelection}
         onKeyUp={saveSelection}
         onMouseUp={saveSelection}
+        onPaste={(event) => {
+          const html = event.clipboardData.getData("text/html");
+          if (!html) return;
+
+          event.preventDefault();
+          insertPastedHtml(html);
+          syncValue();
+          saveSelection();
+        }}
         className={cn(
           "focus-ring prose-reset w-full px-3 py-3 text-sm font-semibold leading-7 outline-none",
           minHeight

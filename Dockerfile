@@ -34,7 +34,7 @@ COPY --from=build /app/prisma ./prisma
 COPY --from=build /app/src ./src
 COPY --from=build /app/.next ./.next
 
-RUN mkdir -p public/uploads/course-thumbnails public/uploads/bundle-thumbnails storage/invoices
+RUN mkdir -p public/uploads/course-thumbnails public/uploads/bundle-thumbnails public/uploads/blog-thumbnails storage/invoices
 
 EXPOSE 3000
 
