@@ -975,7 +975,7 @@ export const dictionaries = {
   }
 };
 
-export type Dictionary = Record<string, any>;
+export type Dictionary = typeof dictionaries.pl;
 
 export function getDictionary(locale: Locale): Dictionary {
   return dictionaries[locale];
