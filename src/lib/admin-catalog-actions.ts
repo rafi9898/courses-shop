@@ -251,6 +251,7 @@ async function readCourseForm(formData: FormData, currentCourseId?: string) {
     udemyUrl: optionalText(formData, "udemyUrl") || null,
     thumbnailImageUrl: thumbnailImageUrl || existingThumbnailImageUrl || null,
     trailerYoutubeUrl: optionalText(formData, "trailerYoutubeUrl") || null,
+    isBestseller: boolValue(formData, "isBestseller"),
     sortOrder: intValue(formData, "sortOrder"),
     isActive: boolValue(formData, "isActive")
   };

@@ -103,7 +103,8 @@ function mapCourse(course: DbCourse, locale: Locale): Course {
       variant: "dark"
     },
     thumbnailImageUrl: course.thumbnailImageUrl,
-    trailerYoutubeUrl: course.trailerYoutubeUrl
+    trailerYoutubeUrl: course.trailerYoutubeUrl,
+    isBestseller: course.isBestseller
   };
 }
 

@@ -163,7 +163,10 @@ export function CourseForm({
         <Textarea name="agenda" defaultValue={agendaValue(course?.agenda)} />
       </Field>
       <p className="-mt-4 text-xs font-semibold text-slate-500">Program: jeden moduł na linię w formacie `nazwa modułu | liczba lekcji`.</p>
-      <ActiveField defaultChecked={course?.isActive ?? true} />
+      <div className="flex flex-wrap gap-6">
+        <BestsellerField defaultChecked={course?.isBestseller ?? false} />
+        <ActiveField defaultChecked={course?.isActive ?? true} />
+      </div>
       <SubmitButton label={isEdit ? "Zapisz kurs" : "Dodaj kurs"} />
     </form>
   );
@@ -311,6 +314,15 @@ function Textarea(props: React.ComponentPropsWithoutRef<"textarea">) {
 
 function Select(props: React.ComponentPropsWithoutRef<"select">) {
   return <select className="focus-ring h-11 w-full rounded-lg border border-border bg-white px-3 text-sm font-semibold outline-none" {...props} />;
+}
+
+function BestsellerField({ defaultChecked }: { defaultChecked: boolean }) {
+  return (
+    <label className="inline-flex items-center gap-2 text-sm font-black text-slate-700">
+      <input name="isBestseller" type="checkbox" defaultChecked={defaultChecked} className="h-4 w-4 rounded border-border text-primary" />
+      Etykieta Bestseller
+    </label>
+  );
 }
 
 function ActiveField({ defaultChecked }: { defaultChecked: boolean }) {

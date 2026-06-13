@@ -31,6 +31,7 @@ export type Course = {
   };
   thumbnailImageUrl?: string | null;
   trailerYoutubeUrl?: string | null;
+  isBestseller: boolean;
 };
 
 export type Bundle = {
@@ -137,7 +138,8 @@ export const courses: Course[] = [
     highlights: courseHighlights("Postman", "Postman", "Postman"),
     outcomes: courseOutcomes("Postman", "Postman", "Postman"),
     agenda: courseAgenda("Postman", "Postman", "Postman"),
-    thumbnail: { title: "POSTMAN", subtitle: "OD PODSTAW", variant: "dark" }
+    thumbnail: { title: "POSTMAN", subtitle: "OD PODSTAW", variant: "dark" },
+    isBestseller: true
   },
   {
     id: "docker",
@@ -155,7 +157,8 @@ export const courses: Course[] = [
     highlights: courseHighlights("Docker", "Docker", "Docker"),
     outcomes: courseOutcomes("Docker", "Docker", "Docker"),
     agenda: courseAgenda("Docker", "Docker", "Docker"),
-    thumbnail: { title: "docker", subtitle: "DLA POCZĄTKUJĄCYCH", variant: "blue" }
+    thumbnail: { title: "docker", subtitle: "DLA POCZĄTKUJĄCYCH", variant: "blue" },
+    isBestseller: false
   },
   {
     id: "python",
@@ -173,7 +176,8 @@ export const courses: Course[] = [
     highlights: courseHighlights("Python", "Python", "Python"),
     outcomes: courseOutcomes("Python", "Python", "Python"),
     agenda: courseAgenda("Python", "Python", "Python"),
-    thumbnail: { title: "python", subtitle: "OD PODSTAW", variant: "dark" }
+    thumbnail: { title: "python", subtitle: "OD PODSTAW", variant: "dark" },
+    isBestseller: true
   },
   {
     id: "sql",
@@ -191,7 +195,8 @@ export const courses: Course[] = [
     highlights: courseHighlights("SQL", "SQL", "SQL"),
     outcomes: courseOutcomes("SQL", "SQL", "SQL"),
     agenda: courseAgenda("SQL", "SQL", "SQL"),
-    thumbnail: { title: "SQL", subtitle: "PRAKTYCZNY KURS", variant: "purple" }
+    thumbnail: { title: "SQL", subtitle: "PRAKTYCZNY KURS", variant: "purple" },
+    isBestseller: false
   },
   {
     id: "javascript",
@@ -209,7 +214,8 @@ export const courses: Course[] = [
     highlights: courseHighlights("JavaScript", "JavaScript", "JavaScript"),
     outcomes: courseOutcomes("JavaScript", "JavaScript", "JavaScript"),
     agenda: courseAgenda("JavaScript", "JavaScript", "JavaScript"),
-    thumbnail: { title: "JAVASCRIPT", subtitle: "OD PODSTAW", variant: "blue" }
+    thumbnail: { title: "JAVASCRIPT", subtitle: "OD PODSTAW", variant: "blue" },
+    isBestseller: true
   },
   {
     id: "ai",
@@ -227,7 +233,8 @@ export const courses: Course[] = [
     highlights: courseHighlights("AI", "KI", "AI"),
     outcomes: courseOutcomes("AI", "KI", "AI"),
     agenda: courseAgenda("AI", "KI", "AI"),
-    thumbnail: { title: "AI", subtitle: "DLA KAŻDEGO", variant: "purple" }
+    thumbnail: { title: "AI", subtitle: "DLA KAŻDEGO", variant: "purple" },
+    isBestseller: false
   },
   {
     id: "api",
@@ -245,7 +252,8 @@ export const courses: Course[] = [
     highlights: courseHighlights("API", "API", "API"),
     outcomes: courseOutcomes("API", "API", "API"),
     agenda: courseAgenda("API", "API", "API"),
-    thumbnail: { title: "API", subtitle: "OD PODSTAW", variant: "green" }
+    thumbnail: { title: "API", subtitle: "OD PODSTAW", variant: "green" },
+    isBestseller: false
   },
   {
     id: "aws",
@@ -263,7 +271,8 @@ export const courses: Course[] = [
     highlights: courseHighlights("AWS", "AWS", "AWS"),
     outcomes: courseOutcomes("AWS", "AWS", "AWS"),
     agenda: courseAgenda("AWS", "AWS", "AWS"),
-    thumbnail: { title: "AWS", subtitle: "PRAKTYCZNIE", variant: "blue" }
+    thumbnail: { title: "AWS", subtitle: "PRAKTYCZNIE", variant: "blue" },
+    isBestseller: false
   },
   {
     id: "cicd",
@@ -281,7 +290,8 @@ export const courses: Course[] = [
     highlights: courseHighlights("CI/CD", "CI/CD", "CI/CD"),
     outcomes: courseOutcomes("CI/CD", "CI/CD", "CI/CD"),
     agenda: courseAgenda("CI/CD", "CI/CD", "CI/CD"),
-    thumbnail: { title: "CI/CD", subtitle: "W PRAKTYCE", variant: "green" }
+    thumbnail: { title: "CI/CD", subtitle: "W PRAKTYCE", variant: "green" },
+    isBestseller: false
   },
   {
     id: "typescript",
@@ -299,7 +309,8 @@ export const courses: Course[] = [
     highlights: courseHighlights("TypeScript", "TypeScript", "TypeScript"),
     outcomes: courseOutcomes("TypeScript", "TypeScript", "TypeScript"),
     agenda: courseAgenda("TypeScript", "TypeScript", "TypeScript"),
-    thumbnail: { title: "TYPESCRIPT", subtitle: "OD PODSTAW", variant: "blue" }
+    thumbnail: { title: "TYPESCRIPT", subtitle: "OD PODSTAW", variant: "blue" },
+    isBestseller: false
   }
 ];
 

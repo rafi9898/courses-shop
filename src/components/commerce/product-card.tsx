@@ -30,6 +30,7 @@ export function ProductCard({
           subtitle={course.thumbnail.subtitle}
           variant={course.thumbnail.variant}
           imageUrl={course.thumbnailImageUrl}
+          badge={course.isBestseller ? dictionary.home.bestseller : undefined}
           showFavorite={false}
         />
       </Link>

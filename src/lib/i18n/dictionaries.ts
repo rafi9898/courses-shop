@@ -63,7 +63,8 @@ export const dictionaries = {
       viewBundle: "Zobacz pakiet",
       noResults: "Brak wyników dla tej frazy.",
       typeCourse: "Kurs",
-      typeBundle: "Pakiet"
+      typeBundle: "Pakiet",
+      bestseller: "Bestseller"
     },
     catalog: {
       coursesTitle: "Wszystkie kursy",
@@ -387,8 +388,9 @@ export const dictionaries = {
       viewBundle: "Paket ansehen",
       noResults: "Keine Ergebnisse für diese Suche.",
       typeCourse: "Kurs",
-      typeBundle: "Paket"
-    },
+      typeBundle: "Pakiet",
+      bestseller: "Bestseller"
+      },
     catalog: {
       coursesTitle: "Alle Kurse",
       coursesLead: "Praktische Online-Kurse, die deine Fähigkeiten entwickeln und deine beruflichen Ziele unterstützen.",
@@ -711,7 +713,8 @@ export const dictionaries = {
       viewBundle: "View bundle",
       noResults: "No results for this search.",
       typeCourse: "Course",
-      typeBundle: "Bundle"
+      typeBundle: "Bundle",
+      bestseller: "Bestseller"
     },
     catalog: {
       coursesTitle: "All courses",

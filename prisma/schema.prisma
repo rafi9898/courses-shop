@@ -97,6 +97,7 @@ model Course {
   udemyUrl          String?
   thumbnailImageUrl String?
   trailerYoutubeUrl String?
+  isBestseller      Boolean          @default(false)
   sortOrder         Int              @default(0)
   isActive          Boolean          @default(true)
   createdAt         DateTime         @default(now())
