@@ -388,7 +388,7 @@ export const dictionaries = {
       viewBundle: "Paket ansehen",
       noResults: "Keine Ergebnisse für diese Suche.",
       typeCourse: "Kurs",
-      typeBundle: "Pakiet",
+      typeBundle: "Paket",
       bestseller: "Bestseller"
       },
     catalog: {
