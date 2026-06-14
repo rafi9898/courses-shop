@@ -26,7 +26,7 @@ export const dictionaries = {
       privacy: "/pl/polityka-prywatnosci"
     },
     home: {
-      badge: "Kursy z Udemy",
+      badge: "Rafał Podraza",
       heroTitleStart: "Praktyczne kursy online, które rozwijają",
       heroTitleAccent: "Twoje umiejętności",
       heroLead:
@@ -52,7 +52,9 @@ export const dictionaries = {
       customBundleModalAdd: "Dodaj pakiet do koszyka",
       customBundleModalEmpty: "Wybierz co najmniej 2 kursy, żeby zbudować pakiet.",
       customBundleCardTitle: "Twój własny pakiet",
+      reviewsEyebrow: "Recenzje",
       reviewsTitle: "Opinie kursantów",
+      reviewsDisclaimer: "„Opinie pochodzą od uczestników moich kursów.”",
       authorTitle: "Cześć, jestem Rafał Podraza",
       authorText:
         "Tworzę praktyczne kursy i książki, które pomagają zdobywać nowe umiejętności i rozwijać karierę w IT.",
@@ -352,7 +354,7 @@ export const dictionaries = {
       privacy: "/de/datenschutz"
     },
     home: {
-      badge: "Udemy-Kurse",
+      badge: "Rafał Podraza",
       heroTitleStart: "Praktische Online-Kurse, die",
       heroTitleAccent: "deine Fähigkeiten entwickeln",
       heroLead:
@@ -378,7 +380,9 @@ export const dictionaries = {
       customBundleModalAdd: "Paket in den Warenkorb legen",
       customBundleModalEmpty: "Wähle mindestens 2 Kurse aus, um ein Paket zu erstellen.",
       customBundleCardTitle: "Dein eigenes Paket",
+      reviewsEyebrow: "Bewertungen",
       reviewsTitle: "Stimmen der Lernenden",
+      reviewsDisclaimer: "„Die Bewertungen stammen von Teilnehmern meiner Kurse.”",
       authorTitle: "Hallo! Ich bin Autor von Kursen und Büchern.",
       authorText:
         "Ich erstelle praktische Materialien, die reale Fähigkeiten und berufliche Ziele unterstützen.",
@@ -678,7 +682,7 @@ export const dictionaries = {
       privacy: "/en/privacy-policy"
     },
     home: {
-      badge: "Udemy courses",
+      badge: "Rafał Podraza",
       heroTitleStart: "Practical online courses that grow",
       heroTitleAccent: "your skills",
       heroLead:
@@ -704,7 +708,9 @@ export const dictionaries = {
       customBundleModalAdd: "Add bundle to cart",
       customBundleModalEmpty: "Choose at least 2 courses to build a bundle.",
       customBundleCardTitle: "Your own bundle",
+      reviewsEyebrow: "Reviews",
       reviewsTitle: "Student reviews",
+      reviewsDisclaimer: "„Reviews come from participants of my courses.”",
       authorTitle: "Hi! I create courses and books.",
       authorText:
         "I create practical learning materials that help people build real skills and reach career goals.",

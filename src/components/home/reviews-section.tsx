@@ -14,8 +14,9 @@ export function ReviewsSection({
     <section className="bg-white py-16 lg:py-20">
       <div className="container-shell">
         <div className="mb-8 max-w-2xl">
-          <p className="text-sm font-bold uppercase tracking-[0.18em] text-primary">Reviews</p>
+          <p className="text-sm font-bold uppercase tracking-[0.18em] text-primary">{dictionary.home.reviewsEyebrow}</p>
           <h2 className="mt-2 text-3xl font-black sm:text-4xl">{dictionary.home.reviewsTitle}</h2>
+          <p className="mt-4 text-base italic text-slate-500">{dictionary.home.reviewsDisclaimer}</p>
         </div>
         <div className="grid gap-5 lg:grid-cols-3">
           {reviews.map((review) => (
