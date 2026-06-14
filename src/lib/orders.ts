@@ -22,7 +22,7 @@ export async function savePaidOrderFromCheckoutSession(session: Stripe.Checkout.
   // For fulfillment, we fetch the specific code from metadata if it exists,
   // bypassing the "active" filter (which might hide codes that just reached their limit).
   const discounts = await getActiveDiscountCodes();
-  let discountPool = discounts.length > 0 ? [...discounts] : [];
+  const discountPool = [...discounts];
 
   if (discountCode && !discountPool.some((d) => d.code === discountCode.toUpperCase())) {
     const forcedDiscount = await getDiscountCodeForFulfillment(discountCode);

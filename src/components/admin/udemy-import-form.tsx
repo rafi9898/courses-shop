@@ -1,6 +1,7 @@
 "use client";
 
 import { Download, FileUp, Loader2 } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -69,13 +70,13 @@ export function UdemyImportForm() {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <a
+          <Link
             href="/api/admin/udemy/import"
             className="focus-ring inline-flex h-10 items-center justify-center gap-2 rounded-[10px] border border-border bg-white px-4 text-sm font-semibold hover:border-primary hover:text-primary"
           >
             <Download className="h-4 w-4" />
             Generuj CSV
-          </a>
+          </Link>
           <label className="focus-ring inline-flex h-10 cursor-pointer items-center justify-center gap-2 rounded-[10px] border border-border bg-white px-4 text-sm font-semibold hover:border-primary hover:text-primary">
             <FileUp className="h-4 w-4" />
             Wybierz CSV
