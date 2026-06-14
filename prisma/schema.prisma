@@ -200,6 +200,7 @@ model Order {
   telegramNotifiedAt      DateTime?
   telegramNotifyError     String?
   paidAt                  DateTime?
+  utmSource               String?
   createdAt               DateTime      @default(now())
   updatedAt               DateTime      @updatedAt
   items                   OrderItem[]

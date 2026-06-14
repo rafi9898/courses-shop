@@ -17,6 +17,7 @@ export async function savePaidOrderFromCheckoutSession(session: Stripe.Checkout.
   const productKeys = parseProductKeys(session.metadata?.product_keys);
   const customBundleCourseIds = parseCustomBundleCourseIds(session.metadata?.custom_bundle_course_ids);
   const discountCode = session.metadata?.discount_code || null;
+  const utmSource = session.metadata?.utm_source || null;
   const catalog = await getPublicCatalog(locale);
 
   // For fulfillment, we fetch the specific code from metadata if it exists,
@@ -73,7 +74,8 @@ export async function savePaidOrderFromCheckoutSession(session: Stripe.Checkout.
       stripePaymentIntentId: paymentIntentId,
       customerEmail,
       customerName,
-      paidAt
+      paidAt,
+      utmSource
     },
     create: {
       orderNumber: createOrderNumber(),
@@ -92,6 +94,7 @@ export async function savePaidOrderFromCheckoutSession(session: Stripe.Checkout.
       stripeCheckoutSessionId: session.id,
       stripePaymentIntentId: paymentIntentId,
       paidAt,
+      utmSource,
       items: {
         create: orderProducts.map((product) => {
           const unitAmount = getDiscountedUnitAmount({ id: product.id, type: product.type, price: product.price[locale] }, discountCode, discountPool);

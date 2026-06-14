@@ -188,6 +188,7 @@ export default async function AdminPage({
             <thead className="bg-slate-50 text-xs uppercase text-slate-500">
               <tr>
                 <Th>Zamówienie</Th>
+                <Th>Źródło</Th>
                 <Th>Klient</Th>
                 <Th>Kwota</Th>
                 <Th>Status</Th>
@@ -208,6 +209,15 @@ export default async function AdminPage({
                       <Td>
                         <p className="font-black text-slate-950">{order.orderNumber}</p>
                         <p className="mt-1 text-xs text-slate-500">{formatDate(order.createdAt)}</p>
+                      </Td>
+                      <Td>
+                        {order.utmSource ? (
+                          <span className="inline-flex rounded-full bg-slate-100 px-2 py-1 text-xs font-black text-slate-600">
+                            {order.utmSource}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-slate-400">Bezpośrednie</span>
+                        )}
                       </Td>
                       <Td>
                         <p className="font-semibold text-slate-900">{order.customerEmail ?? "-"}</p>

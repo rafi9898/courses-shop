@@ -3,6 +3,7 @@
 import { CreditCard, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { getStoredUtmSource } from "@/components/public/utm-tracker";
 import { type CheckoutCartItemInput } from "@/lib/cart";
 import { type Locale } from "@/lib/i18n/config";
 import { type Dictionary } from "@/lib/i18n/dictionaries";
@@ -48,6 +49,7 @@ export function StripeCheckoutButton({
           customBundleCourseIds,
           discountCode,
           customerEmail,
+          utmSource: getStoredUtmSource(),
           invoiceRequested,
           invoiceData: invoiceRequested ? invoiceData : undefined,
           termsAccepted

@@ -35,6 +35,7 @@ export async function POST(request: NextRequest) {
   const items = parseItems(body?.items);
   const customBundleCourseIds = parseCustomBundleCourseIds(body?.customBundleCourseIds);
   const customerEmail = parseEmail(body?.customerEmail);
+  const utmSource = typeof body?.utmSource === "string" ? body.utmSource : null;
   const invoiceRequested = body?.invoiceRequested === true;
   const invoiceData = invoiceRequested ? parseInvoiceData(body?.invoiceData) : null;
   const termsAccepted = body?.termsAccepted === true;
@@ -95,6 +96,7 @@ export async function POST(request: NextRequest) {
       subtotal: String(totals.subtotal),
       discount_amount: String(totals.discountAmount),
       total: String(totals.total),
+      utm_source: utmSource ?? "",
       invoice_requested: invoiceRequested ? "true" : "false",
       terms_accepted: "true",
       invoice_buyer_name: invoiceData?.buyerName ?? "",

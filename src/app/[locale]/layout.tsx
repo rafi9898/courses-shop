@@ -1,8 +1,10 @@
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import { CartProvider } from "@/components/cart/cart-provider";
 import { NotificationProvider } from "@/components/ui/notification";
 import { Footer } from "@/components/public/footer";
 import { Header } from "@/components/public/header";
+import { UTMTracker } from "@/components/public/utm-tracker";
 import { JsonLd } from "@/components/seo/json-ld";
 import { getActiveDiscountCodes } from "@/lib/discount-code-data";
 import { getDictionary } from "@/lib/i18n/dictionaries";
@@ -43,6 +45,9 @@ export default async function LocaleLayout({
   return (
     <CartProvider locale={locale} discounts={discounts}>
       <NotificationProvider>
+        <Suspense>
+          <UTMTracker />
+        </Suspense>
         <Header locale={locale} dictionary={dictionary} />
         <main>{children}</main>
         <JsonLd data={createWebsiteJsonLd(locale)} />
