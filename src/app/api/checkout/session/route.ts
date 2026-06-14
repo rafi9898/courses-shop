@@ -17,6 +17,7 @@ type CheckoutRequestBody = {
   customBundleCourseIds?: unknown;
   discountCode?: unknown;
   customerEmail?: unknown;
+  utmSource?: unknown;
   invoiceRequested?: unknown;
   invoiceData?: unknown;
   termsAccepted?: unknown;
