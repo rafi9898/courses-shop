@@ -70,7 +70,7 @@ type DiscountPayload = {
   description?: string | null;
   validFrom?: string | null;
   validUntil?: string | null;
-  usageLimit?: number | null;
+  usageLimit?: number | string | null;
   isActive?: boolean;
 };
 
