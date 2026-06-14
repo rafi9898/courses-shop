@@ -76,9 +76,14 @@ export async function POST(request: NextRequest) {
   const successUrl = `${origin}${getCheckoutSuccessPath(locale)}?session_id={CHECKOUT_SESSION_ID}`;
   const cancelUrl = `${origin}${getCheckoutCancelPath(locale)}`;
 
+  const paymentMethodTypes: Stripe.Checkout.SessionCreateParams.PaymentMethodType[] = ["card", "paypal", "klarna"];
+  if (locale === "pl") {
+    paymentMethodTypes.push("blik", "p24");
+  }
+
   const session = await stripe.checkout.sessions.create({
     mode: "payment",
-    payment_method_types: ["card", "blik", "p24"],
+    payment_method_types: paymentMethodTypes,
     success_url: successUrl,
     cancel_url: cancelUrl,
     billing_address_collection: "auto",
