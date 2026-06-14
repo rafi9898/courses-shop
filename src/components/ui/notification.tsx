@@ -56,7 +56,6 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
             </div>
             <div className="flex-1 overflow-hidden pr-2">
               <p className="truncate text-sm font-black tracking-tight text-slate-900">{notification.message}</p>
-              <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Powiadomienie</p>
             </div>
             <button
               onClick={() => removeNotification(notification.id)}
