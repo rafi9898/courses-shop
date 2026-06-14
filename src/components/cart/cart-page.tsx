@@ -2,6 +2,7 @@
 
 import { ArrowLeft, CreditCard, Info, KeyRound, Mail, PackageCheck, ShieldCheck, Trash2, Zap } from "lucide-react";
 import Link from "next/link";
+import type React from "react";
 import { useEffect, useMemo, useState } from "react";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { useCart } from "@/components/cart/cart-provider";

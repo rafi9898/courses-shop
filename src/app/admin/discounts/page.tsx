@@ -1,4 +1,5 @@
 import { Percent, Tags } from "lucide-react";
+import type React from "react";
 import { AdminPagination, getAdminPagination, parseAdminPage } from "@/components/admin/admin-pagination";
 import { AdminFrame, AdminShell } from "@/components/admin/admin-shell";
 import { AdminLoginForm } from "@/components/admin/admin-login-form";

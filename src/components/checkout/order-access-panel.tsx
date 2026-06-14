@@ -1,6 +1,7 @@
 "use client";
 
 import { CheckCircle2, Clock, Download, ExternalLink, Loader2, Mail, Ticket } from "lucide-react";
+import type React from "react";
 import { useEffect, useState } from "react";
 import { useCart } from "@/components/cart/cart-provider";
 import { ButtonLink } from "@/components/ui/button";

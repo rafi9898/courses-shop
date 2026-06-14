@@ -2,6 +2,7 @@
 
 import { Check, Edit3, Loader2, Power, Trash2, X } from "lucide-react";
 import { useRouter } from "next/navigation";
+import type React from "react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
