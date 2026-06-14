@@ -2,6 +2,7 @@
 
 import { CheckCircle2, Clock, Download, ExternalLink, Loader2, Mail, Ticket } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useCart } from "@/components/cart/cart-provider";
 import { ButtonLink } from "@/components/ui/button";
 import { type Locale } from "@/lib/i18n/config";
 import { type Dictionary } from "@/lib/i18n/dictionaries";
@@ -46,8 +47,15 @@ export function OrderAccessPanel({
   locale: Locale;
   dictionary: Dictionary;
 }) {
+  const { clearCart, hydrated: cartHydrated } = useCart();
   const [state, setState] = useState<FetchState>(sessionId || accessToken ? "loading" : "missing-session");
   const [order, setOrder] = useState<OrderResponse["order"]>(null);
+
+  useEffect(() => {
+    if (sessionId && cartHydrated) {
+      clearCart();
+    }
+  }, [sessionId, cartHydrated, clearCart]);
 
   useEffect(() => {
     if (!sessionId && !accessToken) return;

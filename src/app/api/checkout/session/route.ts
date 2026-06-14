@@ -51,6 +51,7 @@ export async function POST(request: NextRequest) {
   const discounts = await getActiveDiscountCodes();
   const discountPool = discounts.length > 0 ? discounts : undefined;
   const discountCode = typeof body?.discountCode === "string" && getDiscount(body.discountCode, discountPool) ? getDiscount(body.discountCode, discountPool)?.code : null;
+
   const products: Product[] = [...catalog.courses, ...catalog.bundles];
   const checkoutProducts = items
     .map((item) => products.find((product) => product.type === item.productType && product.id === item.productId))

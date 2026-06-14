@@ -265,15 +265,21 @@ function CartProductRow({
 function DiscountForm({ dictionary }: { dictionary: Dictionary }) {
   const { discountCode, appliedDiscountCode, setDiscountCode, applyDiscountCode, clearDiscountCode } = useCart();
   const [message, setMessage] = useState<"success" | "error" | null>(null);
+  const [isApplying, setIsApplying] = useState(false);
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (isApplying) return;
+
+    setIsApplying(true);
+    setMessage(null);
+    const success = await applyDiscountCode();
+    setMessage(success ? "success" : "error");
+    setIsApplying(false);
+  }
 
   return (
-    <form
-      className="grid gap-3 sm:grid-cols-[1fr_auto]"
-      onSubmit={(event) => {
-        event.preventDefault();
-        setMessage(applyDiscountCode() ? "success" : "error");
-      }}
-    >
+    <form className="grid gap-3 sm:grid-cols-[1fr_auto]" onSubmit={handleSubmit}>
       <label className="sr-only" htmlFor="discount-code">
         {dictionary.cartPage.discountCode}
       </label>
@@ -288,9 +294,11 @@ function DiscountForm({ dictionary }: { dictionary: Dictionary }) {
           }}
           placeholder={dictionary.cartPage.discountCode}
           className="focus-ring h-12 w-full rounded-[10px] border border-border bg-white pl-12 pr-4 text-sm font-semibold outline-none"
+          disabled={isApplying}
         />
       </div>
-      <Button type="submit" className="h-12">
+      <Button type="submit" className="h-12" disabled={isApplying}>
+        {isApplying ? <Zap className="h-4 w-4 animate-spin" /> : null}
         {dictionary.cartPage.applyDiscount}
       </Button>
       {message ? (

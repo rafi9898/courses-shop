@@ -81,6 +81,7 @@ export default async function AdminDiscountsPage({
               <tr>
                 <Th>Kod</Th>
                 <Th>Rabat</Th>
+                <Th>Użycie</Th>
                 <Th>Ważność</Th>
                 <Th>Opis</Th>
                 <Th>Status</Th>
@@ -97,6 +98,11 @@ export default async function AdminDiscountsPage({
                     </Td>
                     <Td>
                       <p className="font-black">{discount.percentage}%</p>
+                    </Td>
+                    <Td>
+                      <p className="font-black">
+                        {discount.usedCount}/{discount.usageLimit ?? "∞"}
+                      </p>
                     </Td>
                     <Td>
                       <p>{formatDate(discount.validFrom)}</p>
@@ -118,6 +124,7 @@ export default async function AdminDiscountsPage({
                           validFrom: formatDateInput(discount.validFrom),
                           validUntil: formatDateInput(discount.validUntil),
                           usageLimit: discount.usageLimit ?? "",
+                          usedCount: discount.usedCount,
                           isActive: discount.isActive
                         }}
                       />
@@ -126,7 +133,7 @@ export default async function AdminDiscountsPage({
                 ))
               ) : (
                 <tr>
-                  <td colSpan={6} className="p-8 text-center text-sm text-slate-500">
+                  <td colSpan={7} className="p-8 text-center text-sm text-slate-500">
                     <Tags className="mx-auto h-8 w-8 text-slate-400" />
                     <p className="mt-3 font-semibold">Brak kodów rabatowych w bazie.</p>
                   </td>

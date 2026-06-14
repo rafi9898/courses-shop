@@ -17,6 +17,7 @@ type DiscountCodeFormValue = {
 
 type DiscountCodeValue = DiscountCodeFormValue & {
   id: string;
+  usedCount: number;
 };
 
 export function DiscountCodeActions({
@@ -110,7 +111,9 @@ export function DiscountCodeActions({
             <div className="flex items-start justify-between gap-4 border-b border-border pb-4">
               <div>
                 <h2 className="text-xl font-black">Edytuj kod rabatowy</h2>
-                <p className="mt-1 text-sm text-slate-600">{discount.code}</p>
+                <p className="mt-1 text-sm text-slate-600">
+                  {discount.code} &bull; Użyto {discount.usedCount} {discount.usedCount === 1 ? "raz" : "razy"}
+                </p>
               </div>
               <Button type="button" variant="ghost" className="h-9 px-3" onClick={() => setIsEditing(false)}>
                 <X className="h-4 w-4" />

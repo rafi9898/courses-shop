@@ -4,7 +4,7 @@ import { InvoiceStatus, PaymentStatus, Prisma, ProductType } from "@prisma/clien
 import Stripe from "stripe";
 import { getPublicCatalog } from "@/lib/catalog-data";
 import { buildCustomBundlePricingCourses, normalizeCustomBundleCourseIds } from "@/lib/custom-bundle";
-import { getActiveDiscountCodes } from "@/lib/discount-code-data";
+import { getActiveDiscountCodes, getDiscountCodeForFulfillment } from "@/lib/discount-code-data";
 import { calculateCartTotals, getDiscountedUnitAmount } from "@/lib/discounts";
 import { isLocale, localeMeta, type Locale } from "@/lib/i18n/config";
 import { parseInvoiceData } from "@/lib/invoice";
@@ -18,8 +18,19 @@ export async function savePaidOrderFromCheckoutSession(session: Stripe.Checkout.
   const customBundleCourseIds = parseCustomBundleCourseIds(session.metadata?.custom_bundle_course_ids);
   const discountCode = session.metadata?.discount_code || null;
   const catalog = await getPublicCatalog(locale);
+
+  // For fulfillment, we fetch the specific code from metadata if it exists,
+  // bypassing the "active" filter (which might hide codes that just reached their limit).
   const discounts = await getActiveDiscountCodes();
-  const discountPool = discounts.length > 0 ? discounts : undefined;
+  let discountPool = discounts.length > 0 ? [...discounts] : [];
+
+  if (discountCode && !discountPool.some((d) => d.code === discountCode.toUpperCase())) {
+    const forcedDiscount = await getDiscountCodeForFulfillment(discountCode);
+    if (forcedDiscount) {
+      discountPool.push(forcedDiscount);
+    }
+  }
+
   const products: Product[] = [...catalog.courses, ...catalog.bundles];
   const customBundleCourseIdSet = new Set(customBundleCourseIds);
   const regularProductKeys = productKeys.filter((item) => !(item.productType === "course" && customBundleCourseIdSet.has(item.productId)));

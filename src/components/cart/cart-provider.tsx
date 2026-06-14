@@ -20,7 +20,7 @@ type CartContextValue = {
   clearCustomBundle: () => void;
   clearCart: () => void;
   setDiscountCode: (code: string) => void;
-  applyDiscountCode: () => boolean;
+  applyDiscountCode: () => Promise<boolean>;
   clearDiscountCode: () => void;
   isInCart: (productType: Product["type"], productId: string) => boolean;
 };
@@ -137,19 +137,33 @@ export function CartProvider({
   const clearCart = useCallback(() => {
     setItems([]);
     setCustomBundleCourseIdsState([]);
+    setDiscountCode("");
+    setAppliedDiscountCode(null);
   }, []);
 
-  const applyDiscountCode = useCallback(() => {
-    const discount = getDiscount(discountCode, discountList);
-    if (!discount) {
+  const applyDiscountCode = useCallback(async () => {
+    if (!discountCode.trim()) {
       setAppliedDiscountCode(null);
       return false;
     }
 
-    setAppliedDiscountCode(discount.code);
-    setDiscountCode(discount.code);
-    return true;
-  }, [discountCode, discountList]);
+    try {
+      const response = await fetch(`/api/discounts/validate?code=${encodeURIComponent(discountCode.trim())}`);
+      const data = (await response.json()) as { discount: Discount | null };
+
+      if (!data.discount) {
+        setAppliedDiscountCode(null);
+        return false;
+      }
+
+      setAppliedDiscountCode(data.discount.code);
+      setDiscountCode(data.discount.code);
+      return true;
+    } catch {
+      setAppliedDiscountCode(null);
+      return false;
+    }
+  }, [discountCode]);
 
   const clearDiscountCode = useCallback(() => {
     setDiscountCode("");

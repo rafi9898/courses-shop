@@ -44,3 +44,27 @@ export async function getDiscountCodeByCode(code: string) {
   const discountCodes = await getActiveDiscountCodes();
   return discountCodes.find((discount) => discount.code === normalizedCode) ?? null;
 }
+
+export async function getDiscountCodeForFulfillment(code: string): Promise<Discount | null> {
+  const normalizedCode = code.trim().toUpperCase();
+
+  try {
+    const discount = await prisma.discountCode.findUnique({
+      where: { code: normalizedCode }
+    });
+
+    if (!discount) return null;
+
+    return {
+      code: discount.code,
+      percentage: discount.percentage,
+      description: discount.description,
+      validFrom: discount.validFrom?.toISOString() ?? null,
+      validUntil: discount.validUntil?.toISOString() ?? null,
+      usageLimit: discount.usageLimit,
+      usedCount: discount.usedCount
+    };
+  } catch {
+    return null;
+  }
+}
