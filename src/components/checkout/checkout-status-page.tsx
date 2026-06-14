@@ -1,6 +1,7 @@
 import { CheckCircle2, XCircle } from "lucide-react";
 import { OrderAccessPanel } from "@/components/checkout/order-access-panel";
 import { ButtonLink } from "@/components/ui/button";
+import { Confetti } from "@/components/ui/confetti";
 import { type Locale } from "@/lib/i18n/config";
 import { type Dictionary } from "@/lib/i18n/dictionaries";
 
@@ -20,6 +21,7 @@ export function CheckoutStatusPage({
 
   return (
     <div className="bg-gradient-to-b from-white to-[#fbfaff]">
+      {isSuccess && <Confetti />}
       <section className="container-shell py-14">
         <div className="mx-auto max-w-2xl rounded-2xl border border-border bg-white p-8 text-center shadow-card">
           <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-primary-soft text-primary">

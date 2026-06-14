@@ -47,7 +47,11 @@ export function Header({
 
         <div className="hidden items-center gap-4 lg:flex">
           <LanguageSwitcher locale={locale} />
-          <CartLink href={dictionary.routes.cart} label={dictionary.nav.cart} />
+          <CartLink 
+            href={dictionary.routes.cart} 
+            label={dictionary.nav.cart} 
+            onClick={() => setOpen(false)} 
+          />
         </div>
 
         <button
@@ -81,7 +85,11 @@ export function Header({
             ))}
             <div className="mt-2 flex items-center justify-between border-t border-border pt-4">
               <LanguageSwitcher locale={locale} />
-              <CartLink href={dictionary.routes.cart} label={dictionary.nav.cart} />
+              <CartLink 
+                href={dictionary.routes.cart} 
+                label={dictionary.nav.cart} 
+                onClick={() => setOpen(false)} 
+              />
             </div>
           </nav>
         </div>
@@ -118,13 +126,14 @@ function LanguageSwitcher({ locale }: { locale: Locale }) {
   );
 }
 
-function CartLink({ href, label }: { href: string; label: string }) {
+function CartLink({ href, label, onClick }: { href: string; label: string; onClick?: () => void }) {
   const { items, customBundleCourseIds, hydrated } = useCart();
   const count = hydrated ? items.length + (customBundleCourseIds.length >= 2 ? 1 : 0) : 0;
 
   return (
     <Link
       href={href}
+      onClick={onClick}
       className="focus-ring relative inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-700 hover:bg-primary-soft hover:text-primary"
       aria-label={label}
     >

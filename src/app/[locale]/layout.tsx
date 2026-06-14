@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { CartProvider } from "@/components/cart/cart-provider";
+import { NotificationProvider } from "@/components/ui/notification";
 import { Footer } from "@/components/public/footer";
 import { Header } from "@/components/public/header";
 import { JsonLd } from "@/components/seo/json-ld";
@@ -41,11 +42,13 @@ export default async function LocaleLayout({
 
   return (
     <CartProvider locale={locale} discounts={discounts}>
-      <Header locale={locale} dictionary={dictionary} />
-      <main>{children}</main>
-      <JsonLd data={createWebsiteJsonLd(locale)} />
-      <JsonLd data={createPersonJsonLd(locale)} />
-      <Footer locale={locale} dictionary={dictionary} />
+      <NotificationProvider>
+        <Header locale={locale} dictionary={dictionary} />
+        <main>{children}</main>
+        <JsonLd data={createWebsiteJsonLd(locale)} />
+        <JsonLd data={createPersonJsonLd(locale)} />
+        <Footer locale={locale} dictionary={dictionary} />
+      </NotificationProvider>
     </CartProvider>
   );
 }

@@ -4,6 +4,7 @@ import { Check, ShoppingCart } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/components/cart/cart-provider";
+import { useNotification } from "@/components/ui/notification";
 import { type Dictionary } from "@/lib/i18n/dictionaries";
 import { type Product } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
@@ -27,6 +28,7 @@ export function AddToCartButton({
 }) {
   const router = useRouter();
   const { addItem, isInCart } = useCart();
+  const { showNotification } = useNotification();
   const inCart = isInCart(product.type, product.id);
   const buttonLabel = inCart && !redirectToCart ? dictionary.cartPage.inCart : label ?? dictionary.home.addToCart;
 
@@ -38,7 +40,10 @@ export function AddToCartButton({
       aria-label={buttonLabel}
       title={buttonLabel}
       onClick={() => {
-        addItem({ productId: product.id, productType: product.type });
+        if (!inCart) {
+          addItem({ productId: product.id, productType: product.type });
+          showNotification(dictionary.cartPage.addedToCart, "success");
+        }
         if (redirectToCart) {
           router.push(dictionary.routes.cart);
         }
