@@ -78,9 +78,7 @@ export async function POST(request: NextRequest) {
 
   const session = await stripe.checkout.sessions.create({
     mode: "payment",
-    automatic_payment_methods: {
-      enabled: true
-    },
+    payment_method_types: ["card", "blik", "p24"],
     success_url: successUrl,
     cancel_url: cancelUrl,
     billing_address_collection: "auto",
@@ -126,7 +124,7 @@ export async function POST(request: NextRequest) {
         }
       }
     }))
-  } as unknown as Stripe.Checkout.SessionCreateParams);
+  });
 
   return NextResponse.json({ url: session.url });
 }
