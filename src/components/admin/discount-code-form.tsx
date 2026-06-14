@@ -11,6 +11,7 @@ type DiscountCodeFormValue = {
   description: string;
   validFrom: string;
   validUntil: string;
+  usageLimit: number | "";
   isActive: boolean;
 };
 
@@ -24,6 +25,7 @@ export function DiscountCodeForm() {
     description: "",
     validFrom: "",
     validUntil: "",
+    usageLimit: "",
     isActive: true
   });
 
@@ -52,6 +54,7 @@ export function DiscountCodeForm() {
       description: "",
       validFrom: "",
       validUntil: "",
+      usageLimit: "",
       isActive: true
     });
     router.refresh();
@@ -87,6 +90,25 @@ export function DiscountCodeForm() {
             required
           />
         </Field>
+        <Field label="Limit użyć (opcjonalnie)">
+          <input
+            type="number"
+            min={1}
+            value={formValue.usageLimit}
+            onChange={(event) => setFormValue((value) => ({ ...value, usageLimit: event.target.value === "" ? "" : Number(event.target.value) }))}
+            className="focus-ring h-11 w-full rounded-[10px] border border-border px-3 text-sm"
+            placeholder="Nielimitowany"
+          />
+        </Field>
+        <label className="flex items-center gap-3 rounded-[10px] border border-border px-3 py-3 text-sm font-semibold self-end h-11 mb-0.5">
+          <input
+            type="checkbox"
+            checked={formValue.isActive}
+            onChange={(event) => setFormValue((value) => ({ ...value, isActive: event.target.checked }))}
+            className="h-4 w-4"
+          />
+          Aktywny
+        </label>
         <div className="sm:col-span-2">
           <Field label="Opis">
             <input
@@ -113,17 +135,9 @@ export function DiscountCodeForm() {
             className="focus-ring h-11 w-full rounded-[10px] border border-border px-3 text-sm"
           />
         </Field>
-        <label className="flex items-center gap-3 rounded-[10px] border border-border px-3 py-3 text-sm font-semibold">
-          <input
-            type="checkbox"
-            checked={formValue.isActive}
-            onChange={(event) => setFormValue((value) => ({ ...value, isActive: event.target.checked }))}
-            className="h-4 w-4"
-          />
-          Aktywny
-        </label>
-        <div className="flex items-end justify-end">
-          <Button type="submit" className="h-11 px-4" disabled={isSubmitting}>
+
+        <div className="flex items-end justify-end sm:col-span-2">
+          <Button type="submit" className="h-11 px-6" disabled={isSubmitting}>
             {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
             Dodaj kod
           </Button>

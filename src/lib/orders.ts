@@ -43,6 +43,14 @@ export async function savePaidOrderFromCheckoutSession(session: Stripe.Checkout.
   const customerEmail = session.customer_details?.email ?? session.customer_email ?? null;
   const customerName = session.customer_details?.name ?? null;
   const paidAt = session.created ? new Date(session.created * 1000) : new Date();
+  const existingOrder = await prisma.order.findUnique({
+    where: {
+      stripeCheckoutSessionId: session.id
+    },
+    select: {
+      id: true
+    }
+  });
 
   const order = await prisma.order.upsert({
     where: {
@@ -75,7 +83,7 @@ export async function savePaidOrderFromCheckoutSession(session: Stripe.Checkout.
       paidAt,
       items: {
         create: orderProducts.map((product) => {
-          const unitAmount = getDiscountedUnitAmount(product.price[locale], discountCode, discountPool);
+          const unitAmount = getDiscountedUnitAmount({ id: product.id, type: product.type, price: product.price[locale] }, discountCode, discountPool);
 
           return {
             productId: product.id,
@@ -93,6 +101,15 @@ export async function savePaidOrderFromCheckoutSession(session: Stripe.Checkout.
       items: true
     }
   });
+
+  if (totals.discount && !existingOrder) {
+    await prisma.discountCode.update({
+      where: { code: totals.discount.code },
+      data: { usedCount: { increment: 1 } }
+    }).catch((error) => {
+      console.error(`Failed to increment usedCount for discount code ${totals.discount?.code}:`, error);
+    });
+  }
 
   if (session.metadata?.invoice_requested === "true") {
     await createInvoiceForOrder(order.id, session);

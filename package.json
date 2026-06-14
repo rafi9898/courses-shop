@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "local:dev": "node scripts/local-dev.mjs",
     "start": "next start",
     "build": "next build",
     "lint": "eslint .",

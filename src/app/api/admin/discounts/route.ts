@@ -36,6 +36,7 @@ type DiscountPayload = {
   description?: string | null;
   validFrom?: string | null;
   validUntil?: string | null;
+  usageLimit?: number | null;
   isActive?: boolean;
 };
 
@@ -59,6 +60,11 @@ function parseDiscountPayload(body: DiscountPayload | null) {
     return { ok: false as const, error: "validFrom must be before validUntil." };
   }
 
+  const usageLimit = body.usageLimit !== undefined && body.usageLimit !== null && body.usageLimit !== "" ? Number(body.usageLimit) : null;
+  if (usageLimit !== null && (!Number.isInteger(usageLimit) || usageLimit < 0)) {
+    return { ok: false as const, error: "usageLimit must be a non-negative integer." };
+  }
+
   if (typeof body.isActive !== "boolean") return { ok: false as const, error: "isActive must be boolean." };
 
   return {
@@ -69,6 +75,7 @@ function parseDiscountPayload(body: DiscountPayload | null) {
       description: body.description?.trim() || null,
       validFrom,
       validUntil,
+      usageLimit,
       isActive: body.isActive
     }
   };

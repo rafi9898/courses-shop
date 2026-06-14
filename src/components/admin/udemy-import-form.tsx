@@ -1,6 +1,6 @@
 "use client";
 
-import { FileUp, Loader2 } from "lucide-react";
+import { Download, FileUp, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,7 @@ type ImportResult = {
 };
 
 const sampleCsv = `course_id,coupon_type,coupon_code,start_date,start_time,custom_price
-6893793,free_targeted,A7F3D92KLM8P4QX1R0ZT,2026-05-01,00:00,`;
+6893793,free_targeted,N4B8X1QW7R5T9Y2PL6KC,2026-06-01,00:00,`;
 
 export function UdemyImportForm() {
   const router = useRouter();
@@ -63,13 +63,25 @@ export function UdemyImportForm() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h2 className="text-xl font-black">Import kodów Udemy</h2>
-          <p className="mt-1 text-sm leading-6 text-slate-600">CSV z Udemy obsługuje kolumny: `course_id`, `coupon_code`, `start_date`, `start_time`. Kurs musi mieć uzupełnione `Udemy Course ID` i `URL kursu Udemy`.</p>
+          <p className="mt-1 text-sm leading-6 text-slate-600">
+            CSV z Udemy obsługuje kolumny: `course_id`, `coupon_code`, `start_date`, `start_time`. Kod musi mieć 6-20 znaków: A-Z, 0-9, kropka, myślnik
+            albo podkreślenie. Kurs musi mieć uzupełnione `Udemy Course ID` i `URL kursu Udemy`.
+          </p>
         </div>
-        <label className="focus-ring inline-flex h-10 cursor-pointer items-center justify-center gap-2 rounded-[10px] border border-border bg-white px-4 text-sm font-semibold hover:border-primary hover:text-primary">
-          <FileUp className="h-4 w-4" />
-          Wybierz CSV
-          <input type="file" accept=".csv,text/csv" className="sr-only" onChange={handleFileChange} />
-        </label>
+        <div className="flex flex-wrap gap-2">
+          <a
+            href="/api/admin/udemy/import"
+            className="focus-ring inline-flex h-10 items-center justify-center gap-2 rounded-[10px] border border-border bg-white px-4 text-sm font-semibold hover:border-primary hover:text-primary"
+          >
+            <Download className="h-4 w-4" />
+            Generuj CSV
+          </a>
+          <label className="focus-ring inline-flex h-10 cursor-pointer items-center justify-center gap-2 rounded-[10px] border border-border bg-white px-4 text-sm font-semibold hover:border-primary hover:text-primary">
+            <FileUp className="h-4 w-4" />
+            Wybierz CSV
+            <input type="file" accept=".csv,text/csv" className="sr-only" onChange={handleFileChange} />
+          </label>
+        </div>
       </div>
       <textarea
         value={csv}

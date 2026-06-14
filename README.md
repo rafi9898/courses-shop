@@ -39,6 +39,28 @@ Minimalistyczny, wielojęzyczny sklep z kursami online Rafała Podrazy. Aplikacj
 
 ## Szybki start
 
+Najprostszy start lokalny, szczególnie na macOS gdy projekt leży w `Documents`/iCloud:
+
+```bash
+npm run local:dev
+```
+
+Skrypt przygotowuje kopię roboczą w `/private/tmp/courses-shop-local-dev`, instaluje zależności tylko gdy zmieni się `package-lock.json`, uruchamia lokalną bazę z Dockera, wykonuje migracje, seeduje przykładowe dane i startuje Next.js na `localhost`.
+
+Domyślny adres lokalny:
+
+```text
+http://localhost:3000
+```
+
+Panel Udemy po zalogowaniu:
+
+```text
+http://localhost:3000/rp-panel-2026/udemy
+```
+
+Ręczny start bez kopii w `/private/tmp`:
+
 ```bash
 npm install
 npm run db:up
@@ -46,12 +68,6 @@ npm run prisma:generate
 npm run prisma:migrate
 npm run prisma:seed
 npm run dev
-```
-
-Domyślny adres lokalny:
-
-```text
-http://localhost:3000
 ```
 
 Jeśli port `3000` jest zajęty, Next.js uruchomi aplikację na kolejnym wolnym porcie.
@@ -107,6 +123,12 @@ Uwagi:
 ## Skrypty
 
 ```bash
+npm run local:dev
+```
+
+Uruchamia pełne lokalne środowisko z kopii w `/private/tmp/courses-shop-local-dev`: zależności, Docker Postgres, migracje, seed i Next.js. Użyj tego skryptu, jeśli watcher Next.js zacina się w katalogu synchronizowanym przez iCloud.
+
+```bash
 npm run dev
 ```
 
@@ -144,6 +166,8 @@ npm run prisma:seed
 ```
 
 Generuje klienta Prisma, wykonuje migracje developerskie i seeduje dane.
+
+Seed tworzy przykładowy katalog w trzech językach: 30 rekordów kursów, 15 pakietów oraz 30 aktywnych kuponów Udemy. Każdy kurs ma lokalny `Udemy Course ID` i URL, więc eksport CSV z panelu Udemy działa od razu po starcie lokalnym.
 
 ## Struktura projektu
 
@@ -217,6 +241,7 @@ Wybrane sekcje:
 - `/rp-panel-2026/catalog/bundles`
 - `/rp-panel-2026/blog`
 - `/rp-panel-2026/discounts`
+- `/rp-panel-2026/udemy`
 - `/rp-panel-2026/orders/[orderId]`
 
 Logowanie działa tylko wtedy, gdy ustawione są `ADMIN_USERNAME` i `ADMIN_PASSWORD`.
@@ -232,6 +257,7 @@ Najważniejsze endpointy:
 - `GET /api/invoices/[invoiceId]/pdf`
 - `POST /api/admin/login`
 - `POST /api/admin/logout`
+- `GET /api/admin/udemy/import`
 - `POST /api/admin/udemy/import`
 - `POST /api/admin/discounts`
 
@@ -258,6 +284,24 @@ pl, de, en
 ## Płatności Stripe
 
 Checkout korzysta ze Stripe Checkout. Po udanej płatności webhook zapisuje status zamówienia i przygotowuje dostęp do zakupionych produktów.
+
+Lokalnie używaj wyłącznie kluczy testowych Stripe. Najwygodniej zapisać je w ignorowanym przez git pliku `.env.local`:
+
+```env
+STRIPE_SECRET_KEY="sk_test_..."
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_..."
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
+```
+
+W trybie developerskim aplikacja blokuje `sk_live_...`, żeby przypadkiem nie uruchomić prawdziwej płatności lokalnie. Do testu karty w Stripe Checkout użyj:
+
+```text
+4242 4242 4242 4242
+```
+
+Data ważności może być dowolną przyszłą datą, CVC dowolne trzy cyfry, a kod pocztowy dowolny poprawny testowy wpis.
+
+Na lokalu po powrocie ze Stripe strona sukcesu może zapisać opłacone zamówienie bez Stripe CLI, o ile sesja testowa ma status `paid`. Produkcyjnie zamówienia nadal są zapisywane przez webhook.
 
 Do lokalnych testów webhooków możesz użyć Stripe CLI i przekierować zdarzenia na:
 

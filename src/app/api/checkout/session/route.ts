@@ -24,9 +24,10 @@ type CheckoutRequestBody = {
 
 export async function POST(request: NextRequest) {
   const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+  const stripeConfigError = getStripeConfigError(stripeSecretKey);
 
-  if (!stripeSecretKey) {
-    return NextResponse.json({ error: "Stripe is not configured." }, { status: 500 });
+  if (!stripeSecretKey || stripeConfigError) {
+    return NextResponse.json({ error: stripeConfigError }, { status: 500 });
   }
 
   const body = (await request.json().catch(() => null)) as CheckoutRequestBody | null;
@@ -74,6 +75,7 @@ export async function POST(request: NextRequest) {
 
   const session = await stripe.checkout.sessions.create({
     mode: "payment",
+    payment_method_types: ["card"],
     success_url: successUrl,
     cancel_url: cancelUrl,
     billing_address_collection: "auto",
@@ -107,7 +109,7 @@ export async function POST(request: NextRequest) {
       quantity: 1,
       price_data: {
         currency: localeMeta[locale].currency.toLowerCase(),
-        unit_amount: toStripeAmount(getDiscountedUnitAmount(product.price[locale], discountCode, discountPool)),
+        unit_amount: toStripeAmount(getDiscountedUnitAmount({ id: product.id, type: product.type, price: product.price[locale] }, discountCode, discountPool)),
         product_data: {
           name: product.title[locale],
           metadata: {
@@ -121,6 +123,21 @@ export async function POST(request: NextRequest) {
   });
 
   return NextResponse.json({ url: session.url });
+}
+
+function getStripeConfigError(stripeSecretKey?: string) {
+  if (!stripeSecretKey) return "Stripe is not configured.";
+
+  const isTestKey = stripeSecretKey.startsWith("sk_test_") || stripeSecretKey.startsWith("rk_test_");
+  const isLiveKey = stripeSecretKey.startsWith("sk_live_") || stripeSecretKey.startsWith("rk_live_");
+
+  if (process.env.NODE_ENV !== "production" && !isTestKey) {
+    return isLiveKey
+      ? "Local Stripe checkout is blocked for live keys. Use STRIPE_SECRET_KEY=sk_test_... in .env."
+      : "Local Stripe checkout requires a Stripe test secret key: STRIPE_SECRET_KEY=sk_test_...";
+  }
+
+  return null;
 }
 
 function parseCustomBundleCourseIds(value: unknown) {

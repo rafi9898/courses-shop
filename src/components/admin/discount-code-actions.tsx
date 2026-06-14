@@ -1,6 +1,6 @@
 "use client";
 
-import { Edit3, Loader2, Power, Trash2, X } from "lucide-react";
+import { Check, Edit3, Loader2, Power, Trash2, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ type DiscountCodeFormValue = {
   description: string;
   validFrom: string;
   validUntil: string;
+  usageLimit: number | "";
   isActive: boolean;
 };
 
@@ -18,7 +19,11 @@ type DiscountCodeValue = DiscountCodeFormValue & {
   id: string;
 };
 
-export function DiscountCodeActions({ discount }: { discount: DiscountCodeValue }) {
+export function DiscountCodeActions({
+  discount
+}: {
+  discount: DiscountCodeValue;
+}) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -29,6 +34,7 @@ export function DiscountCodeActions({ discount }: { discount: DiscountCodeValue 
     description: discount.description,
     validFrom: discount.validFrom,
     validUntil: discount.validUntil,
+    usageLimit: discount.usageLimit,
     isActive: discount.isActive
   });
 
@@ -131,6 +137,25 @@ export function DiscountCodeActions({ discount }: { discount: DiscountCodeValue 
                   required
                 />
               </Field>
+              <Field label="Limit użyć (opcjonalnie)">
+                <input
+                  type="number"
+                  min={1}
+                  value={formValue.usageLimit}
+                  onChange={(event) => setFormValue((value) => ({ ...value, usageLimit: event.target.value === "" ? "" : Number(event.target.value) }))}
+                  className="focus-ring h-11 w-full rounded-[10px] border border-border px-3 text-sm"
+                  placeholder="Nielimitowany"
+                />
+              </Field>
+              <label className="flex items-center gap-3 rounded-[10px] border border-border px-3 py-3 text-sm font-semibold self-end h-11 mb-0.5">
+                <input
+                  type="checkbox"
+                  checked={formValue.isActive}
+                  onChange={(event) => setFormValue((value) => ({ ...value, isActive: event.target.checked }))}
+                  className="h-4 w-4"
+                />
+                Aktywny
+              </label>
               <div className="sm:col-span-2">
                 <Field label="Opis">
                   <input
@@ -156,15 +181,6 @@ export function DiscountCodeActions({ discount }: { discount: DiscountCodeValue 
                   className="focus-ring h-11 w-full rounded-[10px] border border-border px-3 text-sm"
                 />
               </Field>
-              <label className="flex items-center gap-3 rounded-[10px] border border-border px-3 py-3 text-sm font-semibold">
-                <input
-                  type="checkbox"
-                  checked={formValue.isActive}
-                  onChange={(event) => setFormValue((value) => ({ ...value, isActive: event.target.checked }))}
-                  className="h-4 w-4"
-                />
-                Aktywny
-              </label>
             </div>
 
             {error ? <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm font-semibold text-red-700">{error}</p> : null}
@@ -179,7 +195,7 @@ export function DiscountCodeActions({ discount }: { discount: DiscountCodeValue 
                   Anuluj
                 </Button>
                 <Button type="submit" className="h-10 px-4" disabled={isSubmitting}>
-                  {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Edit3 className="h-4 w-4" />}
+                  {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
                   Zapisz
                 </Button>
               </div>

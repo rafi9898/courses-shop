@@ -70,6 +70,7 @@ type DiscountPayload = {
   description?: string | null;
   validFrom?: string | null;
   validUntil?: string | null;
+  usageLimit?: number | null;
   isActive?: boolean;
 };
 
@@ -82,6 +83,7 @@ function parseDiscountPayload(body: DiscountPayload | null) {
     description?: string | null;
     validFrom?: Date | null;
     validUntil?: Date | null;
+    usageLimit?: number | null;
     isActive?: boolean;
   } = {};
 
@@ -117,6 +119,14 @@ function parseDiscountPayload(body: DiscountPayload | null) {
 
   if (update.validFrom && update.validUntil && update.validFrom > update.validUntil) {
     return { ok: false as const, error: "validFrom must be before validUntil." };
+  }
+
+  if ("usageLimit" in body) {
+    const usageLimit = body.usageLimit !== undefined && body.usageLimit !== null && body.usageLimit !== "" ? Number(body.usageLimit) : null;
+    if (usageLimit !== null && (!Number.isInteger(usageLimit) || usageLimit < 0)) {
+      return { ok: false as const, error: "usageLimit must be a non-negative integer." };
+    }
+    update.usageLimit = usageLimit;
   }
 
   if ("isActive" in body) {

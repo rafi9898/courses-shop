@@ -117,6 +117,7 @@ export default async function AdminDiscountsPage({
                           description: discount.description ?? "",
                           validFrom: formatDateInput(discount.validFrom),
                           validUntil: formatDateInput(discount.validUntil),
+                          usageLimit: discount.usageLimit ?? "",
                           isActive: discount.isActive
                         }}
                       />

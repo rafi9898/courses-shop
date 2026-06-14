@@ -2,6 +2,7 @@ type ExchangeRates = Record<string, number>;
 
 const nbpTableAUrl = "https://api.nbp.pl/api/exchangerates/tables/A/?format=json";
 const cacheTtlMs = 60 * 60 * 1000;
+const requestTimeoutMs = 3000;
 
 let cachedRates: {
   fetchedAt: number;
@@ -13,15 +14,22 @@ export async function getCurrentPlnExchangeRates() {
     return cachedRates.rates;
   }
 
+  if (process.env.NODE_ENV !== "production") {
+    return { PLN: 1 };
+  }
+
   try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), requestTimeoutMs);
     const response = await fetch(nbpTableAUrl, {
       headers: {
         Accept: "application/json"
       },
+      signal: controller.signal,
       next: {
         revalidate: 60 * 60
       }
-    });
+    }).finally(() => clearTimeout(timeout));
 
     if (!response.ok) {
       throw new Error(`NBP exchange rate request failed with status ${response.status}.`);
@@ -56,4 +64,3 @@ export async function getCurrentPlnExchangeRates() {
     return cachedRates?.rates ?? null;
   }
 }
-

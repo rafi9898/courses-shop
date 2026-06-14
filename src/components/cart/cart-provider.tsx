@@ -86,12 +86,19 @@ export function CartProvider({
   useEffect(() => {
     if (!hydrated) return;
 
+    if (appliedDiscountCode && !getDiscount(appliedDiscountCode, discountList)) {
+      setAppliedDiscountCode(null);
+      setDiscountCode("");
+      window.localStorage.removeItem(discountStorageKey);
+      return;
+    }
+
     if (appliedDiscountCode) {
       window.localStorage.setItem(discountStorageKey, appliedDiscountCode);
     } else {
       window.localStorage.removeItem(discountStorageKey);
     }
-  }, [appliedDiscountCode, discountStorageKey, hydrated]);
+  }, [appliedDiscountCode, discountList, discountStorageKey, hydrated]);
 
   const addItem = useCallback(
     (item: AddCartItemInput) => {

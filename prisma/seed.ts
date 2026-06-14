@@ -60,8 +60,10 @@ async function seedCategories() {
 }
 
 async function seedCourses() {
-  for (const locale of locales) {
+  for (const [localeIndex, locale] of locales.entries()) {
     for (const [index, course] of courses.entries()) {
+      const udemyCourseId = buildUdemyCourseId(index, localeIndex);
+
       await prisma.course.upsert({
         where: {
           locale_slug: {
@@ -85,6 +87,8 @@ async function seedCourses() {
           highlights: course.highlights[locale],
           outcomes: course.outcomes[locale],
           agenda: course.agenda[locale],
+          udemyCourseId,
+          udemyUrl: buildUdemyUrl(course.slug[locale]),
           sortOrder: index,
           isActive: true
         },
@@ -107,6 +111,8 @@ async function seedCourses() {
           highlights: course.highlights[locale],
           outcomes: course.outcomes[locale],
           agenda: course.agenda[locale],
+          udemyCourseId,
+          udemyUrl: buildUdemyUrl(course.slug[locale]),
           sortOrder: index,
           isActive: true
         }
@@ -180,6 +186,42 @@ async function seedBundles() {
   }
 }
 
+async function seedUdemyCoupons() {
+  const validUntil = endOfCurrentMonth();
+
+  for (const locale of locales) {
+    for (const course of courses) {
+      const courseId = `${course.id}-${locale}`;
+      const couponCode = `LOCAL-${course.id.toUpperCase()}-${locale.toUpperCase()}`;
+
+      await prisma.udemyCoupon.upsert({
+        where: {
+          courseId_locale_couponCode: {
+            courseId,
+            locale,
+            couponCode
+          }
+        },
+        update: {
+          courseTitle: course.title[locale],
+          udemyUrl: buildUdemyUrl(course.slug[locale]),
+          validUntil,
+          isActive: true
+        },
+        create: {
+          courseId,
+          locale,
+          courseTitle: course.title[locale],
+          udemyUrl: buildUdemyUrl(course.slug[locale]),
+          couponCode,
+          validUntil,
+          isActive: true
+        }
+      });
+    }
+  }
+}
+
 function thumbnailVariantMap(variant: "dark" | "blue" | "purple" | "green") {
   const variants = {
     dark: "DARK",
@@ -191,13 +233,27 @@ function thumbnailVariantMap(variant: "dark" | "blue" | "purple" | "green") {
   return variants[variant];
 }
 
+function buildUdemyUrl(slug: string) {
+  return `https://www.udemy.com/course/${slug}/`;
+}
+
+function buildUdemyCourseId(courseIndex: number, localeIndex: number) {
+  return String(6893793 + courseIndex * locales.length + localeIndex);
+}
+
+function endOfCurrentMonth() {
+  const now = new Date();
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0, 23, 59, 59, 999));
+}
+
 async function main() {
   await seedCategories();
   await seedCourses();
   await seedBundles();
+  await seedUdemyCoupons();
 
   console.info(
-    `Seeded locale catalog: ${categories.length * locales.length} categories, ${courses.length * locales.length} courses, ${bundles.length * locales.length} bundles.`
+    `Seeded locale catalog: ${categories.length * locales.length} categories, ${courses.length * locales.length} courses, ${bundles.length * locales.length} bundles, ${courses.length * locales.length} Udemy coupons.`
   );
 }
 

@@ -1,3 +1,4 @@
+import { randomInt } from "node:crypto";
 import { Prisma } from "@prisma/client";
 import { isLocale, type Locale } from "@/lib/i18n/config";
 import { prisma } from "@/lib/prisma";
@@ -24,6 +25,10 @@ export type UdemyImportResult = {
   }>;
 };
 
+const udemyCouponCodePattern = /^[A-Z0-9._-]{6,20}$/;
+const generatedCouponAlphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+const udemyCsvHeaders = ["course_id", "coupon_type", "coupon_code", "start_date", "start_time", "custom_price"] as const;
+
 export async function importUdemyCouponsFromCsv(csv: string): Promise<UdemyImportResult> {
   const parsed = parseUdemyCouponCsv(csv);
   let created = 0;
@@ -42,6 +47,10 @@ export async function importUdemyCouponsFromCsv(csv: string): Promise<UdemyImpor
       continue;
     }
 
+    if (resolvedRows.rejected?.length) {
+      rejected.push(...resolvedRows.rejected);
+    }
+
     for (const row of resolvedRows.rows) {
       const existing = await prisma.udemyCoupon.findUnique({
         where: {
@@ -56,30 +65,49 @@ export async function importUdemyCouponsFromCsv(csv: string): Promise<UdemyImpor
         }
       });
 
-      await prisma.udemyCoupon.upsert({
-        where: {
-          courseId_locale_couponCode: {
+      await prisma.$transaction([
+        ...(row.isActive
+          ? [
+              prisma.udemyCoupon.updateMany({
+                where: {
+                  courseId: row.courseId,
+                  locale: row.locale,
+                  isActive: true,
+                  couponCode: {
+                    not: row.couponCode
+                  }
+                },
+                data: {
+                  isActive: false
+                }
+              })
+            ]
+          : []),
+        prisma.udemyCoupon.upsert({
+          where: {
+            courseId_locale_couponCode: {
+              courseId: row.courseId,
+              locale: row.locale,
+              couponCode: row.couponCode
+            }
+          },
+          update: {
+            courseTitle: row.courseTitle,
+            udemyUrl: row.udemyUrl,
+            validUntil: row.validUntil,
+            isActive: row.isActive
+          },
+          create: {
             courseId: row.courseId,
             locale: row.locale,
-            couponCode: row.couponCode
+            courseTitle: row.courseTitle,
+            udemyUrl: row.udemyUrl,
+            couponCode: row.couponCode,
+            validUntil: row.validUntil,
+            isActive: row.isActive
           }
-        },
-        update: {
-          courseTitle: row.courseTitle,
-          udemyUrl: row.udemyUrl,
-          validUntil: row.validUntil,
-          isActive: row.isActive
-        },
-        create: {
-          courseId: row.courseId,
-          locale: row.locale,
-          courseTitle: row.courseTitle,
-          udemyUrl: row.udemyUrl,
-          couponCode: row.couponCode,
-          validUntil: row.validUntil,
-          isActive: row.isActive
-        }
-      });
+        })
+      ]);
 
       if (existing) {
         updated += 1;
@@ -98,7 +126,45 @@ export async function importUdemyCouponsFromCsv(csv: string): Promise<UdemyImpor
   };
 }
 
-async function resolveCouponRows(rawRow: RawCouponRow): Promise<{ rows: ParsedCouponRow[] } | { reason: string; missingUdemyCourseId?: string }> {
+export async function generateUdemyCouponsCsv() {
+  const [startDate, courses] = await Promise.all([
+    getDatabaseMonthStartDate(),
+    prisma.course.findMany({
+      where: {
+        isActive: true,
+        udemyCourseId: {
+          not: null
+        },
+        udemyUrl: {
+          not: null
+        }
+      },
+      select: {
+        id: true,
+        locale: true,
+        udemyCourseId: true,
+        udemyUrl: true
+      },
+      orderBy: [{ udemyCourseId: "asc" }, { locale: "asc" }, { id: "asc" }]
+    })
+  ]);
+  const usedCouponCodes = new Set<string>();
+  const rows = courses
+    .filter((course) => course.udemyUrl && isValidUrl(course.udemyUrl))
+    .map((course) => course.udemyCourseId?.trim())
+    .filter((courseId): courseId is string => Boolean(courseId))
+    .map((courseId) => [courseId, "free_targeted", generateUniqueCouponCode(usedCouponCodes), startDate, "00:00", ""]);
+  const csv = [udemyCsvHeaders, ...rows].map((row) => row.map(escapeCsvCell).join(",")).join("\n");
+
+  return {
+    csv: `${csv}\n`,
+    fileName: `udemy-coupons-${startDate}.csv`
+  };
+}
+
+async function resolveCouponRows(
+  rawRow: RawCouponRow
+): Promise<{ rows: ParsedCouponRow[]; rejected?: UdemyImportResult["rejected"] } | { reason: string; missingUdemyCourseId?: string }> {
   const row = rawRow.row;
   const courseId = row.courseid;
   const couponCode = row.couponcode;
@@ -106,6 +172,9 @@ async function resolveCouponRows(rawRow: RawCouponRow): Promise<{ rows: ParsedCo
 
   if (!courseId) return { reason: "Brakuje course_id / courseId." };
   if (!couponCode) return { reason: "Brakuje coupon_code / couponCode." };
+  if (!isValidCouponCode(couponCode)) {
+    return { reason: "Kod musi mieć 6-20 znaków i zawierać tylko A-Z, 0-9, kropkę, myślnik albo podkreślenie." };
+  }
   if (!validUntil) return { reason: "Nieprawidłowa data. Użyj validUntil albo start_date w formacie YYYY-MM-DD." };
 
   if (row.udemyurl) {
@@ -151,14 +220,17 @@ async function resolveCouponRows(rawRow: RawCouponRow): Promise<{ rows: ParsedCo
   }
 
   const rows: ParsedCouponRow[] = [];
+  const rejected: UdemyImportResult["rejected"] = [];
 
   for (const course of courses) {
     if (!isLocale(course.locale)) {
-      return { reason: `Kurs ${course.title} ma nieprawidłowy locale ${course.locale}.` };
+      rejected.push({ rowNumber: rawRow.rowNumber, reason: `Kurs ${course.title} ma nieprawidłowy locale ${course.locale}.` });
+      continue;
     }
 
     if (!course.udemyUrl || !isValidUrl(course.udemyUrl)) {
-      return { reason: `Kurs ${course.title} nie ma poprawnego URL Udemy.` };
+      rejected.push({ rowNumber: rawRow.rowNumber, reason: `Kurs ${course.title} nie ma poprawnego URL Udemy.` });
+      continue;
     }
 
     rows.push({
@@ -173,7 +245,11 @@ async function resolveCouponRows(rawRow: RawCouponRow): Promise<{ rows: ParsedCo
     });
   }
 
-  return { rows };
+  if (rows.length === 0) {
+    return { reason: rejected[0]?.reason ?? `Nie znaleziono aktywnego kursu gotowego do importu z Udemy Course ID ${courseId}.` };
+  }
+
+  return { rows, rejected };
 }
 
 type RawCouponRow = {
@@ -300,8 +376,9 @@ function parseValidUntil(row: Record<string, string>) {
 
 function parseDate(value: string) {
   if (!value) return null;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
   const parsed = new Date(`${value}T23:59:59.000Z`);
-  return Number.isNaN(parsed.getTime()) ? null : parsed;
+  return Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== value ? null : parsed;
 }
 
 function parseBoolean(value: string) {
@@ -316,6 +393,44 @@ function isValidUrl(value: string) {
   } catch {
     return false;
   }
+}
+
+function isValidCouponCode(value: string) {
+  return udemyCouponCodePattern.test(value);
+}
+
+function generateUniqueCouponCode(usedCouponCodes: Set<string>) {
+  let code = generateCouponCode();
+
+  while (usedCouponCodes.has(code)) {
+    code = generateCouponCode();
+  }
+
+  usedCouponCodes.add(code);
+
+  return code;
+}
+
+function generateCouponCode() {
+  let code = "";
+
+  for (let index = 0; index < 20; index += 1) {
+    code += generatedCouponAlphabet[randomInt(generatedCouponAlphabet.length)];
+  }
+
+  return code;
+}
+
+async function getDatabaseMonthStartDate() {
+  const [row] = await prisma.$queryRaw<Array<{ startDate: string }>>`SELECT to_char(date_trunc('month', CURRENT_DATE), 'YYYY-MM-DD') AS "startDate"`;
+
+  return row?.startDate ?? new Date().toISOString().slice(0, 8).concat("01");
+}
+
+function escapeCsvCell(value: string) {
+  if (!/[",\n\r]/.test(value)) return value;
+
+  return `"${value.replaceAll("\"", "\"\"")}"`;
 }
 
 export function isPrismaUniqueError(error: unknown) {

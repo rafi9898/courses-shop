@@ -1,3 +1,4 @@
+import { unstable_noStore as noStore } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { fallbackDiscounts, type Discount } from "@/lib/discounts";
 
@@ -5,6 +6,8 @@ export async function getActiveDiscountCodes(): Promise<Discount[]> {
   if (process.env.NEXT_PHASE === "phase-production-build") {
     return fallbackDiscounts;
   }
+
+  noStore();
 
   const now = new Date();
 
@@ -20,13 +23,17 @@ export async function getActiveDiscountCodes(): Promise<Discount[]> {
       orderBy: [{ updatedAt: "desc" }, { code: "asc" }]
     });
 
-    return discountCodes.map((discount) => ({
-      code: discount.code,
-      percentage: discount.percentage,
-      description: discount.description,
-      validFrom: discount.validFrom?.toISOString() ?? null,
-      validUntil: discount.validUntil?.toISOString() ?? null
-    }));
+    return discountCodes
+      .filter((discount) => discount.usageLimit === null || discount.usedCount < discount.usageLimit)
+      .map((discount) => ({
+        code: discount.code,
+        percentage: discount.percentage,
+        description: discount.description,
+        validFrom: discount.validFrom?.toISOString() ?? null,
+        validUntil: discount.validUntil?.toISOString() ?? null,
+        usageLimit: discount.usageLimit,
+        usedCount: discount.usedCount
+      }));
   } catch {
     return fallbackDiscounts;
   }
