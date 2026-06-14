@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
 
   const paymentMethodTypes: Stripe.Checkout.SessionCreateParams.PaymentMethodType[] = ["card", "paypal", "klarna"];
   if (locale === "pl") {
-    paymentMethodTypes.push("blik", "p24");
+    paymentMethodTypes.push("blik");
   }
 
   const session = await stripe.checkout.sessions.create({
