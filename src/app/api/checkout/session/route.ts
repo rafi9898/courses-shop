@@ -126,7 +126,7 @@ export async function POST(request: NextRequest) {
         }
       }
     }))
-  } as any);
+  } as unknown as Stripe.Checkout.SessionCreateParams);
 
   return NextResponse.json({ url: session.url });
 }
