@@ -126,7 +126,7 @@ export async function POST(request: NextRequest) {
         }
       }
     }))
-  });
+  } as any);
 
   return NextResponse.json({ url: session.url });
 }
