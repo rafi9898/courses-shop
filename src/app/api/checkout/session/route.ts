@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
   const successUrl = `${origin}${getCheckoutSuccessPath(locale)}?session_id={CHECKOUT_SESSION_ID}`;
   const cancelUrl = `${origin}${getCheckoutCancelPath(locale)}`;
 
-  const session = await (stripe.checkout.sessions.create as any)({
+  const session = await (stripe.checkout.sessions.create as unknown as (params: Record<string, unknown>) => Promise<Stripe.Checkout.Session>)({
     mode: "payment",
     automatic_payment_methods: {
       enabled: true
