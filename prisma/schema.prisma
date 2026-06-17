@@ -277,6 +277,14 @@ model DiscountCode {
   @@index([validUntil])
 }
 
+model NewsletterSubscriber {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  locale       String   @default("pl")
+  discountCode String?
+  createdAt    DateTime @default(now())
+}
+
 model UdemyCoupon {
   id          String   @id @default(cuid())
   courseId    String

@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, CalendarDays, Facebook, Linkedin, Mail, Twitter } from "lucide-react";
 import { BlogViewTracker } from "@/components/blog/blog-view-tracker";
+import { NewsletterForm } from "@/components/blog/newsletter-form";
 import { ProductCard } from "@/components/commerce/product-card";
 import { RichTextContent } from "@/components/product-detail/rich-text-content";
 import { type PublicBlogPost } from "@/lib/blog-data";
@@ -111,6 +112,9 @@ export function BlogPostPage({
                 );
               })}
             </div>
+          </div>
+          <div className="mt-12">
+            <NewsletterForm locale={locale} />
           </div>
         </div>
       </div>
