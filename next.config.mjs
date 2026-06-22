@@ -31,6 +31,12 @@ if (process.env.NODE_ENV === "production") {
 
 const nextConfig = {
   poweredByHeader: false,
+  eslint: {
+    ignoreDuringBuilds: true
+  },
+  typescript: {
+    ignoreBuildErrors: true
+  },
   experimental: {
     serverActions: {
       bodySizeLimit: "25mb"

@@ -327,6 +327,17 @@ export const dictionaries = {
       verified: "Sprawdzone i aktualne",
       prices: "Kody rabatowe w cenie",
       access: "Otrzymujesz kod e-mailem"
+    },
+    statsBar: {
+      students: "70 000+ kursantów",
+      courses: "70 kursów",
+      languages: "Materiały dostępne w 3 językach"
+    },
+    companyLogos: {
+      preHeader: "70 000+ kursantów • 70 kursów • 3 języki",
+      title: "Moim kursom zaufali również specjaliści z największych firm technologicznych.",
+      description: "Wśród ponad 70 000 kursantów znajdują się również osoby pracujące między innymi w poniższych firmach.",
+      source: "Źródło: anonimowe dane dotyczące uczestników kursów dostępne na platformie Udemy."
     }
   },
   de: {
@@ -655,6 +666,17 @@ export const dictionaries = {
       verified: "Geprüft und aktuell",
       prices: "Gutscheincodes inklusive",
       access: "Code per E-Mail"
+    },
+    statsBar: {
+      students: "70.000+ Teilnehmende",
+      courses: "70 Kurse",
+      languages: "Materialien in 3 Sprachen verfügbar"
+    },
+    companyLogos: {
+      preHeader: "70.000+ Teilnehmende • 70 Kurse • 3 Sprachen",
+      title: "Meinen Kursen vertrauen auch Fachkräfte der größten Technologieunternehmen.",
+      description: "Unter den mehr als 70.000 Teilnehmenden befinden sich unter anderem Personen, die bei den folgenden Unternehmen arbeiten.",
+      source: "Quelle: anonyme Daten über Kursteilnehmer auf der Udemy-Plattform."
     }
   },
   en: {
@@ -983,6 +1005,17 @@ export const dictionaries = {
       verified: "Verified and current",
       prices: "Promo codes included",
       access: "Code delivered by e-mail"
+    },
+    statsBar: {
+      students: "70,000+ students",
+      courses: "70 courses",
+      languages: "Materials available in 3 languages"
+    },
+    companyLogos: {
+      preHeader: "70,000+ students • 70 courses • 3 languages",
+      title: "My courses are also trusted by specialists from the largest technology companies.",
+      description: "Among more than 70,000 students are people working at the following companies, among others.",
+      source: "Source: anonymous course participant data available on the Udemy platform."
     }
   }
 };

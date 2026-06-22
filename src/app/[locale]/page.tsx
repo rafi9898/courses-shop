@@ -5,6 +5,7 @@ import { HeroSection } from "@/components/home/hero-section";
 import { ProductShowcase } from "@/components/home/product-showcase";
 import { ReviewsSection } from "@/components/home/reviews-section";
 import { SearchPanel } from "@/components/home/search-panel";
+import { CompanyLogos } from "@/components/home/company-logos";
 import { getPublicCatalog } from "@/lib/catalog-data";
 import { isLocale, type Locale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionaries";
@@ -42,6 +43,7 @@ export default async function LocaleHomePage({
       <HeroSection locale={locale} dictionary={dictionary} />
       <SearchPanel locale={locale} dictionary={dictionary} {...catalog} />
       <ProductShowcase locale={locale} dictionary={dictionary} {...catalog} />
+      <CompanyLogos dictionary={dictionary} />
       <ReviewsSection locale={locale} dictionary={dictionary} />
       <AuthorStrip locale={locale} dictionary={dictionary} />
       <FaqPreview locale={locale} dictionary={dictionary} />
