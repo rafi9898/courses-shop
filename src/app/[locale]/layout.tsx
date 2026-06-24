@@ -6,6 +6,7 @@ import { Footer } from "@/components/public/footer";
 import { Header } from "@/components/public/header";
 import { UTMTracker } from "@/components/public/utm-tracker";
 import { JsonLd } from "@/components/seo/json-ld";
+import { PromoBanner } from "@/components/public/promo-banner";
 import { getActiveDiscountCodes } from "@/lib/discount-code-data";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 import { isLocale, type Locale } from "@/lib/i18n/config";
@@ -48,6 +49,7 @@ export default async function LocaleLayout({
         <Suspense>
           <UTMTracker />
         </Suspense>
+        <PromoBanner locale={locale} />
         <Header locale={locale} dictionary={dictionary} />
         <main>{children}</main>
         <JsonLd data={createWebsiteJsonLd(locale)} />
