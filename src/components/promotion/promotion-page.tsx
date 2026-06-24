@@ -8,9 +8,6 @@ import {
   ShoppingCart,
   Star,
   Check,
-  Users,
-  BookOpen,
-  Globe
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -45,7 +42,7 @@ function matchesCourse(course: Course, locale: Locale, catLabel: string, q: stri
 
 function getPromoEnd() {
   const d = new Date();
-  d.setDate(d.getDate() + 5);
+  d.setMonth(d.getMonth() + 1, 0);
   d.setHours(23, 59, 59, 999);
   return d;
 }
@@ -124,7 +121,7 @@ export function PromotionPage({
           HERO CARD
       ════════════════════════════════════════════════════════════ */}
       <div className="pp-hero-wrap container-shell">
-        <div className="pp-hero">
+        <section className="pp-hero">
 
           {/* ── LEFT COLUMN ──────────────────────────────────────── */}
           <div className="pp-hero__left">
@@ -144,30 +141,11 @@ export function PromotionPage({
               Skorzystaj z niższych cen przez ograniczony czas.
             </p>
 
-            {/* stats row */}
-            <div className="pp-hero__stats">
-              <div className="pp-hero__stat">
-                <Users className="pp-hero__stat-ico" />
-                <div>
-                  <strong>70 000+</strong>
-                  <span>kursantów</span>
-                </div>
-              </div>
-              <div className="pp-hero__stat">
-                <BookOpen className="pp-hero__stat-ico" />
-                <div>
-                  <strong>70+</strong>
-                  <span>kursów</span>
-                </div>
-              </div>
-              <div className="pp-hero__stat">
-                <Globe className="pp-hero__stat-ico" />
-                <div>
-                  <strong>3 języki</strong>
-                  <span>PL / EN / DE</span>
-                </div>
-              </div>
+            <div className="pp-hero__cta-row">
+              <a className="pp-hero__cta" href="#pp-search">Zobacz kursy w promocji</a>
+              <span className="pp-hero__cta-note">Promocja obejmuje wszystkie kursy</span>
             </div>
+
           </div>
 
           {/* ── RIGHT COLUMN ─────────────────────────────────────── */}
@@ -175,6 +153,7 @@ export function PromotionPage({
 
             {/* author photo */}
             <div className="pp-hero__photo-wrap">
+              <div className="pp-hero__orb" aria-hidden="true" />
               <Image
                 src="/images/hero-instructor.png"
                 alt="Rafał Podraza"
@@ -194,22 +173,27 @@ export function PromotionPage({
               </div>
             </div>
 
-            {/* countdown — plain big purple numbers */}
-            <div className="pp-countdown">
-              <CountUnit value={pad(timeLeft.days)}    label="DNI" />
-              <CountUnit value={pad(timeLeft.hours)}   label="GODZ." />
-              <CountUnit value={pad(timeLeft.minutes)} label="MIN." />
-              <CountUnit value={pad(timeLeft.seconds)} label="SEK." />
-            </div>
-
           </div>
-        </div>
+
+          <div className="pp-hero__bottom">
+            <div className="pp-countdown">
+              <p className="pp-countdown__intro"><span>Promocja</span> kończy się za:</p>
+              <div className="pp-countdown__units">
+                <CountUnit value={pad(timeLeft.days)}    label="DNI" />
+                <CountUnit value={pad(timeLeft.hours)}   label="GODZ." />
+                <CountUnit value={pad(timeLeft.minutes)} label="MIN." />
+                <CountUnit value={pad(timeLeft.seconds)} label="SEK." />
+              </div>
+            </div>
+            <p className="pp-hero__note">Nie przegap okazji!</p>
+          </div>
+        </section>
       </div>
 
       {/* ════════════════════════════════════════════════════════════
           SEARCH BAR (standalone row below hero)
       ════════════════════════════════════════════════════════════ */}
-      <div className="pp-search-wrap container-shell">
+      <div id="pp-search" className="pp-search-wrap container-shell">
         <div className="pp-search">
           <label className="pp-search__field">
             <Search className="pp-search__ico" />

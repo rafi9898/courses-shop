@@ -1,6 +1,7 @@
 "use client";
 
 import { ChevronDown, Menu, ShoppingCart, X } from "lucide-react";
+import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { useState } from "react";
 import { useCart } from "@/components/cart/cart-provider";
@@ -17,6 +18,8 @@ export function Header({
   dictionary: Dictionary;
 }) {
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+  const isPromotionPage = pathname === `/${locale}/promocja`;
   const navItems = [
     { label: dictionary.nav.courses, href: dictionary.routes.courses },
     { label: dictionary.nav.bundles, href: dictionary.routes.bundles },
@@ -33,67 +36,78 @@ export function Header({
           <Logo />
         </Link>
 
-        <nav className="hidden items-center gap-9 lg:flex" aria-label="Primary navigation">
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="focus-ring rounded-md text-sm font-medium text-slate-700 transition hover:text-primary"
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
+        {isPromotionPage ? (
+          <div className="flex items-center gap-4">
+            <LanguageSwitcher locale={locale} />
+            <CartLink href={dictionary.routes.cart} label={dictionary.nav.cart} />
+          </div>
+        ) : (
+          <>
+            <nav className="hidden items-center gap-9 lg:flex" aria-label="Primary navigation">
+              {navItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="focus-ring rounded-md text-sm font-medium text-slate-700 transition hover:text-primary"
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </nav>
 
-        <div className="hidden items-center gap-4 lg:flex">
-          <LanguageSwitcher locale={locale} />
-          <CartLink 
-            href={dictionary.routes.cart} 
-            label={dictionary.nav.cart} 
-            onClick={() => setOpen(false)} 
-          />
-        </div>
-
-        <button
-          type="button"
-          className="focus-ring inline-flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-white lg:hidden"
-          onClick={() => setOpen((value) => !value)}
-          aria-expanded={open}
-          aria-label="Toggle navigation"
-        >
-          {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
-      </div>
-
-      <div
-        className={cn(
-          "grid border-t border-border bg-white transition-all duration-200 lg:hidden",
-          open ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
-        )}
-      >
-        <div className={cn(open ? "overflow-visible" : "overflow-hidden")}>
-          <nav className="container-shell flex flex-col gap-2 py-4">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="rounded-lg px-3 py-3 text-sm font-semibold text-slate-700 hover:bg-primary-soft hover:text-primary"
-                onClick={() => setOpen(false)}
-              >
-                {item.label}
-              </Link>
-            ))}
-            <div className="mt-2 flex items-center justify-between border-t border-border pt-4">
+            <div className="hidden items-center gap-4 lg:flex">
               <LanguageSwitcher locale={locale} />
-              <CartLink 
-                href={dictionary.routes.cart} 
-                label={dictionary.nav.cart} 
-                onClick={() => setOpen(false)} 
+              <CartLink
+                href={dictionary.routes.cart}
+                label={dictionary.nav.cart}
+                onClick={() => setOpen(false)}
               />
             </div>
-          </nav>
-        </div>
+
+            <button
+              type="button"
+              className="focus-ring inline-flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-white lg:hidden"
+              onClick={() => setOpen((value) => !value)}
+              aria-expanded={open}
+              aria-label="Toggle navigation"
+            >
+              {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
+          </>
+        )}
       </div>
+
+      {!isPromotionPage && (
+        <div
+          className={cn(
+            "grid border-t border-border bg-white transition-all duration-200 lg:hidden",
+            open ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+          )}
+        >
+          <div className={cn(open ? "overflow-visible" : "overflow-hidden")}>
+            <nav className="container-shell flex flex-col gap-2 py-4">
+              {navItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="rounded-lg px-3 py-3 text-sm font-semibold text-slate-700 hover:bg-primary-soft hover:text-primary"
+                  onClick={() => setOpen(false)}
+                >
+                  {item.label}
+                </Link>
+              ))}
+              <div className="mt-2 flex items-center justify-between border-t border-border pt-4">
+                <LanguageSwitcher locale={locale} />
+                <CartLink
+                  href={dictionary.routes.cart}
+                  label={dictionary.nav.cart}
+                  onClick={() => setOpen(false)}
+                />
+              </div>
+            </nav>
+          </div>
+        </div>
+      )}
     </header>
   );
 }
