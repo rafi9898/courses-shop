@@ -8,8 +8,8 @@ const NEWSLETTER_STORAGE_KEY = "rp_newsletter_subscribed";
 
 const copy = {
   pl: {
-    title: "Odbierz 25% rabatu",
-    description: "Zapisz się do newslettera i otrzymaj kod rabatowy 25% na dowolny kurs w naszym sklepie.",
+    title: "Odbierz 15% rabatu",
+    description: "Zapisz się do newslettera i otrzymaj kod rabatowy 15% na dowolny kurs w naszym sklepie.",
     placeholder: "Twój adres e-mail",
     button: "Zapisz się i odbierz rabat",
     success: "Dziękujemy! Twój kod rabatowy to:",
@@ -18,8 +18,8 @@ const copy = {
     privacy: "Zapisując się, akceptujesz politykę prywatności."
   },
   de: {
-    title: "Hol dir 25% Rabatt",
-    description: "Melde dich für den Newsletter an und erhalte einen 25% Rabattcode für jeden Kurs in unserem Shop.",
+    title: "Hol dir 15% Rabatt",
+    description: "Melde dich für den Newsletter an und erhalte einen 15% Rabattcode für jeden Kurs in unserem Shop.",
     placeholder: "Deine E-Mail-Adresse",
     button: "Anmelden und Rabatt erhalten",
     success: "Danke! Dein Rabattcode lautet:",
@@ -28,8 +28,8 @@ const copy = {
     privacy: "Mit der Anmeldung akzeptierst du die Datenschutzbestimmungen."
   },
   en: {
-    title: "Get 25% OFF",
-    description: "Sign up for the newsletter and receive a 25% discount code for any course in our shop.",
+    title: "Get 15% OFF",
+    description: "Sign up for the newsletter and receive a 15% discount code for any course in our shop.",
     placeholder: "Your e-mail address",
     button: "Sign up and get discount",
     success: "Thank you! Your discount code is:",

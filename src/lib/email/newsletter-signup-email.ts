@@ -12,7 +12,7 @@ type NewsletterCopy = {
 
 const copy: Record<Locale, NewsletterCopy> = {
   pl: {
-    subject: "Twój kod rabatowy 25% na kursy",
+    subject: "Twój kod rabatowy 15% na kursy",
     greeting: "Cześć!",
     lead: "Dziękujemy za zapis do newslettera. Zgodnie z obietnicą, przesyłamy Twój kod rabatowy na dowolny kurs w naszym sklepie.",
     codeLabel: "Twój kod rabatowy:",
@@ -20,7 +20,7 @@ const copy: Record<Locale, NewsletterCopy> = {
     footer: "Ten kod jest ważny bezterminowo. Do zobaczenia na kursie!"
   },
   de: {
-    subject: "Dein 25% Rabattcode für Kurse",
+    subject: "Dein 15% Rabattcode für Kurse",
     greeting: "Hallo!",
     lead: "Vielen Dank für deine Anmeldung zum Newsletter. Wie versprochen senden wir dir deinen Rabattcode für jeden Kurs in unserem Shop.",
     codeLabel: "Dein Rabattcode:",
@@ -28,7 +28,7 @@ const copy: Record<Locale, NewsletterCopy> = {
     footer: "Dieser Code ist unbegrenzt gültig. Wir sehen uns im Kurs!"
   },
   en: {
-    subject: "Your 25% discount code for courses",
+    subject: "Your 15% discount code for courses",
     greeting: "Hi there!",
     lead: "Thank you for signing up for our newsletter. As promised, here is your discount code for any course in our shop.",
     codeLabel: "Your discount code:",
