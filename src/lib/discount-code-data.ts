@@ -3,12 +3,6 @@ import { prisma } from "@/lib/prisma";
 import { fallbackDiscounts, type Discount } from "@/lib/discounts";
 
 export async function getActiveDiscountCodes(): Promise<Discount[]> {
-  if (process.env.NEXT_PHASE === "phase-production-build") {
-    return fallbackDiscounts;
-  }
-
-  noStore();
-
   const now = new Date();
 
   try {

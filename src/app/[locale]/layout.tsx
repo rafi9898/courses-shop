@@ -41,7 +41,12 @@ export default async function LocaleLayout({
 
   const locale = rawLocale as Locale;
   const dictionary = getDictionary(locale);
-  const discounts = await getActiveDiscountCodes();
+  let discounts: any[] = [];
+  try {
+    discounts = await getActiveDiscountCodes();
+  } catch (error) {
+    console.error("Failed to fetch discounts:", error);
+  }
 
   return (
     <CartProvider locale={locale} discounts={discounts}>
