@@ -32,7 +32,7 @@ export function PromoBannerForm({ banner, locale }: PromoBannerFormProps) {
         await updatePromoBannerAction(formData);
         setSuccess(true);
         setTimeout(() => setSuccess(false), 3000);
-      } catch (e) {
+      } catch {
         setError(true);
       }
     });

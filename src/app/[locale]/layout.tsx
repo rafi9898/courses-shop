@@ -41,7 +41,7 @@ export default async function LocaleLayout({
 
   const locale = rawLocale as Locale;
   const dictionary = getDictionary(locale);
-  let discounts: any[] = [];
+  let discounts: Awaited<ReturnType<typeof getActiveDiscountCodes>> = [];
   try {
     discounts = await getActiveDiscountCodes();
   } catch (error) {

@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { isLocale } from "@/lib/i18n/config";
-import { sendNewsletterSignupEmail } from "@/lib/email/newsletter-signup-email";
 import { prisma } from "@/lib/prisma";
 import { consumeFixedWindowRateLimit } from "@/lib/rate-limit";
 

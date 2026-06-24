@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation";
-import { Settings } from "lucide-react";
 import { AdminFrame } from "@/components/admin/admin-shell";
 import { PromoBannerForm } from "@/components/admin/promo-banner-form";
 import { isAdminAuthenticated } from "@/lib/admin-auth";
