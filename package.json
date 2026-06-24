@@ -14,8 +14,7 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate:deploy": "prisma migrate deploy",
     "prisma:migrate": "prisma migrate dev",
-    "prisma:seed": "node --no-warnings --experimental-strip-types prisma/seed.ts",
-    "postinstall": "prisma generate"
+    "prisma:seed": "node --no-warnings --experimental-strip-types prisma/seed.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
