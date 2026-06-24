@@ -4,9 +4,14 @@ import { prisma } from "@/lib/prisma";
 import { type Locale } from "@/lib/i18n/config";
 
 export async function PromoBanner({ locale }: { locale: Locale }) {
-  const banner = await prisma.promoBanner.findUnique({
-    where: { locale }
-  });
+  let banner = null;
+  try {
+    banner = await prisma.promoBanner.findUnique({
+      where: { locale }
+    });
+  } catch (error) {
+    console.error("Failed to fetch PromoBanner (this is expected during CI builds without DB):", error);
+  }
 
   if (!banner?.isActive) {
     return null;
