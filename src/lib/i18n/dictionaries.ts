@@ -220,6 +220,8 @@ export const dictionaries = {
     checkoutStatus: {
       successTitle: "Dziękujemy za zakup",
       successLead: "Płatność została zakończona. Przygotowujemy szczegóły dostępu do kursów.",
+      activationNoticeTitle: "Aktywuj kursy jak najszybciej",
+      activationNoticeText: "Prosimy o aktywację zakupionych kursów od razu po otrzymaniu linków. Kody Udemy wygasają pierwszego dnia każdego miesiąca.",
       privateOrderTitle: "Twoje zamówienie",
       privateOrderLead: "Ten prywatny link daje dostęp do zakupionych kursów Udemy i faktury, jeśli została wystawiona.",
       cancelTitle: "Płatność anulowana",
@@ -559,6 +561,8 @@ export const dictionaries = {
     checkoutStatus: {
       successTitle: "Danke für deinen Kauf",
       successLead: "Die Zahlung wurde abgeschlossen. Wir bereiten deine Zugangsdaten zu den Kursen vor.",
+      activationNoticeTitle: "Aktiviere deine Kurse so bald wie möglich",
+      activationNoticeText: "Bitte aktiviere die gekauften Kurse direkt nach Erhalt der Links. Udemy-Codes laufen am ersten Tag jedes Monats ab.",
       privateOrderTitle: "Deine Bestellung",
       privateOrderLead: "Dieser private Link gibt Zugriff auf deine gekauften Udemy-Kurse und die Rechnung, falls sie erstellt wurde.",
       cancelTitle: "Zahlung abgebrochen",
@@ -898,6 +902,8 @@ export const dictionaries = {
     checkoutStatus: {
       successTitle: "Thank you for your purchase",
       successLead: "Payment is complete. We are preparing your course access details.",
+      activationNoticeTitle: "Activate your courses as soon as possible",
+      activationNoticeText: "Please activate your purchased courses right after receiving the links. Udemy codes expire on the first day of every month.",
       privateOrderTitle: "Your order",
       privateOrderLead: "This private link gives you access to your purchased Udemy courses and invoice, if one was issued.",
       cancelTitle: "Payment cancelled",

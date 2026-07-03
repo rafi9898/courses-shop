@@ -20,7 +20,7 @@ export const dynamic = "force-dynamic";
 export default async function AdminPage({
   searchParams
 }: {
-  searchParams: Promise<{ ordersPage?: string; udemyPage?: string; dateFrom?: string; dateTo?: string }>;
+  searchParams: Promise<{ ordersPage?: string; udemyPage?: string; dateFrom?: string; dateTo?: string; orderSearch?: string }>;
 }) {
   if (!isAdminConfigured()) {
     return (
@@ -44,16 +44,17 @@ export default async function AdminPage({
     );
   }
 
-  const { ordersPage: rawOrdersPage, udemyPage: rawUdemyPage, dateFrom: rawDateFrom, dateTo: rawDateTo } = await searchParams;
+  const { ordersPage: rawOrdersPage, udemyPage: rawUdemyPage, dateFrom: rawDateFrom, dateTo: rawDateTo, orderSearch: rawOrderSearch } = await searchParams;
   const ordersPage = parseAdminPage(rawOrdersPage);
   const udemyPage = parseAdminPage(rawUdemyPage);
   const dateRange = parseAdminDateRange(rawDateFrom, rawDateTo);
-  const orderWhere: Prisma.OrderWhereInput = dateRange.where
-    ? {
-        paymentStatus: "PAID",
-        paidAt: dateRange.where
-      }
-    : {};
+  const orderSearch = normalizeOrderSearch(rawOrderSearch);
+  const orderSearchWhere = getOrderSearchWhere(orderSearch);
+  const orderWhere: Prisma.OrderWhereInput = {
+    paymentStatus: "PAID",
+    ...(dateRange.where ? { paidAt: dateRange.where } : {}),
+    ...(orderSearchWhere ? orderSearchWhere : {})
+  };
   const paidOrderWhere: Prisma.OrderWhereInput = {
     paymentStatus: "PAID",
     ...(dateRange.where ? { paidAt: dateRange.where } : {})
@@ -142,7 +143,7 @@ export default async function AdminPage({
       </div>
 
       <section className="mt-6 rounded-xl border border-border bg-white p-4 shadow-card">
-        <form className="grid gap-3 md:grid-cols-[1fr_1fr_auto_auto]" action={getAdminPath()}>
+        <form className="grid gap-3 lg:grid-cols-[1fr_1fr_minmax(260px,1.4fr)_auto_auto]" action={getAdminPath()}>
           <label className="text-sm font-semibold text-slate-700">
             Od
             <input
@@ -161,12 +162,22 @@ export default async function AdminPage({
               className="focus-ring mt-2 h-11 w-full rounded-[10px] border border-border bg-white px-3 text-sm text-slate-900"
             />
           </label>
+          <label className="text-sm font-semibold text-slate-700">
+            Szukaj zamówienia
+            <input
+              type="search"
+              name="orderSearch"
+              defaultValue={orderSearch}
+              placeholder="ID, numer, klient lub e-mail"
+              className="focus-ring mt-2 h-11 w-full rounded-[10px] border border-border bg-white px-3 text-sm text-slate-900 placeholder:text-slate-400"
+            />
+          </label>
           <div className="flex items-end">
             <button className="focus-ring inline-flex h-11 w-full items-center justify-center rounded-[10px] bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-soft transition duration-200 hover:bg-[#2f16d8] md:w-auto">
               Filtruj
             </button>
           </div>
-          {dateRange.isCustomRange ? (
+          {dateRange.isCustomRange || orderSearch ? (
             <div className="flex items-end">
               <ButtonLink className="h-11 w-full px-5 md:w-auto" href="/admin" variant="secondary">
                 Wyczyść
@@ -176,6 +187,7 @@ export default async function AdminPage({
         </form>
         <p className="mt-3 text-xs leading-5 text-slate-500">
           Przychód liczony jest z opłaconych zamówień według daty płatności.
+          {orderSearch ? <span className="font-semibold text-slate-700"> Wyniki zawężone do frazy: {orderSearch}.</span> : null}
           {dateRange.error ? <span className="font-semibold text-amber-700"> {dateRange.error}</span> : null}
         </p>
       </section>
@@ -275,9 +287,9 @@ export default async function AdminPage({
                 })
               ) : (
                 <tr>
-                  <td colSpan={7} className="p-8 text-center text-sm text-slate-500">
+                  <td colSpan={8} className="p-8 text-center text-sm text-slate-500">
                     <FileText className="mx-auto h-8 w-8 text-slate-400" />
-                    <p className="mt-3 font-semibold">Brak zamówień do wyświetlenia.</p>
+                    <p className="mt-3 font-semibold">{orderSearch ? "Brak zamówień pasujących do wyszukiwania." : "Brak zamówień do wyświetlenia."}</p>
                   </td>
                 </tr>
               )}
@@ -289,7 +301,7 @@ export default async function AdminPage({
           page={ordersPage}
           totalItems={totalOrders}
           pageParam="ordersPage"
-          params={{ udemyPage, dateFrom: dateRange.dateFrom, dateTo: dateRange.dateTo }}
+          params={{ udemyPage, dateFrom: dateRange.dateFrom, dateTo: dateRange.dateTo, orderSearch }}
         />
       </section>
 
@@ -373,7 +385,7 @@ export default async function AdminPage({
           page={udemyPage}
           totalItems={totalUdemyCoupons}
           pageParam="udemyPage"
-          params={{ ordersPage, dateFrom: dateRange.dateFrom, dateTo: dateRange.dateTo }}
+          params={{ ordersPage, dateFrom: dateRange.dateFrom, dateTo: dateRange.dateTo, orderSearch }}
         />
       </section>
     </AdminFrame>
@@ -437,6 +449,35 @@ function formatRevenue(revenueByCurrency: Record<string, number>) {
       }).format(amount)
     )
     .join(" / ");
+}
+
+function normalizeOrderSearch(value?: string) {
+  return typeof value === "string" ? value.trim().slice(0, 120) : "";
+}
+
+function getOrderSearchWhere(search: string): Prisma.OrderWhereInput | null {
+  if (!search) return null;
+
+  const contains = {
+    contains: search,
+    mode: "insensitive" as const
+  };
+
+  return {
+    OR: [
+      { id: contains },
+      { orderNumber: contains },
+      { customerName: contains },
+      { customerEmail: contains },
+      {
+        invoice: {
+          is: {
+            OR: [{ buyerName: contains }, { buyerCompany: contains }, { buyerEmail: contains }]
+          }
+        }
+      }
+    ]
+  };
 }
 
 function parseAdminDateRange(rawDateFrom?: string, rawDateTo?: string) {

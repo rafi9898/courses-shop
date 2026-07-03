@@ -1,4 +1,4 @@
-import { CheckCircle2, XCircle } from "lucide-react";
+import { AlertTriangle, CheckCircle2, XCircle } from "lucide-react";
 import { OrderAccessPanel } from "@/components/checkout/order-access-panel";
 import { ButtonLink } from "@/components/ui/button";
 import { Confetti } from "@/components/ui/confetti";
@@ -33,6 +33,15 @@ export function CheckoutStatusPage({
           <p className="mt-4 text-base leading-7 text-slate-600">
             {isSuccess ? dictionary.checkoutStatus.successLead : dictionary.checkoutStatus.cancelLead}
           </p>
+          {isSuccess ? (
+            <div className="mt-5 flex gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-left text-amber-950">
+              <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
+              <div>
+                <p className="text-sm font-black">{dictionary.checkoutStatus.activationNoticeTitle}</p>
+                <p className="mt-1 text-sm leading-6">{dictionary.checkoutStatus.activationNoticeText}</p>
+              </div>
+            </div>
+          ) : null}
           <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
             <ButtonLink href={isSuccess ? dictionary.routes.courses : dictionary.routes.cart}>
               {isSuccess ? dictionary.checkoutStatus.goToCourses : dictionary.checkoutStatus.goToCart}
