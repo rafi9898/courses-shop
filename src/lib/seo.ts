@@ -243,6 +243,7 @@ export function getProductMetadata({
   title,
   description,
   imageUrl,
+  alternates,
   keywords = []
 }: {
   locale: Locale;
@@ -250,6 +251,7 @@ export function getProductMetadata({
   title: string;
   description: string;
   imageUrl?: string | null;
+  alternates?: Record<Locale, string>;
   keywords?: string[];
 }): Metadata {
   const image = getMetadataImageUrl(imageUrl);
@@ -260,7 +262,8 @@ export function getProductMetadata({
     title,
     description,
     keywords: createKeywords(defaultKeywords[locale], title, description, keywords),
-    images: [image]
+    images: [image],
+    alternates
   });
 }
 
@@ -270,6 +273,7 @@ export function getBlogPostMetadata({
   title,
   description,
   imageUrl,
+  alternates,
   keywords = []
 }: {
   locale: Locale;
@@ -277,6 +281,7 @@ export function getBlogPostMetadata({
   title: string;
   description: string;
   imageUrl?: string | null;
+  alternates?: Record<Locale, string>;
   keywords?: string[];
 }): Metadata {
   const image = getMetadataImageUrl(imageUrl);
@@ -288,6 +293,7 @@ export function getBlogPostMetadata({
     description,
     keywords: createKeywords(defaultKeywords[locale], publicPageKeywords.blog[locale], title, description, keywords),
     images: [image],
+    alternates,
     openGraphType: "article"
   });
 }

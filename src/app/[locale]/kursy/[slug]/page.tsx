@@ -34,7 +34,8 @@ export async function generateMetadata({
       subtitle: course.subtitle?.[rawLocale],
       highlights: course.highlights[rawLocale],
       outcomes: course.outcomes[rawLocale]
-    })
+    }),
+    alternates: { pl: getCoursePath(course, "pl"), de: getCoursePath(course, "de"), en: getCoursePath(course, "en") }
   });
 }
 

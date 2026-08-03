@@ -27,7 +27,8 @@ export async function generateMetadata({
     title: post.metaTitle || post.title,
     description: post.metaDescription || post.excerpt,
     imageUrl: post.thumbnailImageUrl,
-    keywords: parseBlogKeywords(post.metaKeywords)
+    keywords: parseBlogKeywords(post.metaKeywords),
+    alternates: { pl: getBlogPostPath("pl", post.slug), de: getBlogPostPath("de", post.slug), en: getBlogPostPath("en", post.slug) }
   });
 }
 

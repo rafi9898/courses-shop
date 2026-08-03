@@ -34,7 +34,8 @@ export async function generateMetadata({
       category: category?.label[rawLocale],
       subtitle: bundle.subtitle?.[rawLocale],
       highlights: [description]
-    })
+    }),
+    alternates: { pl: getBundlePath(bundle, "pl"), de: getBundlePath(bundle, "de"), en: getBundlePath(bundle, "en") }
   });
 }
 
