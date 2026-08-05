@@ -86,18 +86,34 @@ function renderInvoicePdf(invoice: InvoiceForPdf) {
     doc.moveTo(48, 144).lineTo(547, 144).strokeColor("#e5e7eb").stroke();
 
     doc.font(fonts.bold).fontSize(12).fillColor("#0f172a").text(labels.seller, 48, 168);
-    doc.font(fonts.regular).fontSize(10).fillColor("#475569").text(invoice.sellerName, 48, 188);
-    doc.text(invoice.sellerAddress, 48, 204, { width: 220 });
-    if (invoice.sellerTaxId) doc.text(`${labels.taxId}: ${invoice.sellerTaxId}`, 48, 236);
+    
+    doc.font(fonts.regular).fontSize(10).fillColor("#475569");
+    let sellerY = 188;
+    doc.text(invoice.sellerName, 48, sellerY, { width: 220 });
+    sellerY = doc.y + 2;
+    doc.text(invoice.sellerAddress, 48, sellerY, { width: 220 });
+    sellerY = doc.y + 8;
+    if (invoice.sellerTaxId) doc.text(`${labels.taxId}: ${invoice.sellerTaxId}`, 48, sellerY, { width: 220 });
 
     doc.font(fonts.bold).fontSize(12).fillColor("#0f172a").text(labels.buyer, 310, 168);
-    doc.font(fonts.regular).fontSize(10).fillColor("#475569").text(invoice.buyerCompany || invoice.buyerName, 310, 188);
-    if (invoice.buyerCompany) doc.text(invoice.buyerName, 310, 204);
-    doc.text(invoice.buyerAddressLine1, 310, invoice.buyerCompany ? 220 : 204);
-    doc.text(`${invoice.buyerPostalCode} ${invoice.buyerCity}`, 310, invoice.buyerCompany ? 236 : 220);
-    doc.text(invoice.buyerCountry, 310, invoice.buyerCompany ? 252 : 236);
-    doc.text(invoice.buyerEmail, 310, invoice.buyerCompany ? 268 : 252);
-    if (invoice.buyerTaxId) doc.text(`${labels.taxId}: ${invoice.buyerTaxId}`, 310, invoice.buyerCompany ? 284 : 268);
+    
+    doc.font(fonts.regular).fontSize(10).fillColor("#475569");
+    let buyerY = 188;
+    doc.text(invoice.buyerCompany || invoice.buyerName, 310, buyerY, { width: 220 });
+    buyerY = doc.y + 2;
+    if (invoice.buyerCompany) {
+      doc.text(invoice.buyerName, 310, buyerY, { width: 220 });
+      buyerY = doc.y + 2;
+    }
+    doc.text(invoice.buyerAddressLine1, 310, buyerY, { width: 220 });
+    buyerY = doc.y + 2;
+    doc.text(`${invoice.buyerPostalCode} ${invoice.buyerCity}`, 310, buyerY, { width: 220 });
+    buyerY = doc.y + 2;
+    doc.text(invoice.buyerCountry, 310, buyerY, { width: 220 });
+    buyerY = doc.y + 2;
+    doc.text(invoice.buyerEmail, 310, buyerY, { width: 220 });
+    buyerY = doc.y + 8;
+    if (invoice.buyerTaxId) doc.text(`${labels.taxId}: ${invoice.buyerTaxId}`, 310, buyerY, { width: 220 });
 
     const tableTop = 330;
     doc.roundedRect(48, tableTop, 499, 28, 6).fill("#f5f2ff");
@@ -115,12 +131,18 @@ function renderInvoicePdf(invoice: InvoiceForPdf) {
         y = 64;
       }
 
-      doc.text(`${index + 1}. ${item.title}`, 62, y, { width: 230 });
-      doc.text(String(item.quantity), 314, y, { width: 50, align: "right" });
-      doc.text(formatPrice(Number(item.unitAmount), locale), 378, y, { width: 70, align: "right" });
-      doc.text(formatPrice(Number(item.lineTotalAmount), locale), 462, y, { width: 70, align: "right" });
-      doc.moveTo(62, y + 22).lineTo(532, y + 22).strokeColor("#eef2f7").stroke();
-      y += 34;
+      const startY = y;
+      doc.text(`${index + 1}. ${item.title}`, 62, startY, { width: 230 });
+      const endY = doc.y;
+      
+      doc.text(String(item.quantity), 314, startY, { width: 50, align: "right" });
+      doc.text(formatPrice(Number(item.unitAmount), locale), 378, startY, { width: 70, align: "right" });
+      doc.text(formatPrice(Number(item.lineTotalAmount), locale), 462, startY, { width: 70, align: "right" });
+      
+      const rowBottomY = Math.max(endY, startY + 12);
+      
+      doc.moveTo(62, rowBottomY + 10).lineTo(532, rowBottomY + 10).strokeColor("#eef2f7").stroke();
+      y = rowBottomY + 22;
     });
 
     y += 18;
