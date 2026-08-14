@@ -59,14 +59,18 @@ export async function getPublicCatalog(locale: Locale): Promise<PublicCatalog> {
 
     return {
       categories: dbCategories.map((category) => mapCategory(category, locale)),
-      courses: uniqueCourseKeys.map(catalogKey => {
-        const courseVersions = dbCourses.filter(c => c.catalogKey === catalogKey);
-        return mapCourse(courseVersions, locale);
-      }),
-      bundles: uniqueBundleKeys.map(catalogKey => {
-        const bundleVersions = dbBundles.filter(b => b.catalogKey === catalogKey);
-        return mapBundle(bundleVersions, locale);
-      })
+      courses: uniqueCourseKeys
+        .filter(catalogKey => dbCourses.some(c => c.catalogKey === catalogKey && c.locale === locale))
+        .map(catalogKey => {
+          const courseVersions = dbCourses.filter(c => c.catalogKey === catalogKey);
+          return mapCourse(courseVersions, locale);
+        }),
+      bundles: uniqueBundleKeys
+        .filter(catalogKey => dbBundles.some(b => b.catalogKey === catalogKey && b.locale === locale))
+        .map(catalogKey => {
+          const bundleVersions = dbBundles.filter(b => b.catalogKey === catalogKey);
+          return mapBundle(bundleVersions, locale);
+        })
     };
   } catch {
     return {
