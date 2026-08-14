@@ -83,7 +83,6 @@ export function Thumbnail({
   showFavorite?: boolean;
   imageFit?: "cover" | "contain";
 }) {
-  const isUploadedImage = imageUrl?.startsWith("/uploads/");
 
   return (
     <div
@@ -102,7 +101,6 @@ export function Thumbnail({
           fill
           sizes="(min-width: 1280px) 25vw, (min-width: 640px) 50vw, 100vw"
           className={cn(imageFit === "contain" ? "object-contain" : "object-cover")}
-          unoptimized={isUploadedImage}
         />
       ) : null}
       {imageUrl ? <div className="absolute inset-0 bg-black/12" /> : null}

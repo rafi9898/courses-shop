@@ -126,7 +126,7 @@ export function BlogListPage({
                 <Link key={post.id} href={getBlogPostPath(locale, post.slug)} className="group overflow-hidden rounded-lg border border-border bg-white shadow-card transition hover:-translate-y-0.5 hover:shadow-soft">
                   <div className="relative aspect-[16/9] bg-slate-100">
                     {post.thumbnailImageUrl ? (
-                      <Image src={post.thumbnailImageUrl} alt={post.title} fill sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw" className="object-cover" unoptimized={post.thumbnailImageUrl.startsWith("/uploads/")} />
+                      <Image src={post.thumbnailImageUrl} alt={post.title} fill sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw" className="object-cover" />
                     ) : (
                       <div className="grid h-full place-items-center bg-primary-soft text-4xl font-black text-primary">RP</div>
                     )}

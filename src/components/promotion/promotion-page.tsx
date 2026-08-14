@@ -300,8 +300,7 @@ function CourseCard({
                 alt={course.title[locale]}
                 fill
                 sizes="(min-width: 1280px) 25vw, (min-width: 768px) 50vw, 100vw"
-                className="pp-card__thumb-img"
-                unoptimized={course.thumbnailImageUrl.startsWith("/uploads/")}
+                className="object-cover"
               />
               <div className="pp-card__thumb-overlay" />
             </>

@@ -222,7 +222,7 @@ export function CustomBundleBuilder({
 }
 
 function CourseMiniThumbnail({ course }: { course: Course }) {
-  const isUploadedImage = course.thumbnailImageUrl?.startsWith("/uploads/");
+  const isBundleLocked = false;
 
   return (
     <span
@@ -243,7 +243,6 @@ function CourseMiniThumbnail({ course }: { course: Course }) {
             fill
             sizes="80px"
             className="object-cover"
-            unoptimized={isUploadedImage}
           />
           <span className="absolute inset-0 bg-black/10" />
         </>

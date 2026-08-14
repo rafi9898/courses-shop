@@ -20,7 +20,6 @@ export function VideoPreview({
   const [open, setOpen] = useState(false);
   const trailerEmbedUrl = getYoutubeEmbedUrl(course.trailerYoutubeUrl);
   const hasTrailer = Boolean(trailerEmbedUrl);
-  const isUploadedThumbnail = course.thumbnailImageUrl?.startsWith("/uploads/");
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -56,7 +55,6 @@ export function VideoPreview({
           fill
           sizes="(min-width: 768px) 50vw, 100vw"
           className="object-cover"
-          unoptimized={isUploadedThumbnail}
         />
       ) : null}
       {course.thumbnailImageUrl ? <div className="absolute inset-0 bg-black/25" /> : null}

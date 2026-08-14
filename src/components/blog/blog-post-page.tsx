@@ -79,7 +79,6 @@ export function BlogPostPage({
                   priority
                   sizes="(min-width: 1024px) 45vw, 100vw"
                   className="object-contain"
-                  unoptimized={post.thumbnailImageUrl.startsWith("/uploads/")}
                 />
               ) : (
                 <div className="grid h-full place-items-center text-5xl font-black text-primary">RP</div>
