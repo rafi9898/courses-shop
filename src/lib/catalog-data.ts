@@ -1,5 +1,5 @@
 import { CategoryColor, CourseLevel, ThumbnailVariant, type Bundle as DbBundle, type Category as DbCategory, type Course as DbCourse } from "@prisma/client";
-import { type Locale } from "@/lib/i18n/config";
+import { localeMeta, type Locale } from "@/lib/i18n/config";
 import { type Bundle, type Category, type Course } from "@/lib/mock-data";
 import { prisma } from "@/lib/prisma";
 
@@ -17,6 +17,20 @@ export type PublicCatalog = {
 
 const locales: Locale[] = ["pl", "de", "en"];
 
+const exchangeRates: Record<string, number> = {
+  PLN: 1,
+  EUR: 4.3,
+  USD: 4.0
+};
+
+function convertPrice(amount: number, fromCurrency: string, toCurrency: string) {
+  if (fromCurrency === toCurrency) return amount;
+  const amountInPln = amount * (exchangeRates[fromCurrency] || 1);
+  const converted = amountInPln / (exchangeRates[toCurrency] || 1);
+  // Round to nearest .99
+  return Math.max(0.99, Math.ceil(converted) - 0.01);
+}
+
 export async function getPublicCatalog(locale: Locale): Promise<PublicCatalog> {
   try {
     const [dbCategories, dbCourses, dbBundles] = await Promise.all([
@@ -25,11 +39,11 @@ export async function getPublicCatalog(locale: Locale): Promise<PublicCatalog> {
         orderBy: [{ sortOrder: "asc" }, { label: "asc" }]
       }),
       prisma.course.findMany({
-        where: { locale, isActive: true },
+        where: { isActive: true },
         orderBy: [{ reviews: "desc" }, { sortOrder: "asc" }, { title: "asc" }]
       }),
       prisma.bundle.findMany({
-        where: { locale, isActive: true },
+        where: { isActive: true },
         include: {
           courses: {
             select: { courseId: true },
@@ -40,10 +54,19 @@ export async function getPublicCatalog(locale: Locale): Promise<PublicCatalog> {
       })
     ]);
 
+    const uniqueCourseKeys = Array.from(new Set(dbCourses.map(c => c.catalogKey)));
+    const uniqueBundleKeys = Array.from(new Set(dbBundles.map(b => b.catalogKey)));
+
     return {
       categories: dbCategories.map((category) => mapCategory(category, locale)),
-      courses: dbCourses.map((course) => mapCourse(course, locale)),
-      bundles: dbBundles.map((bundle) => mapBundle(bundle, locale))
+      courses: uniqueCourseKeys.map(catalogKey => {
+        const courseVersions = dbCourses.filter(c => c.catalogKey === catalogKey);
+        return mapCourse(courseVersions, locale);
+      }),
+      bundles: uniqueBundleKeys.map(catalogKey => {
+        const bundleVersions = dbBundles.filter(b => b.catalogKey === catalogKey);
+        return mapBundle(bundleVersions, locale);
+      })
     };
   } catch {
     return {
@@ -79,56 +102,100 @@ function mapCategory(category: DbCategory, locale: Locale): Category {
   };
 }
 
-function mapCourse(course: DbCourse, locale: Locale): Course {
+function mapCourse(courseVersions: DbCourse[], locale: Locale): Course {
+  const localCourse = courseVersions.find(c => c.locale === locale);
+  const primaryCourse = localCourse || courseVersions[0];
+
+  let price = Number(primaryCourse.price);
+  let regularPrice = Number(primaryCourse.regularPrice);
+
+  if (!localCourse && primaryCourse.locale !== locale) {
+    const targetCurrency = localeMeta[locale].currency;
+    price = convertPrice(price, primaryCourse.currency, targetCurrency);
+    regularPrice = convertPrice(regularPrice, primaryCourse.currency, targetCurrency);
+  }
+
+  const getLocalized = (field: keyof DbCourse) => {
+    return locales.reduce((acc, loc) => {
+      const version = courseVersions.find(c => c.locale === loc) || primaryCourse;
+      acc[loc] = version[field] as any;
+      return acc;
+    }, {} as Record<Locale, any>);
+  };
+
   return {
-    id: course.id,
+    id: primaryCourse.id,
     type: "course",
-    title: localized(locale, course.title),
-    subtitle: localized(locale, course.subtitle),
-    slug: localized(locale, course.slug),
-    categoryId: course.categoryId,
-    level: mapCourseLevel(course.level),
-    rating: Number(course.rating),
-    reviews: course.reviews,
-    price: localized(locale, Number(course.price)),
-    regularPrice: localized(locale, Number(course.regularPrice)),
-    durationHours: course.durationHours,
-    lessons: course.lessons,
-    highlights: localized(locale, stringArray(course.highlights)),
-    outcomes: localized(locale, stringArray(course.outcomes)),
-    agenda: localized(locale, agendaArray(course.agenda)),
+    title: getLocalized("title"),
+    subtitle: getLocalized("subtitle"),
+    slug: getLocalized("slug"),
+    categoryId: primaryCourse.categoryId.replace(/-[a-z]{2}$/, `-${locale}`),
+    level: mapCourseLevel(primaryCourse.level),
+    rating: Number(primaryCourse.rating),
+    reviews: primaryCourse.reviews,
+    price: localized(locale, price),
+    regularPrice: localized(locale, regularPrice),
+    durationHours: primaryCourse.durationHours,
+    lessons: primaryCourse.lessons,
+    highlights: localized(locale, stringArray(primaryCourse.highlights)),
+    outcomes: localized(locale, stringArray(primaryCourse.outcomes)),
+    agenda: localized(locale, agendaArray(primaryCourse.agenda)),
     thumbnail: {
-      title: course.title,
+      title: primaryCourse.title,
       subtitle: "",
       variant: "dark"
     },
-    thumbnailImageUrl: course.thumbnailImageUrl,
-    trailerYoutubeUrl: course.trailerYoutubeUrl,
-    isBestseller: course.isBestseller
+    thumbnailImageUrl: primaryCourse.thumbnailImageUrl,
+    trailerYoutubeUrl: primaryCourse.trailerYoutubeUrl,
+    isBestseller: primaryCourse.isBestseller,
+    contentLocale: primaryCourse.locale as Locale,
+    updatedAt: primaryCourse.updatedAt
   };
 }
 
-function mapBundle(bundle: DbBundleWithCourses, locale: Locale): Bundle {
+function mapBundle(bundleVersions: DbBundleWithCourses[], locale: Locale): Bundle {
+  const localBundle = bundleVersions.find(b => b.locale === locale);
+  const primaryBundle = localBundle || bundleVersions[0];
+
+  let price = Number(primaryBundle.price);
+  let regularPrice = Number(primaryBundle.regularPrice);
+
+  if (!localBundle && primaryBundle.locale !== locale) {
+    const targetCurrency = localeMeta[locale].currency;
+    price = convertPrice(price, primaryBundle.currency, targetCurrency);
+    regularPrice = convertPrice(regularPrice, primaryBundle.currency, targetCurrency);
+  }
+
+  const getLocalized = (field: keyof DbBundleWithCourses) => {
+    return locales.reduce((acc, loc) => {
+      const version = bundleVersions.find(b => b.locale === loc) || primaryBundle;
+      acc[loc] = version[field] as any;
+      return acc;
+    }, {} as Record<Locale, any>);
+  };
+
   return {
-    id: bundle.id,
+    id: primaryBundle.id,
     type: "bundle",
-    title: localized(locale, bundle.title),
-    subtitle: localized(locale, bundle.subtitle),
-    slug: localized(locale, bundle.slug),
-    categoryId: bundle.categoryId,
-    description: localized(locale, bundle.description),
-    courseIds: bundle.courses.map((course) => course.courseId),
-    courseCount: bundle.courseCount,
-    rating: Number(bundle.rating),
-    reviews: bundle.reviews,
-    price: localized(locale, Number(bundle.price)),
-    regularPrice: localized(locale, Number(bundle.regularPrice)),
+    title: getLocalized("title"),
+    subtitle: getLocalized("subtitle"),
+    slug: getLocalized("slug"),
+    categoryId: primaryBundle.categoryId.replace(/-[a-z]{2}$/, `-${locale}`),
+    description: getLocalized("description"),
+    courseIds: primaryBundle.courses.map((course) => course.courseId),
+    courseCount: primaryBundle.courseCount,
+    rating: Number(primaryBundle.rating),
+    reviews: primaryBundle.reviews,
+    price: localized(locale, price),
+    regularPrice: localized(locale, regularPrice),
     thumbnail: {
-      title: bundle.thumbnailTitle,
-      subtitle: bundle.thumbnailSubtitle,
-      variant: mapThumbnailVariant(bundle.thumbnailVariant)
+      title: primaryBundle.thumbnailTitle,
+      subtitle: primaryBundle.thumbnailSubtitle,
+      variant: mapThumbnailVariant(primaryBundle.thumbnailVariant)
     },
-    thumbnailImageUrl: bundle.thumbnailImageUrl
+    thumbnailImageUrl: primaryBundle.thumbnailImageUrl,
+    contentLocale: primaryBundle.locale as Locale,
+    updatedAt: primaryBundle.updatedAt
   };
 }
 

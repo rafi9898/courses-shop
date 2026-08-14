@@ -75,7 +75,6 @@ export async function POST(request: NextRequest) {
   const origin = getAppOrigin(request);
   const successUrl = `${origin}${getCheckoutSuccessPath(locale)}?session_id={CHECKOUT_SESSION_ID}`;
   const cancelUrl = `${origin}${getCheckoutCancelPath(locale)}`;
-
   const paymentMethodTypes: Stripe.Checkout.SessionCreateParams.PaymentMethodType[] = [
     "card",
     "paypal",

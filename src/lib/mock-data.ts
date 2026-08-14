@@ -32,6 +32,8 @@ export type Course = {
   thumbnailImageUrl?: string | null;
   trailerYoutubeUrl?: string | null;
   isBestseller: boolean;
+  contentLocale?: Locale;
+  updatedAt?: Date;
 };
 
 export type Bundle = {
@@ -54,6 +56,8 @@ export type Bundle = {
     variant: "dark" | "blue" | "purple" | "green";
   };
   thumbnailImageUrl?: string | null;
+  contentLocale?: Locale;
+  updatedAt?: Date;
 };
 
 export type Product = Course | Bundle;

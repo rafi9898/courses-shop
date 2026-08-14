@@ -39,7 +39,6 @@ export async function getUdemyAccessLinks(purchasedProducts: PurchasedProduct[],
         courseId: {
           in: Array.from(courseIds)
         },
-        locale,
         isActive: true,
         validUntil: {
           gte: now
@@ -51,8 +50,7 @@ export async function getUdemyAccessLinks(purchasedProducts: PurchasedProduct[],
       where: {
         id: {
           in: Array.from(courseIds)
-        },
-        locale
+        }
       },
       select: {
         id: true,
@@ -110,8 +108,7 @@ async function getPurchasedCourseIds(purchasedProducts: PurchasedProduct[], loca
       where: {
         id: {
           in: Array.from(bundleIds)
-        },
-        locale
+        }
       },
       include: {
         courses: {

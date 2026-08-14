@@ -41,7 +41,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             };
             return {
               url: getSiteUrl(coursePaths[locale]),
-              lastModified: now,
+              lastModified: course.updatedAt || now,
               changeFrequency: "weekly" as const,
               priority: 0.9,
               alternates: { languages: getLanguages(coursePaths) }
@@ -55,7 +55,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             };
             return {
               url: getSiteUrl(bundlePaths[locale]),
-              lastModified: now,
+              lastModified: bundle.updatedAt || now,
               changeFrequency: "weekly" as const,
               priority: 0.85,
               alternates: { languages: getLanguages(bundlePaths) }
@@ -72,17 +72,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         const posts = await getPublishedBlogPosts(locale);
 
         return posts.map((post) => {
-          const postPaths = {
-            pl: getBlogPostPath("pl", post.slug),
-            de: getBlogPostPath("de", post.slug),
-            en: getBlogPostPath("en", post.slug)
-          };
           return {
-            url: getSiteUrl(postPaths[locale]),
+            url: getSiteUrl(getBlogPostPath(locale, post.slug)),
             lastModified: post.updatedAt,
             changeFrequency: "monthly" as const,
-            priority: 0.75,
-            alternates: { languages: getLanguages(postPaths) }
+            priority: 0.75
           };
         });
       })

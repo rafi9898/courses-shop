@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, RotateCcw, Search, SlidersHorizontal } from "lucide-react";
+import { ChevronLeft, ChevronRight, RotateCcw, Search, SlidersHorizontal, Globe } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { BundleCard } from "@/components/commerce/bundle-card";
 import { ProductCard } from "@/components/commerce/product-card";
@@ -37,6 +37,7 @@ export function CatalogListPage({
 }) {
   const [query, setQuery] = useState(initialQuery);
   const [categoryId, setCategoryId] = useState(initialCategoryId);
+  const [courseLocale, setCourseLocale] = useState<string>("all");
   const [sort, setSort] = useState<CatalogSort>("popular");
   const [page, setPage] = useState(1);
   const resultsTopRef = useRef<HTMLDivElement>(null);
@@ -52,10 +53,11 @@ export function CatalogListPage({
     const normalized = normalizeCatalogSearchText(query);
     const filtered = source.filter((item) => {
       const matchesCategory = categoryId === "all" || item.categoryId === categoryId;
+      const matchesLocale = courseLocale === "all" || item.contentLocale === courseLocale;
       const categoryLabel = categoryLabels.get(item.categoryId) ?? "";
       const matchesQuery = !normalized || matchesCatalogItem(item, categoryLabel, locale, normalized);
 
-      return matchesCategory && matchesQuery;
+      return matchesCategory && matchesLocale && matchesQuery;
     });
 
     return [...filtered].sort((a, b) => {
@@ -69,14 +71,14 @@ export function CatalogListPage({
       if (sort === "price-high") return b.price[locale] - a.price[locale];
       return b.reviews - a.reviews;
     });
-  }, [categoryId, categoryLabels, locale, query, sort, source]);
+  }, [categoryId, categoryLabels, locale, query, sort, source, courseLocale]);
 
   const totalPages = Math.max(1, Math.ceil(filteredItems.length / ITEMS_PER_PAGE));
   const paginatedItems = filteredItems.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
 
   useEffect(() => {
     setPage(1);
-  }, [categoryId, query, sort]);
+  }, [categoryId, query, sort, courseLocale]);
 
   useEffect(() => {
     setQuery(initialQuery);
@@ -98,6 +100,7 @@ export function CatalogListPage({
   function resetFilters() {
     setQuery("");
     setCategoryId("all");
+    setCourseLocale("all");
     setSort("popular");
   }
 
@@ -197,6 +200,19 @@ export function CatalogListPage({
                     />
                   );
                 })}
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-border bg-white p-5 shadow-[0_10px_26px_rgba(15,23,42,0.04)]">
+              <div className="mb-4 flex items-center gap-2 text-lg font-black">
+                <Globe className="h-5 w-5 text-primary" />
+                {dictionary.catalog.language ?? "Język kursu"}
+              </div>
+              <div className="space-y-3">
+                <CheckboxRow label={dictionary.catalog.all} checked={courseLocale === "all"} onChange={() => setCourseLocale("all")} />
+                <CheckboxRow label="🇵🇱 Polski" checked={courseLocale === "pl"} onChange={() => setCourseLocale("pl")} />
+                <CheckboxRow label="🇬🇧 English" checked={courseLocale === "en"} onChange={() => setCourseLocale("en")} />
+                <CheckboxRow label="🇩🇪 Deutsch" checked={courseLocale === "de"} onChange={() => setCourseLocale("de")} />
               </div>
             </div>
 
