@@ -33,7 +33,7 @@ export async function getUdemyAccessLinks(purchasedProducts: PurchasedProduct[],
   const now = new Date();
 
   try {
-    const courseIds = await getPurchasedCourseIds(purchasedProducts, locale);
+    const courseIds = await getPurchasedCourseIds(purchasedProducts);
     const coupons = await prisma.udemyCoupon.findMany({
       where: {
         courseId: {
@@ -87,7 +87,7 @@ export async function getUdemyAccessLinks(purchasedProducts: PurchasedProduct[],
   }
 }
 
-async function getPurchasedCourseIds(purchasedProducts: PurchasedProduct[], locale: Locale) {
+async function getPurchasedCourseIds(purchasedProducts: PurchasedProduct[]) {
   const courseIds = new Set<string>();
   const bundleIds = new Set<string>();
 

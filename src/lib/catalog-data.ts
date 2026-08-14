@@ -115,12 +115,12 @@ function mapCourse(courseVersions: DbCourse[], locale: Locale): Course {
     regularPrice = convertPrice(regularPrice, primaryCourse.currency, targetCurrency);
   }
 
-  const getLocalized = (field: keyof DbCourse) => {
+  const getLocalized = <T extends keyof DbCourse>(field: T): Record<Locale, DbCourse[T]> => {
     return locales.reduce((acc, loc) => {
       const version = courseVersions.find(c => c.locale === loc) || primaryCourse;
-      acc[loc] = version[field] as any;
+      acc[loc] = version[field];
       return acc;
-    }, {} as Record<Locale, any>);
+    }, {} as Record<Locale, DbCourse[T]>);
   };
 
   return {
@@ -166,12 +166,12 @@ function mapBundle(bundleVersions: DbBundleWithCourses[], locale: Locale): Bundl
     regularPrice = convertPrice(regularPrice, primaryBundle.currency, targetCurrency);
   }
 
-  const getLocalized = (field: keyof DbBundleWithCourses) => {
+  const getLocalized = <T extends keyof DbBundleWithCourses>(field: T): Record<Locale, DbBundleWithCourses[T]> => {
     return locales.reduce((acc, loc) => {
       const version = bundleVersions.find(b => b.locale === loc) || primaryBundle;
-      acc[loc] = version[field] as any;
+      acc[loc] = version[field];
       return acc;
-    }, {} as Record<Locale, any>);
+    }, {} as Record<Locale, DbBundleWithCourses[T]>);
   };
 
   return {
