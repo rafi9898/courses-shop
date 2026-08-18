@@ -36,10 +36,7 @@ export function buildCustomBundlePricingCourses(courses: Course[], locale: Local
     discountPercent,
     courses: selectedCourses.map((course) => ({
       ...course,
-      price: {
-        ...course.price,
-        [locale]: roundPrice(course.price * (1 - discountPercent / 100))
-      }
+      price: roundPrice(course.price * (1 - discountPercent / 100))
     }))
   };
 }

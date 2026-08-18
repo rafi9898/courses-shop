@@ -35,7 +35,7 @@ export function isDiscountValid(discount: Discount) {
 }
 
 export function calculateCartTotals(
-  products: { id: string; type: "course" | "bundle"; price: Record<Locale, number>; regularPrice: Record<Locale, number> }[],
+  products: { id: string; type: "course" | "bundle"; price: number; regularPrice: number }[],
   locale: Locale,
   discountCode?: string | null,
   discounts: Discount[] = fallbackDiscounts

@@ -30,5 +30,5 @@ export default async function BundlesDePage({
   const locale = rawLocale as Locale;
   const currency = await getServerCurrency(locale);
   const catalog = await getPublicCatalog(locale, currency);
-  return <CatalogListPage locale={locale} currency={currency} dictionary={getDictionary(locale)} kind="bundles" initialCategoryId={category || "all"} initialQuery={q || ""} {...catalog} />;
+  return <CatalogListPage locale={locale} dictionary={getDictionary(locale)} kind="bundles" initialCategoryId={category || "all"} initialQuery={q || ""} {...catalog} />;
 }

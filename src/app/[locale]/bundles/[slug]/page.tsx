@@ -53,5 +53,5 @@ export default async function BundleDetailEnPage({
   const { catalog, bundle } = await getPublicBundleBySlug(locale, slug, currency);
   if (!bundle) notFound();
 
-  return <ProductDetailPage locale={locale} currency={currency} dictionary={getDictionary(locale)} detail={{ kind: "bundle", product: bundle }} {...catalog} />;
+  return <ProductDetailPage locale={locale} dictionary={getDictionary(locale)} detail={{ kind: "bundle", product: bundle }} {...catalog} />;
 }

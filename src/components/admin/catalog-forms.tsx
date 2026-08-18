@@ -128,7 +128,7 @@ export function CourseForm({
         <Input name="udemyCouponCode" defaultValue={activeUdemyCoupon?.couponCode ?? ""} placeholder="np. A7F3D92KLM8P4QX1R0ZT" />
       </Field>
       <p className="-mt-4 text-xs font-semibold text-slate-500">Kod zaciąga się automatycznie po imporcie CSV. Ręczna zmiana tego pola aktualizuje aktywny kod Udemy dla kursu.</p>
-      <PriceGrid locale={currentLocale} entity={course} />
+      <PriceGrid entity={course} />
       <div className="grid gap-4 md:grid-cols-4">
         <Field label="Ocena">
           <Input name="rating" type="number" step="0.01" min="0" max="5" defaultValue={decimalValue(course?.rating, "4.80")} required />
@@ -223,7 +223,7 @@ export function BundleForm({
       <EditorField label="O pakiecie">
         <RichTextEditor name="description" defaultValue={bundle?.description ?? ""} />
       </EditorField>
-      <PriceGrid locale={currentLocale} entity={bundle} />
+      <PriceGrid entity={bundle} />
       <div className="grid gap-4 md:grid-cols-2">
         <Field label="Ocena">
           <Input name="rating" type="number" step="0.01" min="0" max="5" defaultValue={decimalValue(bundle?.rating, "4.80")} required />

@@ -123,7 +123,7 @@ export function ProductDetailPage({
                   regularPrice={product.regularPrice}
                   savings={savings}
                   locale={locale} currency={currency}
-                  dictionary={dictionary} currency={currency}
+                  dictionary={dictionary}
                 />
                 {isCourse ? <CourseBundleUpsell bundles={containingBundles} locale={locale} currency={currency} /> : null}
               </div>
@@ -238,7 +238,7 @@ export function ProductDetailPage({
           {isCourse ? (
             <MetaCard course={product} locale={locale} currency={currency} dictionary={dictionary} />
           ) : (
-            <BundleValueCard bundle={product} courses={bundleCourses} locale={locale} currency={currency} dictionary={dictionary} currency={currency} />
+            <BundleValueCard bundle={product} courses={bundleCourses} locale={locale} currency={currency} dictionary={dictionary} />
           )}
         </div>
 
@@ -261,7 +261,7 @@ export function ProductDetailPage({
         price={product.price}
         regularPrice={product.regularPrice}
         locale={locale} currency={currency}
-        dictionary={dictionary} currency={currency}
+        dictionary={dictionary}
       />
     </div>
   );

@@ -45,7 +45,7 @@ export default async function LocaleHomePage({
     <div className="overflow-hidden">
       <HeroSection locale={locale} dictionary={dictionary} />
       <SearchPanel locale={locale} dictionary={dictionary} {...catalog} />
-      <ProductShowcase locale={locale} currency={currency} dictionary={dictionary} {...catalog} />
+      <ProductShowcase locale={locale} dictionary={dictionary} {...catalog} />
       <CompanyLogos dictionary={dictionary} />
       <ReviewsSection locale={locale} dictionary={dictionary} />
       <AuthorStrip locale={locale} dictionary={dictionary} />

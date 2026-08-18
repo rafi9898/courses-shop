@@ -1,3 +1,4 @@
+import { type Currency } from "@/lib/i18n/config";
 import fsSync from "node:fs";
 import fs from "node:fs/promises";
 import path from "node:path";
@@ -136,8 +137,8 @@ function renderInvoicePdf(invoice: InvoiceForPdf) {
       const endY = doc.y;
       
       doc.text(String(item.quantity), 314, startY, { width: 50, align: "right" });
-      doc.text(formatPrice(Number(item.unitAmount), currency), 378, startY, { width: 70, align: "right" });
-      doc.text(formatPrice(Number(item.lineTotalAmount), currency), 462, startY, { width: 70, align: "right" });
+      doc.text(formatPrice(Number(item.unitAmount), invoice.currency as Currency), 378, startY, { width: 70, align: "right" });
+      doc.text(formatPrice(Number(item.lineTotalAmount), invoice.currency as Currency), 462, startY, { width: 70, align: "right" });
       
       const rowBottomY = Math.max(endY, startY + 12);
       
@@ -146,13 +147,13 @@ function renderInvoicePdf(invoice: InvoiceForPdf) {
     });
 
     y += 18;
-    drawTotalRow(doc, fonts, labels.subtotal, formatPrice(Number(invoice.subtotalAmount), currency), y);
+    drawTotalRow(doc, fonts, labels.subtotal, formatPrice(Number(invoice.subtotalAmount), invoice.currency as Currency), y);
     y += 22;
-    drawTotalRow(doc, fonts, labels.discount, `-${formatPrice(Number(invoice.discountAmount), currency)}`, y);
+    drawTotalRow(doc, fonts, labels.discount, `-${formatPrice(Number(invoice.discountAmount), invoice.currency as Currency)}`, y);
     y += 28;
     doc.font(fonts.bold).fontSize(14).fillColor("#4218ff");
     doc.text(labels.total, 350, y, { width: 90, align: "right" });
-    doc.text(formatPrice(Number(invoice.totalAmount), currency), 442, y, { width: 90, align: "right" });
+    doc.text(formatPrice(Number(invoice.totalAmount), invoice.currency as Currency), 442, y, { width: 90, align: "right" });
 
     y += 44;
     if (y > 700) {

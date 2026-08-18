@@ -51,7 +51,7 @@ export default async function BlogPostRoutePage({
 
   return (
     <>
-      <BlogPostPage currency={currency}
+      <BlogPostPage
         locale={locale}
         post={post}
         dictionary={dictionary}

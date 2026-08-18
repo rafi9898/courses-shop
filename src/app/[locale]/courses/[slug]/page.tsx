@@ -53,5 +53,5 @@ export default async function CourseDetailEnPage({
   const { catalog, course } = await getPublicCourseBySlug(locale, slug, currency);
   if (!course) notFound();
 
-  return <ProductDetailPage locale={locale} currency={currency} dictionary={getDictionary(locale)} detail={{ kind: "course", product: course }} {...catalog} />;
+  return <ProductDetailPage locale={locale} dictionary={getDictionary(locale)} detail={{ kind: "course", product: course }} {...catalog} />;
 }

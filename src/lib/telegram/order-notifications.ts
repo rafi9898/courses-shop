@@ -1,3 +1,4 @@
+import { type Currency } from "@/lib/i18n/config";
 import { type Order, type OrderItem } from "@prisma/client";
 import { formatPrice, isLocale, type Locale } from "@/lib/i18n/config";
 import { getAdminPath } from "@/lib/admin-routes";
@@ -109,7 +110,7 @@ function renderTelegramMessage(order: OrderWithItems) {
     "<b>Nowe zamówienie</b>",
     "",
     `<b>Numer:</b> ${escapeHtml(order.orderNumber)}`,
-    `<b>Kwota:</b> ${escapeHtml(formatPrice(Number(order.totalAmount), currency))}`,
+    `<b>Kwota:</b> ${escapeHtml(formatPrice(Number(order.totalAmount), order.currency as Currency))}`,
     `<b>Waluta:</b> ${escapeHtml(order.currency)}`,
     `<b>Język:</b> ${escapeHtml(order.locale)}`,
     order.discountCode ? `<b>Kod rabatowy:</b> ${escapeHtml(order.discountCode)}` : null,

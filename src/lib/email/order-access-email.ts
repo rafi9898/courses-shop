@@ -1,3 +1,4 @@
+import { type Currency } from "@/lib/i18n/config";
 import { InvoiceStatus, type Invoice, type Order, type OrderItem } from "@prisma/client";
 import { Resend } from "resend";
 import { formatPrice, isLocale, type Locale } from "@/lib/i18n/config";
