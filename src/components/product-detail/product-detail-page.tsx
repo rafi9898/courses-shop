@@ -235,7 +235,7 @@ export function ProductDetailPage({
           </div>
 
           {isCourse ? (
-            <MetaCard course={product} locale={locale} dictionary={dictionary} />
+            <MetaCard course={product} locale={locale} currency={currency} dictionary={dictionary} />
           ) : (
             <BundleValueCard bundle={product} courses={bundleCourses} locale={locale} currency={currency} dictionary={dictionary} />
           )}
