@@ -3,6 +3,7 @@ import { CatalogListPage } from "@/components/catalog/catalog-list-page";
 import { getPublicCatalog } from "@/lib/catalog-data";
 import { isLocale, type Locale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionaries";
+import { getServerCurrency } from "@/lib/i18n/server-config";
 import { getCatalogListingMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
@@ -27,6 +28,7 @@ export default async function CoursesEnPage({
   if (!isLocale(rawLocale) || rawLocale !== "en") notFound();
 
   const locale = rawLocale as Locale;
-  const catalog = await getPublicCatalog(locale);
-  return <CatalogListPage locale={locale} dictionary={getDictionary(locale)} kind="courses" initialCategoryId={category || "all"} initialQuery={q || ""} {...catalog} />;
+  const currency = await getServerCurrency(locale);
+  const catalog = await getPublicCatalog(locale, currency);
+  return <CatalogListPage locale={locale} currency={currency} dictionary={getDictionary(locale)} kind="courses" initialCategoryId={category || "all"} initialQuery={q || ""} {...catalog} />;
 }

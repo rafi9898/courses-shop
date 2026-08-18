@@ -1,7 +1,8 @@
 import { CategoryColor, CourseLevel, ThumbnailVariant, type Bundle as DbBundle, type Category as DbCategory, type Course as DbCourse } from "@prisma/client";
-import { localeMeta, type Locale } from "@/lib/i18n/config";
+import { localeMeta, type Locale, type Currency } from "@/lib/i18n/config";
 import { type Bundle, type Category, type Course } from "@/lib/mock-data";
 import { prisma } from "@/lib/prisma";
+import { getCurrentPlnExchangeRates } from "@/lib/exchange-rates";
 
 type DbBundleWithCourses = DbBundle & {
   courses: {
@@ -17,21 +18,11 @@ export type PublicCatalog = {
 
 const locales: Locale[] = ["pl", "de", "en"];
 
-const exchangeRates: Record<string, number> = {
-  PLN: 1,
-  EUR: 4.3,
-  USD: 4.0
-};
 
-function convertPrice(amount: number, fromCurrency: string, toCurrency: string) {
-  if (fromCurrency === toCurrency) return amount;
-  const amountInPln = amount * (exchangeRates[fromCurrency] || 1);
-  const converted = amountInPln / (exchangeRates[toCurrency] || 1);
-  // Round to nearest .99
-  return Math.max(0.99, Math.ceil(converted) - 0.01);
-}
 
-export async function getPublicCatalog(locale: Locale): Promise<PublicCatalog> {
+export async function getPublicCatalog(locale: Locale, currency?: Currency): Promise<PublicCatalog> {
+  const targetCurrency = currency ?? (localeMeta[locale].currency as Currency);
+  const rates = (await getCurrentPlnExchangeRates()) || { PLN: 1, EUR: 4.3, USD: 4.0 };
   try {
     const [dbCategories, dbCourses, dbBundles] = await Promise.all([
       prisma.category.findMany({
@@ -63,13 +54,13 @@ export async function getPublicCatalog(locale: Locale): Promise<PublicCatalog> {
         .filter(catalogKey => dbCourses.some(c => c.catalogKey === catalogKey && c.locale === locale))
         .map(catalogKey => {
           const courseVersions = dbCourses.filter(c => c.catalogKey === catalogKey);
-          return mapCourse(courseVersions, locale);
+          return mapCourse(courseVersions, locale, targetCurrency, rates);
         }),
       bundles: uniqueBundleKeys
         .filter(catalogKey => dbBundles.some(b => b.catalogKey === catalogKey && b.locale === locale))
         .map(catalogKey => {
           const bundleVersions = dbBundles.filter(b => b.catalogKey === catalogKey);
-          return mapBundle(bundleVersions, locale);
+          return mapBundle(bundleVersions, locale, targetCurrency, rates);
         })
     };
   } catch {
@@ -81,16 +72,16 @@ export async function getPublicCatalog(locale: Locale): Promise<PublicCatalog> {
   }
 }
 
-export async function getPublicCourseBySlug(locale: Locale, slug: string) {
-  const catalog = await getPublicCatalog(locale);
+export async function getPublicCourseBySlug(locale: Locale, slug: string, currency?: Currency) {
+  const catalog = await getPublicCatalog(locale, currency);
   return {
     catalog,
     course: catalog.courses.find((course) => course.slug[locale] === slug) ?? null
   };
 }
 
-export async function getPublicBundleBySlug(locale: Locale, slug: string) {
-  const catalog = await getPublicCatalog(locale);
+export async function getPublicBundleBySlug(locale: Locale, slug: string, currency?: Currency) {
+  const catalog = await getPublicCatalog(locale, currency);
   return {
     catalog,
     bundle: catalog.bundles.find((bundle) => bundle.slug[locale] === slug) ?? null
@@ -106,18 +97,9 @@ function mapCategory(category: DbCategory, locale: Locale): Category {
   };
 }
 
-function mapCourse(courseVersions: DbCourse[], locale: Locale): Course {
+function mapCourse(courseVersions: DbCourse[], locale: Locale, currency: Currency, rates: Record<string, number>): Course {
   const localCourse = courseVersions.find(c => c.locale === locale);
   const primaryCourse = localCourse || courseVersions[0];
-
-  let price = Number(primaryCourse.price);
-  let regularPrice = Number(primaryCourse.regularPrice);
-
-  if (!localCourse && primaryCourse.locale !== locale) {
-    const targetCurrency = localeMeta[locale].currency;
-    price = convertPrice(price, primaryCourse.currency, targetCurrency);
-    regularPrice = convertPrice(regularPrice, primaryCourse.currency, targetCurrency);
-  }
 
   const getLocalized = <T extends keyof DbCourse>(field: T): Record<Locale, DbCourse[T]> => {
     return locales.reduce((acc, loc) => {
@@ -125,6 +107,13 @@ function mapCourse(courseVersions: DbCourse[], locale: Locale): Course {
       acc[loc] = version[field];
       return acc;
     }, {} as Record<Locale, DbCourse[T]>);
+  };
+
+  const getPrice = (c: Currency, isRegular: boolean) => {
+    const fallbackPln = Number(isRegular ? (primaryCourse.regularPricePln || primaryCourse.regularPrice) : (primaryCourse.pricePln || primaryCourse.price));
+    if (c === "PLN") return fallbackPln;
+    if (c === "EUR") return Number(isRegular ? primaryCourse.regularPriceEur : primaryCourse.priceEur) || Number((fallbackPln / (rates.EUR || 4.3)).toFixed(2));
+    return Number(isRegular ? primaryCourse.regularPriceUsd : primaryCourse.priceUsd) || Number((fallbackPln / (rates.USD || 4.0)).toFixed(2));
   };
 
   return {
@@ -137,8 +126,8 @@ function mapCourse(courseVersions: DbCourse[], locale: Locale): Course {
     level: mapCourseLevel(primaryCourse.level),
     rating: Number(primaryCourse.rating),
     reviews: primaryCourse.reviews,
-    price: localized(locale, price),
-    regularPrice: localized(locale, regularPrice),
+    price: getPrice(currency, false),
+    regularPrice: getPrice(currency, true),
     durationHours: primaryCourse.durationHours,
     lessons: primaryCourse.lessons,
     highlights: localized(locale, stringArray(primaryCourse.highlights)),
@@ -157,18 +146,9 @@ function mapCourse(courseVersions: DbCourse[], locale: Locale): Course {
   };
 }
 
-function mapBundle(bundleVersions: DbBundleWithCourses[], locale: Locale): Bundle {
+function mapBundle(bundleVersions: DbBundleWithCourses[], locale: Locale, currency: Currency, rates: Record<string, number>): Bundle {
   const localBundle = bundleVersions.find(b => b.locale === locale);
   const primaryBundle = localBundle || bundleVersions[0];
-
-  let price = Number(primaryBundle.price);
-  let regularPrice = Number(primaryBundle.regularPrice);
-
-  if (!localBundle && primaryBundle.locale !== locale) {
-    const targetCurrency = localeMeta[locale].currency;
-    price = convertPrice(price, primaryBundle.currency, targetCurrency);
-    regularPrice = convertPrice(regularPrice, primaryBundle.currency, targetCurrency);
-  }
 
   const getLocalized = <T extends keyof DbBundleWithCourses>(field: T): Record<Locale, DbBundleWithCourses[T]> => {
     return locales.reduce((acc, loc) => {
@@ -176,6 +156,13 @@ function mapBundle(bundleVersions: DbBundleWithCourses[], locale: Locale): Bundl
       acc[loc] = version[field];
       return acc;
     }, {} as Record<Locale, DbBundleWithCourses[T]>);
+  };
+
+  const getPrice = (c: Currency, isRegular: boolean) => {
+    const fallbackPln = Number(isRegular ? (primaryBundle.regularPricePln || primaryBundle.regularPrice) : (primaryBundle.pricePln || primaryBundle.price));
+    if (c === "PLN") return fallbackPln;
+    if (c === "EUR") return Number(isRegular ? primaryBundle.regularPriceEur : primaryBundle.priceEur) || Number((fallbackPln / (rates.EUR || 4.3)).toFixed(2));
+    return Number(isRegular ? primaryBundle.regularPriceUsd : primaryBundle.priceUsd) || Number((fallbackPln / (rates.USD || 4.0)).toFixed(2));
   };
 
   return {
@@ -190,8 +177,8 @@ function mapBundle(bundleVersions: DbBundleWithCourses[], locale: Locale): Bundl
     courseCount: primaryBundle.courseCount,
     rating: Number(primaryBundle.rating),
     reviews: primaryBundle.reviews,
-    price: localized(locale, price),
-    regularPrice: localized(locale, regularPrice),
+    price: getPrice(currency, false),
+    regularPrice: getPrice(currency, true),
     thumbnail: {
       title: primaryBundle.thumbnailTitle,
       subtitle: primaryBundle.thumbnailSubtitle,

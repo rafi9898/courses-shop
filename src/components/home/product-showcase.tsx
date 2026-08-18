@@ -10,6 +10,7 @@ import { type Dictionary } from "@/lib/i18n/dictionaries";
 
 export function ProductShowcase({
   locale,
+  currency,
   dictionary,
   categories,
   courses,
@@ -17,6 +18,7 @@ export function ProductShowcase({
 }: {
   locale: Locale;
   dictionary: Dictionary;
+  currency: "PLN" | "EUR" | "USD";
   categories: Category[];
   courses: Course[];
   bundles: Bundle[];
@@ -43,7 +45,7 @@ export function ProductShowcase({
 
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {courses.slice(0, 8).map((course) => (
-          <ProductCard key={course.id} course={course} locale={locale} dictionary={dictionary} categories={categories} />
+          <ProductCard key={course.id} course={course} locale={locale} currency={currency} dictionary={dictionary} categories={categories} />
         ))}
       </div>
 
@@ -64,7 +66,7 @@ export function ProductShowcase({
       </div>
       <div className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
         {bundles.slice(0, 3).map((bundle) => (
-          <BundleCard key={bundle.id} bundle={bundle} locale={locale} dictionary={dictionary} categories={categories} />
+          <BundleCard key={bundle.id} bundle={bundle} locale={locale} currency={currency} dictionary={dictionary} categories={categories} />
         ))}
       </div>
     </section>

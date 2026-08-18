@@ -11,6 +11,7 @@ import { ButtonLink } from "@/components/ui/button";
 import { type CheckoutCartItemInput } from "@/lib/cart";
 import { summarizeCustomBundle } from "@/lib/custom-bundle";
 import { calculateCartTotals } from "@/lib/discounts";
+import { useCurrency } from "@/components/layout/currency-provider";
 import { formatPrice, type Locale } from "@/lib/i18n/config";
 import { type Dictionary } from "@/lib/i18n/dictionaries";
 import { emptyInvoiceData, isInvoiceDataComplete, type InvoiceData } from "@/lib/invoice";
@@ -28,6 +29,7 @@ export function CheckoutPage({
   courses: Course[];
   bundles: Bundle[];
 }) {
+  const { currency } = useCurrency();
   const { items, customBundleCourseIds, hydrated, removeItem, clearCustomBundle, appliedDiscountCode, discounts } = useCart();
   const [customerEmail, setCustomerEmail] = useState("");
   const [invoiceRequested, setInvoiceRequested] = useState(false);
@@ -136,17 +138,17 @@ export function CheckoutPage({
                 </div>
               </div>
               <dl className="mt-6 space-y-4 text-sm">
-                <SummaryRow label={dictionary.cartPage.regularTotal} value={formatPrice(totals.regularTotal, locale)} muted />
-                <SummaryRow label={dictionary.cartPage.subtotal} value={formatPrice(totals.subtotal, locale)} />
-                <SummaryRow label={dictionary.cartPage.savings} value={formatPrice(totals.saleSavings, locale)} accent />
+                <SummaryRow label={dictionary.cartPage.regularTotal} value={formatPrice(totals.regularTotal, currency)} muted />
+                <SummaryRow label={dictionary.cartPage.subtotal} value={formatPrice(totals.subtotal, currency)} />
+                <SummaryRow label={dictionary.cartPage.savings} value={formatPrice(totals.saleSavings, currency)} accent />
                 {totals.discount ? (
-                  <SummaryRow label={`${dictionary.cartPage.discount} (${totals.discount.code})`} value={`-${formatPrice(totals.discountAmount, locale)}`} accent />
+                  <SummaryRow label={`${dictionary.cartPage.discount} (${totals.discount.code})`} value={`-${formatPrice(totals.discountAmount, currency)}`} accent />
                 ) : null}
               </dl>
               <div className="mt-6 border-t border-border pt-5">
                 <div className="flex items-center justify-between gap-4">
                   <span className="text-base font-black">{dictionary.cartPage.total}</span>
-                  <span className="text-2xl font-black">{formatPrice(totals.total, locale)}</span>
+                  <span className="text-2xl font-black">{formatPrice(totals.total, currency)}</span>
                 </div>
               </div>
               <div className="mt-6">
@@ -188,6 +190,7 @@ function LegalAcceptance({
   accepted: boolean;
   onAcceptedChange: (value: boolean) => void;
 }) {
+  const { currency } = useCurrency();
   return (
     <div className="mb-5 rounded-xl border border-border bg-slate-50 p-4">
       <label className="flex cursor-pointer items-start gap-3">
@@ -226,6 +229,7 @@ function ContactDetailsForm({
   onCustomerEmailChange: (value: string) => void;
   dictionary: Dictionary;
 }) {
+  const { currency } = useCurrency();
   return (
     <section className="mt-6 rounded-2xl border border-border bg-white p-6 shadow-[0_10px_26px_rgba(15,23,42,0.04)]">
       <div>
@@ -252,6 +256,7 @@ function InvoiceDetailsForm({
   onChange: (invoiceData: InvoiceData) => void;
   dictionary: Dictionary;
 }) {
+  const { currency } = useCurrency();
   function updateField(field: keyof InvoiceData, value: string) {
     onChange({ ...invoiceData, [field]: value });
   }
@@ -311,6 +316,7 @@ function TextField({
   required?: boolean;
   optionalLabel?: string;
 }) {
+  const { currency } = useCurrency();
   return (
     <label className="block">
       <span className="text-sm font-black">
@@ -330,6 +336,7 @@ function TextField({
 }
 
 function EmptyCheckout({ dictionary }: { dictionary: Dictionary }) {
+  const { currency } = useCurrency();
   return (
     <div className="mx-auto max-w-xl rounded-2xl border border-border bg-white p-8 text-center shadow-card">
       <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-primary-soft text-primary">
@@ -354,6 +361,7 @@ function CheckoutProductRow({
   locale: Locale;
   dictionary: Dictionary;
 }) {
+  const { currency } = useCurrency();
   const href = product.type === "course" ? getCoursePath(product, locale) : getBundlePath(product, locale);
   const typeLabel = product.type === "course" ? dictionary.cartPage.course : dictionary.cartPage.bundle;
 
@@ -379,8 +387,8 @@ function CheckoutProductRow({
         </h3>
       </div>
       <div className="flex items-end justify-between gap-4 sm:block sm:text-right">
-        <span className="text-sm text-muted-foreground line-through">{formatPrice(product.regularPrice[locale], locale)}</span>
-        <div className="mt-1 text-xl font-black">{formatPrice(product.price[locale], locale)}</div>
+        <span className="text-sm text-muted-foreground line-through">{formatPrice(product.regularPrice, currency)}</span>
+        <div className="mt-1 text-xl font-black">{formatPrice(product.price, currency)}</div>
       </div>
     </article>
   );
@@ -397,6 +405,7 @@ function SummaryRow({
   muted?: boolean;
   accent?: boolean;
 }) {
+  const { currency } = useCurrency();
   return (
     <div className="flex items-center justify-between gap-4">
       <dt className={muted ? "text-muted-foreground" : "text-slate-600"}>{label}</dt>

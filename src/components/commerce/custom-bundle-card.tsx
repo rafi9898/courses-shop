@@ -1,6 +1,7 @@
 "use client";
 
 import { Sparkles, Trash2 } from "lucide-react";
+import { useCurrency } from "@/components/layout/currency-provider";
 import { formatPrice, type Locale } from "@/lib/i18n/config";
 import { type Dictionary } from "@/lib/i18n/dictionaries";
 import { type Course } from "@/lib/mock-data";
@@ -19,6 +20,7 @@ export function CustomBundleCard({
   dictionary: Dictionary;
   onRemove?: () => void;
 }) {
+  const { currency } = useCurrency();
   const summary = summarizeCustomBundle(courses, locale, courseIds);
 
   if (summary.courses.length < 2) {
@@ -66,11 +68,11 @@ export function CustomBundleCard({
         <div>
           <div className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">{dictionary.cartPage.discount}</div>
           <div className="mt-1 flex items-baseline gap-3">
-            <span className="text-2xl font-black text-foreground">{formatPrice(summary.total, locale)}</span>
-            <span className="text-sm text-slate-500 line-through">{formatPrice(summary.regularTotal, locale)}</span>
+            <span className="text-2xl font-black text-foreground">{formatPrice(summary.total, currency)}</span>
+            <span className="text-sm text-slate-500 line-through">{formatPrice(summary.regularTotal, currency)}</span>
           </div>
           <p className="mt-1 text-xs font-semibold text-slate-500">
-            {dictionary.cartPage.savings}: {formatPrice(summary.discountAmount, locale)}
+            {dictionary.cartPage.savings}: {formatPrice(summary.discountAmount, currency)}
           </p>
         </div>
         <div className="inline-flex w-fit rounded-full bg-white px-3 py-1 text-xs font-black text-primary">

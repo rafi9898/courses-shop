@@ -10,11 +10,13 @@ import { getBundlePath } from "@/lib/routes";
 export function BundleCard({
   bundle,
   locale,
+  currency,
   dictionary,
   categories = []
 }: {
   bundle: Bundle;
   locale: Locale;
+  currency: "PLN" | "EUR" | "USD";
   dictionary: Dictionary;
   categories?: Category[];
 }) {
@@ -52,9 +54,9 @@ export function BundleCard({
         </div>
         <div className="mt-4 flex items-end justify-between gap-4">
           <div>
-            <span className="text-xl font-black">{formatPrice(bundle.price[locale], locale)}</span>
+            <span className="text-xl font-black">{formatPrice(bundle.price, currency)}</span>
             <span className="ml-2 text-sm text-muted-foreground line-through">
-              {formatPrice(bundle.regularPrice[locale], locale)}
+              {formatPrice(bundle.regularPrice, currency)}
             </span>
           </div>
           <AddToCartButton product={bundle} dictionary={dictionary} iconOnly />

@@ -3,6 +3,7 @@ import { CartPage } from "@/components/cart/cart-page";
 import { getPublicCatalog } from "@/lib/catalog-data";
 import { isLocale, type Locale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionaries";
+import { getServerCurrency } from "@/lib/i18n/server-config";
 import { getNoIndexMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
@@ -24,6 +25,7 @@ export default async function CartDePage({
   if (!isLocale(rawLocale) || rawLocale !== "de") notFound();
 
   const locale = rawLocale as Locale;
-  const catalog = await getPublicCatalog(locale);
+  const currency = await getServerCurrency(locale);
+  const catalog = await getPublicCatalog(locale, currency);
   return <CartPage locale={locale} dictionary={getDictionary(locale)} {...catalog} />;
 }

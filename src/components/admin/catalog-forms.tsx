@@ -343,18 +343,45 @@ function SubmitButton({ label }: { label: string }) {
   );
 }
 
-function PriceGrid({ locale, entity }: { locale: AdminCatalogLocale; entity?: Pick<Course, "price" | "regularPrice" | "currency"> | Pick<Bundle, "price" | "regularPrice" | "currency"> }) {
+function PriceGrid({ entity }: { entity?: Partial<Course> | Partial<Bundle> }) {
   return (
-    <div className="grid gap-4 md:grid-cols-3">
-      <Field label="Cena">
-        <Input name="price" type="number" step="0.01" min="0" defaultValue={decimalValue(entity?.price)} required />
-      </Field>
-      <Field label="Cena regularna">
-        <Input name="regularPrice" type="number" step="0.01" min="0" defaultValue={decimalValue(entity?.regularPrice)} required />
-      </Field>
-      <Field label="Waluta">
-        <Input name="currency" defaultValue={entity?.currency ?? currencyByLocale[locale]} required />
-      </Field>
+    <div className="space-y-4">
+      <h3 className="text-sm font-black text-slate-700">Cennik</h3>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="space-y-4 rounded-lg border border-slate-200 bg-slate-50 p-4">
+          <span className="text-xs font-black uppercase text-slate-500">PLN</span>
+          <Field label="Cena">
+            <Input name="pricePln" type="number" step="0.01" min="0" defaultValue={decimalValue(entity?.pricePln || entity?.price)} required />
+          </Field>
+          <Field label="Cena regularna">
+            <Input name="regularPricePln" type="number" step="0.01" min="0" defaultValue={decimalValue(entity?.regularPricePln || entity?.regularPrice)} required />
+          </Field>
+        </div>
+        
+        <div className="space-y-4 rounded-lg border border-slate-200 bg-slate-50 p-4">
+          <span className="text-xs font-black uppercase text-slate-500">EUR</span>
+          <Field label="Cena">
+            <Input name="priceEur" type="number" step="0.01" min="0" defaultValue={decimalValue(entity?.priceEur || entity?.price)} required />
+          </Field>
+          <Field label="Cena regularna">
+            <Input name="regularPriceEur" type="number" step="0.01" min="0" defaultValue={decimalValue(entity?.regularPriceEur || entity?.regularPrice)} required />
+          </Field>
+        </div>
+
+        <div className="space-y-4 rounded-lg border border-slate-200 bg-slate-50 p-4">
+          <span className="text-xs font-black uppercase text-slate-500">USD</span>
+          <Field label="Cena">
+            <Input name="priceUsd" type="number" step="0.01" min="0" defaultValue={decimalValue(entity?.priceUsd || entity?.price)} required />
+          </Field>
+          <Field label="Cena regularna">
+            <Input name="regularPriceUsd" type="number" step="0.01" min="0" defaultValue={decimalValue(entity?.regularPriceUsd || entity?.regularPrice)} required />
+          </Field>
+        </div>
+        
+        {/* Hidden inputs for base price backward compatibility */}
+        <input type="hidden" name="price" value={decimalValue(entity?.pricePln || entity?.price)} />
+        <input type="hidden" name="regularPrice" value={decimalValue(entity?.regularPricePln || entity?.regularPrice)} />
+      </div>
     </div>
   );
 }

@@ -110,8 +110,8 @@ export default async function AdminCoursesPage({
                         <p className="mt-1 text-xs text-slate-500">{course.categoryId}</p>
                       </Td>
                       <Td>
-                        <p>{formatMoney(Number(course.price), course.currency)}</p>
-                        <p className="mt-1 text-xs text-slate-500">Regularna: {formatMoney(Number(course.regularPrice), course.currency)}</p>
+                        <p>{formatMoney(Number(course.pricePln), "PLN")}</p>
+                        <p className="mt-1 text-xs text-slate-500">Regularna: {formatMoney(Number(course.regularPricePln), "PLN")}</p>
                       </Td>
                       <Td>
                         <p>Poziom: {course.level}</p>

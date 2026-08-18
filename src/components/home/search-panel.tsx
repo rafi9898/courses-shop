@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { type Bundle, type Category, type Course, type Product } from "@/lib/mock-data";
+import { useCurrency } from "@/components/layout/currency-provider";
 import { formatPrice, type Locale } from "@/lib/i18n/config";
 import { type Dictionary } from "@/lib/i18n/dictionaries";
 import { getCatalogItemSearchRank, matchesCatalogItem, normalizeCatalogSearchText } from "@/lib/catalog-search";
@@ -24,6 +25,7 @@ export function SearchPanel({
   courses: Course[];
   bundles: Bundle[];
 }) {
+  const { currency } = useCurrency();
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("all");
@@ -136,7 +138,7 @@ export function SearchPanel({
                       </div>
                     </div>
                     <div className="flex items-center gap-3 text-sm font-black">
-                      {formatPrice(product.price[locale], locale)}
+                      {formatPrice(product.price, currency)}
                       <ArrowRight className="h-4 w-4 text-primary" />
                     </div>
                   </Link>

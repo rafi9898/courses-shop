@@ -6,6 +6,7 @@ import { buildCustomBundlePricingCourses, normalizeCustomBundleCourseIds } from 
 import { getActiveDiscountCodes } from "@/lib/discount-code-data";
 import { calculateCartTotals, getDiscount, getDiscountedUnitAmount } from "@/lib/discounts";
 import { isLocale, localeMeta } from "@/lib/i18n/config";
+import { getServerCurrency } from "@/lib/i18n/server-config";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 import { parseInvoiceData } from "@/lib/invoice";
 import { type Product } from "@/lib/mock-data";
@@ -49,7 +50,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: getDictionary(locale).checkoutPage.termsRequired }, { status: 400 });
   }
 
-  const catalog = await getPublicCatalog(locale);
+  const currency = await getServerCurrency(locale);
+  const catalog = await getPublicCatalog(locale, currency);
   const discounts = await getActiveDiscountCodes();
   const discountPool = discounts.length > 0 ? discounts : undefined;
   const discountCode = typeof body?.discountCode === "string" && getDiscount(body.discountCode, discountPool) ? getDiscount(body.discountCode, discountPool)?.code : null;
@@ -93,7 +95,7 @@ export async function POST(request: NextRequest) {
     customer_email: customerEmail,
     metadata: {
       locale,
-      currency: localeMeta[locale].currency,
+      currency: currency,
       customer_email: customerEmail,
       discount_code: discountCode ?? "",
       product_keys: checkoutPricingProducts.map((product) => getCartItemKey({ productId: product.id, productType: product.type })).join(","),
@@ -119,8 +121,8 @@ export async function POST(request: NextRequest) {
     line_items: checkoutPricingProducts.map((product) => ({
       quantity: 1,
       price_data: {
-        currency: localeMeta[locale].currency.toLowerCase(),
-        unit_amount: toStripeAmount(getDiscountedUnitAmount({ id: product.id, type: product.type, price: product.price[locale] }, discountCode, discountPool)),
+        currency: currency.toLowerCase(),
+        unit_amount: toStripeAmount(getDiscountedUnitAmount({ id: product.id, type: product.type, price: product.price }, discountCode, discountPool)),
         product_data: {
           name: product.title[locale],
           metadata: {

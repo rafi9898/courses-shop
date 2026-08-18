@@ -12,6 +12,7 @@ import { Thumbnail } from "@/components/commerce/product-card";
 import { calculateCartTotals } from "@/lib/discounts";
 import { summarizeCustomBundle } from "@/lib/custom-bundle";
 import { type Dictionary } from "@/lib/i18n/dictionaries";
+import { useCurrency } from "@/components/layout/currency-provider";
 import { formatPrice, type Locale } from "@/lib/i18n/config";
 import { type Bundle, type Category, type Course, type Product } from "@/lib/mock-data";
 import { getBundlePath, getCoursePath } from "@/lib/routes";
@@ -29,6 +30,7 @@ export function CartPage({
   courses: Course[];
   bundles: Bundle[];
 }) {
+  const { currency } = useCurrency();
   const { items, customBundleCourseIds, hydrated, removeItem, clearCustomBundle, clearCart, appliedDiscountCode, discounts } = useCart();
   const products: Product[] = useMemo(() => [...courses, ...bundles], [bundles, courses]);
   const discountPool = discounts.length > 0 ? discounts : undefined;
@@ -133,18 +135,18 @@ export function CartPage({
                 <h2 className="text-2xl font-black">{dictionary.cartPage.summary}</h2>
                 <dl className="mt-6 space-y-4 text-sm">
                   <SummaryRow label={dictionary.cartPage.productCount} value={String(cartEntryCount)} />
-                  <SummaryRow label={dictionary.cartPage.regularTotal} value={formatPrice(totals.regularTotal, locale)} muted />
-                  <SummaryRow label={dictionary.cartPage.subtotal} value={formatPrice(totals.subtotal, locale)} />
+                  <SummaryRow label={dictionary.cartPage.regularTotal} value={formatPrice(totals.regularTotal, currency)} muted />
+                  <SummaryRow label={dictionary.cartPage.subtotal} value={formatPrice(totals.subtotal, currency)} />
                   <SummaryRow
                     label={totals.discount ? `${dictionary.cartPage.discount} (${totals.discount.code})` : dictionary.cartPage.discount}
-                    value={totals.discountAmount > 0 ? `-${formatPrice(totals.discountAmount, locale)}` : formatPrice(0, locale)}
+                    value={totals.discountAmount > 0 ? `-${formatPrice(totals.discountAmount, currency)}` : formatPrice(0, currency)}
                     accent={totals.discountAmount > 0}
                   />
                 </dl>
                 <div className="mt-6 border-t border-border pt-5">
                   <div className="flex items-center justify-between gap-4">
                     <span className="text-base font-black">{dictionary.cartPage.total}</span>
-                    <span className="text-2xl font-black text-primary">{formatPrice(totals.total, locale)}</span>
+                    <span className="text-2xl font-black text-primary">{formatPrice(totals.total, currency)}</span>
                   </div>
                 </div>
                 <ButtonLink href={dictionary.routes.checkout} className="mt-6 w-full">
@@ -178,6 +180,7 @@ export function CartPage({
 }
 
 function EmptyCart({ dictionary }: { dictionary: Dictionary }) {
+  const { currency } = useCurrency();
   return (
     <div className="mx-auto max-w-xl rounded-2xl border border-border bg-white p-8 text-center shadow-card">
       <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-primary-soft text-primary">
@@ -206,10 +209,11 @@ function CartProductRow({
   categories: Category[];
   onRemove: () => void;
 }) {
+  const { currency } = useCurrency();
   const href = product.type === "course" ? getCoursePath(product, locale) : getBundlePath(product, locale);
   const typeLabel = product.type === "course" ? dictionary.cartPage.course : dictionary.cartPage.bundle;
   const category = categories.find((item) => item.id === product.categoryId);
-  const discountPercent = Math.round(((product.regularPrice[locale] - product.price[locale]) / product.regularPrice[locale]) * 100);
+  const discountPercent = Math.round(((product.regularPrice - product.price) / product.regularPrice) * 100);
 
   return (
     <article className="grid gap-5 rounded-2xl border border-border bg-white p-4 shadow-[0_10px_26px_rgba(15,23,42,0.04)] sm:grid-cols-[190px_1fr_auto] sm:items-center">
@@ -252,9 +256,9 @@ function CartProductRow({
       </div>
       <div className="flex items-end justify-between gap-4 sm:block sm:text-right">
         <div>
-          <div className="text-2xl font-black">{formatPrice(product.price[locale], locale)}</div>
+          <div className="text-2xl font-black">{formatPrice(product.price, currency)}</div>
           <div className="mt-2 flex items-center gap-2 sm:justify-end">
-            <span className="text-sm text-muted-foreground line-through">{formatPrice(product.regularPrice[locale], locale)}</span>
+            <span className="text-sm text-muted-foreground line-through">{formatPrice(product.regularPrice, currency)}</span>
             <span className="rounded-full bg-primary-soft px-2 py-1 text-xs font-black text-primary">-{discountPercent}%</span>
           </div>
         </div>
@@ -264,6 +268,7 @@ function CartProductRow({
 }
 
 function DiscountForm({ dictionary }: { dictionary: Dictionary }) {
+  const { currency } = useCurrency();
   const { discountCode, appliedDiscountCode, setDiscountCode, applyDiscountCode, clearDiscountCode } = useCart();
   const [message, setMessage] = useState<"success" | "error" | null>(null);
   const [isApplying, setIsApplying] = useState(false);
@@ -316,6 +321,7 @@ function DiscountForm({ dictionary }: { dictionary: Dictionary }) {
 }
 
 function AccessBenefits({ dictionary }: { dictionary: Dictionary }) {
+  const { currency } = useCurrency();
   const benefits = [
     { icon: ShieldCheck, title: dictionary.cartPage.stripeBenefitTitle, text: dictionary.cartPage.stripeBenefitText },
     { icon: Zap, title: dictionary.cartPage.instantAccessTitle, text: dictionary.cartPage.instantAccessText },
@@ -350,6 +356,7 @@ function RecommendedProductCard({
   dictionary: Dictionary;
   categories: Category[];
 }) {
+  const { currency } = useCurrency();
   const href = product.type === "course" ? getCoursePath(product, locale) : getBundlePath(product, locale);
   const category = categories.find((item) => item.id === product.categoryId);
 
@@ -373,8 +380,8 @@ function RecommendedProductCard({
         </h3>
         <p className="mt-2 text-sm font-bold text-primary">{category?.label[locale]}</p>
         <div className="mt-3 flex flex-wrap items-end gap-2">
-          <span className="text-lg font-black">{formatPrice(product.price[locale], locale)}</span>
-          <span className="text-sm text-muted-foreground line-through">{formatPrice(product.regularPrice[locale], locale)}</span>
+          <span className="text-lg font-black">{formatPrice(product.price, currency)}</span>
+          <span className="text-sm text-muted-foreground line-through">{formatPrice(product.regularPrice, currency)}</span>
         </div>
       </div>
       <AddToCartButton product={product} dictionary={dictionary} iconOnly variant="secondary" />
@@ -393,6 +400,7 @@ function SummaryRow({
   muted?: boolean;
   accent?: boolean;
 }) {
+  const { currency } = useCurrency();
   return (
     <div className="flex items-center justify-between gap-4">
       <dt className={muted ? "text-muted-foreground" : "text-slate-600"}>{label}</dt>

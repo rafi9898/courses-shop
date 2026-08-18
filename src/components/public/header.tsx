@@ -8,6 +8,7 @@ import { useCart } from "@/components/cart/cart-provider";
 import { locales, localeMeta, type Locale } from "@/lib/i18n/config";
 import { type Dictionary } from "@/lib/i18n/dictionaries";
 import { cn } from "@/lib/utils";
+import { CurrencySwitcher } from "@/components/layout/currency-switcher";
 import { Logo } from "./logo";
 
 export function Header({
@@ -38,6 +39,7 @@ export function Header({
 
         {isPromotionPage ? (
           <div className="flex items-center gap-4">
+            <CurrencySwitcher />
             <LanguageSwitcher locale={locale} />
             <CartLink href={dictionary.routes.cart} label={dictionary.nav.cart} />
           </div>
@@ -56,6 +58,7 @@ export function Header({
             </nav>
 
             <div className="hidden items-center gap-4 lg:flex">
+              <CurrencySwitcher />
               <LanguageSwitcher locale={locale} />
               <CartLink
                 href={dictionary.routes.cart}
@@ -84,8 +87,8 @@ export function Header({
             open ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
           )}
         >
-          <div className={cn(open ? "overflow-visible" : "overflow-hidden")}>
-            <nav className="container-shell flex flex-col gap-2 py-4">
+          <div className="min-h-0 overflow-hidden">
+            <nav className="container-shell flex max-h-[calc(100dvh-72px)] flex-col gap-2 overflow-y-auto py-4">
               {navItems.map((item) => (
                 <Link
                   key={item.href}
@@ -96,7 +99,8 @@ export function Header({
                   {item.label}
                 </Link>
               ))}
-              <div className="mt-2 flex items-center justify-between border-t border-border pt-4">
+              <div className="mt-2 flex flex-wrap items-center gap-4 border-t border-border pt-4">
+                <CurrencySwitcher />
                 <LanguageSwitcher locale={locale} />
                 <CartLink
                   href={dictionary.routes.cart}

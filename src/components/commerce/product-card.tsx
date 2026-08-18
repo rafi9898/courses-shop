@@ -11,11 +11,13 @@ import { cn } from "@/lib/utils";
 export function ProductCard({
   course,
   locale,
+  currency,
   dictionary,
   categories = []
 }: {
   course: Course;
   locale: Locale;
+  currency: "PLN" | "EUR" | "USD";
   dictionary: Dictionary;
   categories?: Category[];
 }) {
@@ -52,9 +54,9 @@ export function ProductCard({
         </div>
         <div className="mt-4 flex items-end justify-between gap-3">
           <div>
-            <span className="text-lg font-black">{formatPrice(course.price[locale], locale)}</span>
+            <span className="text-lg font-black">{formatPrice(course.price, currency)}</span>
             <span className="ml-2 text-xs text-muted-foreground line-through">
-              {formatPrice(course.regularPrice[locale], locale)}
+              {formatPrice(course.regularPrice, currency)}
             </span>
           </div>
           <AddToCartButton product={course} dictionary={dictionary} iconOnly />

@@ -7,6 +7,7 @@ import { useCart } from "@/components/cart/cart-provider";
 import { Button } from "@/components/ui/button";
 import { normalizeCatalogSearchText } from "@/lib/catalog-search";
 import { getCustomBundleDiscountPercent, summarizeCustomBundle } from "@/lib/custom-bundle";
+import { useCurrency } from "@/components/layout/currency-provider";
 import { formatPrice, type Locale } from "@/lib/i18n/config";
 import { type Dictionary } from "@/lib/i18n/dictionaries";
 import { type Category, type Course } from "@/lib/mock-data";
@@ -23,6 +24,7 @@ export function CustomBundleBuilder({
   categories: Category[];
   courses: Course[];
 }) {
+  const { currency } = useCurrency();
   const { items, customBundleCourseIds, setCustomBundleCourseIds } = useCart();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -177,7 +179,7 @@ export function CustomBundleBuilder({
                         <span className="min-w-0 flex-1">
                           <span className="block truncate text-sm font-black text-foreground">{course.title[locale]}</span>
                           <span className="mt-1 block truncate text-xs font-semibold text-slate-500">
-                            {categoryLabels.get(course.categoryId) ?? dictionary.cartPage.course} - {formatPrice(course.price[locale], locale)}
+                            {categoryLabels.get(course.categoryId) ?? dictionary.cartPage.course} - {formatPrice(course.price, currency)}
                           </span>
                         </span>
                         {inNormalCart ? (
@@ -201,8 +203,8 @@ export function CustomBundleBuilder({
                 <div className="text-sm font-black text-foreground">{selectedLabel}</div>
                 {selectedCount >= 2 ? (
                   <div className="mt-1 flex flex-wrap items-center gap-2 text-sm">
-                    <span className="font-black text-primary">{formatPrice(selectedSummary.total, locale)}</span>
-                    <span className="text-slate-500 line-through">{formatPrice(selectedSummary.regularTotal, locale)}</span>
+                    <span className="font-black text-primary">{formatPrice(selectedSummary.total, currency)}</span>
+                    <span className="text-slate-500 line-through">{formatPrice(selectedSummary.regularTotal, currency)}</span>
                     <span className="rounded-full bg-white px-2 py-1 text-xs font-black text-primary">-{selectedDiscountPercent}%</span>
                   </div>
                 ) : (
@@ -222,6 +224,7 @@ export function CustomBundleBuilder({
 }
 
 function CourseMiniThumbnail({ course }: { course: Course }) {
+  const { currency } = useCurrency();
   const isBundleLocked = false;
 
   return (

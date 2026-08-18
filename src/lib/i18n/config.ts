@@ -10,14 +10,17 @@ export const localeMeta: Record<Locale, { label: string; flag: string; currency:
   en: { label: "EN", flag: "🇺🇸", currency: "USD" }
 };
 
+export const adminLocales: Locale[] = ["pl", "en", "de"];
+
 export function isLocale(value: string): value is Locale {
   return locales.includes(value as Locale);
 }
 
-export function formatPrice(amount: number, locale: Locale) {
-  const currency = localeMeta[locale].currency;
+export type Currency = "PLN" | "EUR" | "USD";
+export const currencies: Currency[] = ["PLN", "EUR", "USD"];
 
-  return new Intl.NumberFormat(locale === "pl" ? "pl-PL" : locale === "de" ? "de-DE" : "en-US", {
+export function formatPrice(amount: number, currency: Currency) {
+  return new Intl.NumberFormat(currency === "PLN" ? "pl-PL" : currency === "EUR" ? "de-DE" : "en-US", {
     style: "currency",
     currency,
     minimumFractionDigits: 2

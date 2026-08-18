@@ -16,6 +16,7 @@ import { useCart } from "@/components/cart/cart-provider";
 import { useNotification } from "@/components/ui/notification";
 import { type Category, type Course } from "@/lib/mock-data";
 import { formatPrice, type Locale } from "@/lib/i18n/config";
+import { useCurrency } from "@/components/layout/currency-provider";
 import { type Dictionary } from "@/lib/i18n/dictionaries";
 import { getCoursePath } from "@/lib/routes";
 import { cn } from "@/lib/utils";
@@ -80,6 +81,7 @@ export function PromotionPage({
   const resultsRef               = useRef<HTMLDivElement>(null);
   const [promoEnd]               = useState(getPromoEnd);
   const [timeLeft, setTimeLeft]  = useState(calcLeft(promoEnd));
+  const { currency }             = useCurrency();
 
   useEffect(() => {
     const id = setInterval(() => setTimeLeft(calcLeft(promoEnd)), 1000);
@@ -333,8 +335,8 @@ function CourseCard({
         </div>
         <div className="pp-card__footer">
           <div>
-            <span className="pp-card__price">{formatPrice(course.price[locale], locale)}</span>
-            <span className="pp-card__price-old">{formatPrice(course.regularPrice[locale], locale)}</span>
+            <span className="pp-card__price">{formatPrice(course.price, currency)}</span>
+            <span className="pp-card__price-old">{formatPrice(course.regularPrice, currency)}</span>
           </div>
           <button
             type="button"

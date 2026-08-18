@@ -90,8 +90,8 @@ export default async function AdminBundlesPage({
                       <p className="mt-1 text-xs text-slate-500">{bundle.categoryId}</p>
                     </Td>
                     <Td>
-                      <p>{formatMoney(Number(bundle.price), bundle.currency)}</p>
-                      <p className="mt-1 text-xs text-slate-500">Regularna: {formatMoney(Number(bundle.regularPrice), bundle.currency)}</p>
+                      <p>{formatMoney(Number(bundle.pricePln), "PLN")}</p>
+                      <p className="mt-1 text-xs text-slate-500">Regularna: {formatMoney(Number(bundle.regularPricePln), "PLN")}</p>
                     </Td>
                     <Td>
                       <p className="font-black">{bundle.courses.length} kursów</p>

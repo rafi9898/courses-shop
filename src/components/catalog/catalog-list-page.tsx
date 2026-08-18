@@ -12,6 +12,7 @@ import { type Locale } from "@/lib/i18n/config";
 import { type Dictionary } from "@/lib/i18n/dictionaries";
 import { type CatalogSort, getCatalogItemSearchRank, matchesCatalogItem, normalizeCatalogSearchText } from "@/lib/catalog-search";
 import { cn } from "@/lib/utils";
+import { useCurrency } from "@/components/layout/currency-provider";
 
 type ProductKind = "courses" | "bundles";
 const ITEMS_PER_PAGE = 9;
@@ -40,6 +41,7 @@ export function CatalogListPage({
   const [sort, setSort] = useState<CatalogSort>("popular");
   const [page, setPage] = useState(1);
   const resultsTopRef = useRef<HTMLDivElement>(null);
+  const { currency } = useCurrency();
 
   const isCourses = kind === "courses";
   const source = isCourses ? courses : bundles;
@@ -65,8 +67,8 @@ export function CatalogListPage({
         if (rankA !== rankB) return rankA - rankB;
       }
 
-      if (sort === "price-low") return a.price[locale] - b.price[locale];
-      if (sort === "price-high") return b.price[locale] - a.price[locale];
+      if (sort === "price-low") return a.price - b.price;
+      if (sort === "price-high") return b.price - a.price;
       return b.reviews - a.reviews;
     });
   }, [categoryId, categoryLabels, locale, query, sort, source]);
@@ -233,9 +235,9 @@ export function CatalogListPage({
               <div className={cn("grid gap-5", isCourses ? "sm:grid-cols-2 xl:grid-cols-3" : "md:grid-cols-2 xl:grid-cols-3")}>
                 {paginatedItems.map((item) =>
                   item.type === "course" ? (
-                    <ProductCard key={item.id} course={item} locale={locale} dictionary={dictionary} categories={categories} />
+                    <ProductCard key={item.id} course={item} currency={currency} locale={locale} dictionary={dictionary} categories={categories} />
                   ) : (
-                    <BundleCard key={item.id} bundle={item} locale={locale} dictionary={dictionary} categories={categories} />
+                    <BundleCard key={item.id} bundle={item} locale={locale} currency={currency} dictionary={dictionary} categories={categories} />
                   )
                 )}
               </div>

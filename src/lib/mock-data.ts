@@ -17,8 +17,8 @@ export type Course = {
   level: "all_levels" | "beginner" | "intermediate" | "advanced";
   rating: number;
   reviews: number;
-  price: Record<Locale, number>;
-  regularPrice: Record<Locale, number>;
+  price: number;
+  regularPrice: number;
   durationHours: number;
   lessons: number;
   highlights: Record<Locale, string[]>;
@@ -48,8 +48,8 @@ export type Bundle = {
   courseCount: number;
   rating: number;
   reviews: number;
-  price: Record<Locale, number>;
-  regularPrice: Record<Locale, number>;
+  price: number;
+  regularPrice: number;
   thumbnail: {
     title: string;
     subtitle: string;

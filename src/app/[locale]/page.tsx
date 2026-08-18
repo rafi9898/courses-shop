@@ -11,6 +11,8 @@ import { isLocale, type Locale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 import { getPublicPageMetadata } from "@/lib/seo";
 
+import { getServerCurrency } from "@/lib/i18n/server-config";
+
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
@@ -35,14 +37,15 @@ export default async function LocaleHomePage({
   }
 
   const locale = rawLocale as Locale;
+  const currency = await getServerCurrency(locale);
   const dictionary = getDictionary(locale);
-  const catalog = await getPublicCatalog(locale);
+  const catalog = await getPublicCatalog(locale, currency);
 
   return (
     <div className="overflow-hidden">
       <HeroSection locale={locale} dictionary={dictionary} />
       <SearchPanel locale={locale} dictionary={dictionary} {...catalog} />
-      <ProductShowcase locale={locale} dictionary={dictionary} {...catalog} />
+      <ProductShowcase locale={locale} currency={currency} dictionary={dictionary} {...catalog} />
       <CompanyLogos dictionary={dictionary} />
       <ReviewsSection locale={locale} dictionary={dictionary} />
       <AuthorStrip locale={locale} dictionary={dictionary} />

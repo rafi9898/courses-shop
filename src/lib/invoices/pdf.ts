@@ -136,8 +136,8 @@ function renderInvoicePdf(invoice: InvoiceForPdf) {
       const endY = doc.y;
       
       doc.text(String(item.quantity), 314, startY, { width: 50, align: "right" });
-      doc.text(formatPrice(Number(item.unitAmount), locale), 378, startY, { width: 70, align: "right" });
-      doc.text(formatPrice(Number(item.lineTotalAmount), locale), 462, startY, { width: 70, align: "right" });
+      doc.text(formatPrice(Number(item.unitAmount), currency), 378, startY, { width: 70, align: "right" });
+      doc.text(formatPrice(Number(item.lineTotalAmount), currency), 462, startY, { width: 70, align: "right" });
       
       const rowBottomY = Math.max(endY, startY + 12);
       
@@ -146,13 +146,13 @@ function renderInvoicePdf(invoice: InvoiceForPdf) {
     });
 
     y += 18;
-    drawTotalRow(doc, fonts, labels.subtotal, formatPrice(Number(invoice.subtotalAmount), locale), y);
+    drawTotalRow(doc, fonts, labels.subtotal, formatPrice(Number(invoice.subtotalAmount), currency), y);
     y += 22;
-    drawTotalRow(doc, fonts, labels.discount, `-${formatPrice(Number(invoice.discountAmount), locale)}`, y);
+    drawTotalRow(doc, fonts, labels.discount, `-${formatPrice(Number(invoice.discountAmount), currency)}`, y);
     y += 28;
     doc.font(fonts.bold).fontSize(14).fillColor("#4218ff");
     doc.text(labels.total, 350, y, { width: 90, align: "right" });
-    doc.text(formatPrice(Number(invoice.totalAmount), locale), 442, y, { width: 90, align: "right" });
+    doc.text(formatPrice(Number(invoice.totalAmount), currency), 442, y, { width: 90, align: "right" });
 
     y += 44;
     if (y > 700) {

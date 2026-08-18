@@ -109,7 +109,7 @@ function renderTelegramMessage(order: OrderWithItems) {
     "<b>Nowe zamówienie</b>",
     "",
     `<b>Numer:</b> ${escapeHtml(order.orderNumber)}`,
-    `<b>Kwota:</b> ${escapeHtml(formatPrice(Number(order.totalAmount), locale))}`,
+    `<b>Kwota:</b> ${escapeHtml(formatPrice(Number(order.totalAmount), currency))}`,
     `<b>Waluta:</b> ${escapeHtml(order.currency)}`,
     `<b>Język:</b> ${escapeHtml(order.locale)}`,
     order.discountCode ? `<b>Kod rabatowy:</b> ${escapeHtml(order.discountCode)}` : null,

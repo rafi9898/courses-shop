@@ -87,7 +87,12 @@ model Course {
   reviews           Int
   price             Decimal          @db.Decimal(10, 2)
   regularPrice      Decimal          @db.Decimal(10, 2)
-  currency          String
+  pricePln          Decimal?         @db.Decimal(10, 2)
+  regularPricePln   Decimal?         @db.Decimal(10, 2)
+  priceEur          Decimal?         @db.Decimal(10, 2)
+  regularPriceEur   Decimal?         @db.Decimal(10, 2)
+  priceUsd          Decimal?         @db.Decimal(10, 2)
+  regularPriceUsd   Decimal?         @db.Decimal(10, 2)
   durationHours     Int
   lessons           Int
   highlights        Json
@@ -126,7 +131,12 @@ model Bundle {
   reviews           Int
   price             Decimal          @db.Decimal(10, 2)
   regularPrice      Decimal          @db.Decimal(10, 2)
-  currency          String
+  pricePln          Decimal?         @db.Decimal(10, 2)
+  regularPricePln   Decimal?         @db.Decimal(10, 2)
+  priceEur          Decimal?         @db.Decimal(10, 2)
+  regularPriceEur   Decimal?         @db.Decimal(10, 2)
+  priceUsd          Decimal?         @db.Decimal(10, 2)
+  regularPriceUsd   Decimal?         @db.Decimal(10, 2)
   thumbnailTitle    String
   thumbnailSubtitle String
   thumbnailVariant  ThumbnailVariant

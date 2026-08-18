@@ -3,6 +3,7 @@ import { CheckoutPage } from "@/components/checkout/checkout-page";
 import { getPublicCatalog } from "@/lib/catalog-data";
 import { isLocale, type Locale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionaries";
+import { getServerCurrency } from "@/lib/i18n/server-config";
 import { getNoIndexMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
@@ -24,6 +25,7 @@ export default async function CheckoutRoutePage({
   if (!isLocale(rawLocale)) notFound();
 
   const locale = rawLocale as Locale;
-  const catalog = await getPublicCatalog(locale);
+  const currency = await getServerCurrency(locale);
+  const catalog = await getPublicCatalog(locale, currency);
   return <CheckoutPage locale={locale} dictionary={getDictionary(locale)} courses={catalog.courses} bundles={catalog.bundles} />;
 }

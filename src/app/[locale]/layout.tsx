@@ -9,8 +9,10 @@ import { JsonLd } from "@/components/seo/json-ld";
 import { PromoBanner } from "@/components/public/promo-banner";
 import { getActiveDiscountCodes } from "@/lib/discount-code-data";
 import { getDictionary } from "@/lib/i18n/dictionaries";
-import { isLocale, type Locale } from "@/lib/i18n/config";
+import { isLocale, type Locale, localeMeta } from "@/lib/i18n/config";
 import { createPersonJsonLd, createWebsiteJsonLd, getPublicPageMetadata } from "@/lib/seo";
+import { CurrencyProvider } from "@/components/layout/currency-provider";
+import { cookies } from "next/headers";
 
 export function generateStaticParams() {
   return [{ locale: "pl" }, { locale: "de" }, { locale: "en" }];
@@ -41,6 +43,13 @@ export default async function LocaleLayout({
 
   const locale = rawLocale as Locale;
   const dictionary = getDictionary(locale);
+  
+  const cookieStore = await cookies();
+  const currencyCookie = cookieStore.get("NEXT_CURRENCY")?.value;
+  const currency = (currencyCookie === "PLN" || currencyCookie === "EUR" || currencyCookie === "USD") 
+    ? currencyCookie 
+    : (localeMeta[locale].currency as "PLN" | "EUR" | "USD");
+
   let discounts: Awaited<ReturnType<typeof getActiveDiscountCodes>> = [];
   try {
     discounts = await getActiveDiscountCodes();
@@ -49,18 +58,20 @@ export default async function LocaleLayout({
   }
 
   return (
-    <CartProvider locale={locale} discounts={discounts}>
-      <NotificationProvider>
-        <Suspense>
-          <UTMTracker />
-        </Suspense>
-        <PromoBanner locale={locale} />
-        <Header locale={locale} dictionary={dictionary} />
-        <main>{children}</main>
-        <JsonLd data={createWebsiteJsonLd(locale)} />
-        <JsonLd data={createPersonJsonLd(locale)} />
-        <Footer locale={locale} dictionary={dictionary} />
-      </NotificationProvider>
-    </CartProvider>
+    <CurrencyProvider initialCurrency={currency}>
+      <CartProvider locale={locale} discounts={discounts}>
+        <NotificationProvider>
+          <Suspense>
+            <UTMTracker />
+          </Suspense>
+          <PromoBanner locale={locale} />
+          <Header locale={locale} dictionary={dictionary} />
+          <main>{children}</main>
+          <JsonLd data={createWebsiteJsonLd(locale)} />
+          <JsonLd data={createPersonJsonLd(locale)} />
+          <Footer locale={locale} dictionary={dictionary} />
+        </NotificationProvider>
+      </CartProvider>
+    </CurrencyProvider>
   );
 }

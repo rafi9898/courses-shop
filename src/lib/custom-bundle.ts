@@ -38,7 +38,7 @@ export function buildCustomBundlePricingCourses(courses: Course[], locale: Local
       ...course,
       price: {
         ...course.price,
-        [locale]: roundPrice(course.price[locale] * (1 - discountPercent / 100))
+        [locale]: roundPrice(course.price * (1 - discountPercent / 100))
       }
     }))
   };
@@ -46,8 +46,8 @@ export function buildCustomBundlePricingCourses(courses: Course[], locale: Local
 
 export function summarizeCustomBundle(courses: Course[], locale: Locale, courseIds: string[], blockedCourseIds: string[] = []) {
   const bundle = buildCustomBundlePricingCourses(courses, locale, courseIds, blockedCourseIds);
-  const regularTotal = bundle.courses.reduce((sum, course) => sum + course.regularPrice[locale], 0);
-  const subtotal = bundle.courses.reduce((sum, course) => sum + course.price[locale], 0);
+  const regularTotal = bundle.courses.reduce((sum, course) => sum + course.regularPrice, 0);
+  const subtotal = bundle.courses.reduce((sum, course) => sum + course.price, 0);
 
   return {
     ...bundle,

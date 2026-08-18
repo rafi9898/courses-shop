@@ -39,12 +39,14 @@ export function BlogPostPage({
   locale,
   post,
   dictionary,
+  currency,
   categories,
   recommendedCourses
 }: {
   locale: Locale;
   post: PublicBlogPost;
   dictionary: Dictionary;
+  currency: "PLN" | "EUR" | "USD";
   categories: Category[];
   recommendedCourses: Course[];
 }) {
@@ -127,7 +129,7 @@ export function BlogPostPage({
             </div>
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {recommendedCourses.map((course) => (
-                <ProductCard key={course.id} course={course} locale={locale} dictionary={dictionary} categories={categories} />
+                <ProductCard key={course.id} course={course} locale={locale} currency={currency} dictionary={dictionary} categories={categories} />
               ))}
             </div>
           </div>

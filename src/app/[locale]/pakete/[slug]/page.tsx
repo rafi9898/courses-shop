@@ -3,6 +3,7 @@ import { ProductDetailPage } from "@/components/product-detail/product-detail-pa
 import { getPublicBundleBySlug } from "@/lib/catalog-data";
 import { isLocale, type Locale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionaries";
+import { getServerCurrency } from "@/lib/i18n/server-config";
 import { getBundlePath } from "@/lib/routes";
 import { getProductKeywords, getProductMetadata } from "@/lib/seo";
 
@@ -48,8 +49,9 @@ export default async function BundleDetailDePage({
   if (!isLocale(rawLocale) || rawLocale !== "de") notFound();
 
   const locale = rawLocale as Locale;
-  const { catalog, bundle } = await getPublicBundleBySlug(locale, slug);
+  const currency = await getServerCurrency(locale);
+  const { catalog, bundle } = await getPublicBundleBySlug(locale, slug, currency);
   if (!bundle) notFound();
 
-  return <ProductDetailPage locale={locale} dictionary={getDictionary(locale)} detail={{ kind: "bundle", product: bundle }} {...catalog} />;
+  return <ProductDetailPage locale={locale} currency={currency} dictionary={getDictionary(locale)} detail={{ kind: "bundle", product: bundle }} {...catalog} />;
 }

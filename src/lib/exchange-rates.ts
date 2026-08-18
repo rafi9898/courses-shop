@@ -15,7 +15,7 @@ export async function getCurrentPlnExchangeRates() {
   }
 
   if (process.env.NODE_ENV !== "production") {
-    return { PLN: 1 };
+    return { PLN: 1, EUR: 4.3, USD: 4.0, GBP: 5.0 };
   }
 
   try {

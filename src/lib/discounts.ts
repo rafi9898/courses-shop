@@ -40,8 +40,8 @@ export function calculateCartTotals(
   discountCode?: string | null,
   discounts: Discount[] = fallbackDiscounts
 ) {
-  const regularTotal = products.reduce((sum, product) => sum + product.regularPrice[locale], 0);
-  const subtotal = products.reduce((sum, product) => sum + product.price[locale], 0);
+  const regularTotal = products.reduce((sum, product) => sum + product.regularPrice, 0);
+  const subtotal = products.reduce((sum, product) => sum + product.price, 0);
   const discount = getDiscount(discountCode, discounts);
   const discountAmount = discount ? roundPrice(subtotal * (discount.percentage / 100)) : 0;
   const total = Math.max(0, roundPrice(subtotal - discountAmount));

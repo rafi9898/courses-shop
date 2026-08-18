@@ -97,14 +97,14 @@ export async function savePaidOrderFromCheckoutSession(session: Stripe.Checkout.
       utmSource,
       items: {
         create: orderProducts.map((product) => {
-          const unitAmount = getDiscountedUnitAmount({ id: product.id, type: product.type, price: product.price[locale] }, discountCode, discountPool);
+          const unitAmount = getDiscountedUnitAmount({ id: product.id, type: product.type, price: product.price }, discountCode, discountPool);
 
           return {
             productId: product.id,
             productType: product.type === "course" ? ProductType.COURSE : ProductType.BUNDLE,
             title: product.title[locale],
             quantity: 1,
-            regularUnitAmount: toDecimalInput(product.regularPrice[locale]),
+            regularUnitAmount: toDecimalInput(product.regularPrice),
             unitAmount: toDecimalInput(unitAmount),
             lineTotalAmount: toDecimalInput(unitAmount)
           };

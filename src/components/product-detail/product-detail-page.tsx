@@ -41,6 +41,7 @@ type DetailProduct =
 
 export function ProductDetailPage({
   locale,
+  currency,
   dictionary,
   detail,
   categories,
@@ -48,6 +49,7 @@ export function ProductDetailPage({
   bundles
 }: {
   locale: Locale;
+  currency: "PLN" | "EUR" | "USD";
   dictionary: Dictionary;
   detail: DetailProduct;
   categories: Category[];
@@ -59,7 +61,7 @@ export function ProductDetailPage({
   const isCourse = kind === "course";
   const title = product.title[locale];
   const heroSubtitle = isCourse ? product.subtitle?.[locale] : product.subtitle?.[locale];
-  const savings = product.regularPrice[locale] - product.price[locale];
+  const savings = product.regularPrice - product.price;
   const courseById = new Map(courses.map((course) => [course.id, course]));
   const bundleCourses = !isCourse
     ? product.courseIds.map((courseId) => courseById.get(courseId)).filter((course): course is Course => Boolean(course))
@@ -74,10 +76,11 @@ export function ProductDetailPage({
       <JsonLd
         data={createProductJsonLd({
           locale,
+  currency,
           path: productPath,
           name: title,
           description: heroSubtitle || title,
-          price: product.price[locale],
+          price: product.price,
           currency: localeMeta[locale].currency,
           imageUrl: product.thumbnailImageUrl
         })}
@@ -116,19 +119,19 @@ export function ProductDetailPage({
               <div className="mt-8 w-full max-w-[430px] space-y-4 lg:sticky lg:top-24 lg:self-start">
                 <PriceCard
                   product={product}
-                  price={product.price[locale]}
-                  regularPrice={product.regularPrice[locale]}
+                  price={product.price}
+                  regularPrice={product.regularPrice}
                   savings={savings}
-                  locale={locale}
-                  dictionary={dictionary}
+                  locale={locale} currency={currency}
+                  dictionary={dictionary} currency={currency}
                 />
-                {isCourse ? <CourseBundleUpsell bundles={containingBundles} locale={locale} /> : null}
+                {isCourse ? <CourseBundleUpsell bundles={containingBundles} locale={locale} currency={currency} /> : null}
               </div>
             </div>
 
             <div className="min-w-0">
               {isCourse ? (
-                <VideoPreview course={product} dictionary={dictionary} locale={locale} />
+                <VideoPreview course={product} dictionary={dictionary} locale={locale} currency={currency} />
               ) : (
                 <div className="overflow-hidden rounded-2xl shadow-card">
                   <div className="[&>div]:h-[280px] [&>div]:min-h-[280px] md:[&>div]:h-[360px] xl:[&>div]:h-[400px]">
@@ -145,7 +148,7 @@ export function ProductDetailPage({
               )}
 
               <div className="mt-8 md:-ml-8 lg:-ml-10">
-                <FeatureStrip locale={locale} />
+                <FeatureStrip locale={locale} currency={currency} />
               </div>
             </div>
           </div>
@@ -214,7 +217,7 @@ export function ProductDetailPage({
                         <h3 className="font-black">{course.title[locale]}</h3>
                         <p className="mt-1 text-sm text-muted-foreground">{categories.find((item) => item.id === course.categoryId)?.label[locale]}</p>
                       </div>
-                      <span className="text-sm font-black text-primary">{formatPrice(course.price[locale], locale)}</span>
+                      <span className="text-sm font-black text-primary">{formatPrice(course.price, currency)}</span>
                     </Link>
                   ))}
                 </div>
@@ -233,9 +236,9 @@ export function ProductDetailPage({
           </div>
 
           {isCourse ? (
-            <MetaCard course={product} locale={locale} dictionary={dictionary} />
+            <MetaCard course={product} locale={locale} currency={currency} dictionary={dictionary} />
           ) : (
-            <BundleValueCard bundle={product} courses={bundleCourses} locale={locale} dictionary={dictionary} />
+            <BundleValueCard bundle={product} courses={bundleCourses} locale={locale} currency={currency} dictionary={dictionary} currency={currency} />
           )}
         </div>
 
@@ -243,10 +246,10 @@ export function ProductDetailPage({
           <h2 className="text-3xl font-black">{dictionary.detail.recommended}</h2>
           <div className="mt-6 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
             {recommendedCourses.map((course) => (
-              <ProductCard key={course.id} course={course} locale={locale} dictionary={dictionary} categories={categories} />
+              <ProductCard key={course.id} course={course} locale={locale} currency={currency} dictionary={dictionary} categories={categories} />
             ))}
             {recommendedBundles.map((bundle) => (
-              <BundleCard key={bundle.id} bundle={bundle} locale={locale} dictionary={dictionary} categories={categories} />
+              <BundleCard key={bundle.id} bundle={bundle} locale={locale} currency={currency} dictionary={dictionary} categories={categories} />
             ))}
           </div>
         </section>
@@ -255,10 +258,10 @@ export function ProductDetailPage({
       <StickyPurchaseBar
         product={product}
         title={title}
-        price={product.price[locale]}
-        regularPrice={product.regularPrice[locale]}
-        locale={locale}
-        dictionary={dictionary}
+        price={product.price}
+        regularPrice={product.regularPrice}
+        locale={locale} currency={currency}
+        dictionary={dictionary} currency={currency}
       />
     </div>
   );
@@ -279,6 +282,7 @@ function PriceCard({
   regularPrice,
   savings,
   locale,
+  currency,
   dictionary
 }: {
   product: Course | Bundle;
@@ -286,16 +290,17 @@ function PriceCard({
   regularPrice: number;
   savings: number;
   locale: Locale;
+  currency: "PLN" | "EUR" | "USD";
   dictionary: Dictionary;
 }) {
   return (
     <aside className="w-full min-w-0 max-w-[430px] rounded-2xl border border-border bg-white p-6 shadow-card">
       <div className="flex flex-wrap items-end gap-3">
-        <span className="text-4xl font-black">{formatPrice(price, locale)}</span>
-        <span className="pb-1 text-sm text-muted-foreground line-through">{formatPrice(regularPrice, locale)}</span>
+        <span className="text-4xl font-black">{formatPrice(price, currency)}</span>
+        <span className="pb-1 text-sm text-muted-foreground line-through">{formatPrice(regularPrice, currency)}</span>
       </div>
       <div className="mt-3 inline-flex rounded-md bg-primary-soft px-3 py-1 text-sm font-bold text-primary">
-        {dictionary.detail.savings}: {formatPrice(savings, locale)}
+        {dictionary.detail.savings}: {formatPrice(savings, currency)}
       </div>
       <AddToCartButton product={product} dictionary={dictionary} label={dictionary.detail.addToCart} className="mt-6 w-full" />
       <AddToCartButton
@@ -314,7 +319,7 @@ function PriceCard({
   );
 }
 
-function CourseBundleUpsell({ bundles, locale }: { bundles: Bundle[]; locale: Locale }) {
+function CourseBundleUpsell({ bundles, locale, currency }: { bundles: Bundle[]; locale: Locale; currency: "PLN" | "EUR" | "USD"; }) {
   if (bundles.length === 0) return null;
 
   const copy = getCourseBundleUpsellCopy(locale);
@@ -346,8 +351,8 @@ function CourseBundleUpsell({ bundles, locale }: { bundles: Bundle[]; locale: Lo
               <ArrowRight className="mt-0.5 h-4 w-4 shrink-0 text-primary transition group-hover:translate-x-0.5" />
             </div>
             <div className="flex flex-wrap items-baseline gap-2">
-              <span className="text-lg font-black">{formatPrice(bundle.price[locale], locale)}</span>
-              <span className="text-xs text-muted-foreground line-through">{formatPrice(bundle.regularPrice[locale], locale)}</span>
+              <span className="text-lg font-black">{formatPrice(bundle.price, currency)}</span>
+              <span className="text-xs text-muted-foreground line-through">{formatPrice(bundle.regularPrice, currency)}</span>
             </div>
           </Link>
         ))}
@@ -362,6 +367,7 @@ function StickyPurchaseBar({
   price,
   regularPrice,
   locale,
+  currency,
   dictionary
 }: {
   product: Course | Bundle;
@@ -369,6 +375,7 @@ function StickyPurchaseBar({
   price: number;
   regularPrice: number;
   locale: Locale;
+  currency: "PLN" | "EUR" | "USD";
   dictionary: Dictionary;
 }) {
   return (
@@ -377,8 +384,8 @@ function StickyPurchaseBar({
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold text-slate-600">{title}</p>
           <div className="flex items-baseline gap-2">
-            <span className="text-lg font-black text-foreground">{formatPrice(price, locale)}</span>
-            <span className="text-xs text-muted-foreground line-through">{formatPrice(regularPrice, locale)}</span>
+            <span className="text-lg font-black text-foreground">{formatPrice(price, currency)}</span>
+            <span className="text-xs text-muted-foreground line-through">{formatPrice(regularPrice, currency)}</span>
           </div>
         </div>
         <AddToCartButton product={product} dictionary={dictionary} label={dictionary.detail.buyNow} redirectToCart className="h-12 shrink-0 px-5" />
@@ -433,10 +440,12 @@ function ContentCard({
 function MetaCard({
   course,
   locale,
+  currency,
   dictionary
 }: {
   course: Course;
   locale: Locale;
+  currency: "PLN" | "EUR" | "USD";
   dictionary: Dictionary;
 }) {
   const levelLabel = {
@@ -465,11 +474,13 @@ function BundleValueCard({
   bundle,
   courses,
   locale,
+  currency,
   dictionary
 }: {
   bundle: Bundle;
   courses: Course[];
   locale: Locale;
+  currency: "PLN" | "EUR" | "USD";
   dictionary: Dictionary;
 }) {
   const totalHours = courses.reduce((sum, course) => sum + course.durationHours, 0);
@@ -482,7 +493,7 @@ function BundleValueCard({
         <MetaRow icon={<Clock className="h-5 w-5" />} label={dictionary.detail.duration} value={`${totalHours}h`} />
         <MetaRow icon={<Layers className="h-5 w-5" />} label={dictionary.detail.lessons} value={String(lessons)} />
         <MetaRow icon={<ShieldCheck className="h-5 w-5" />} label={dictionary.detail.access} value={dictionary.detail.unlimited} />
-        <MetaRow icon={<Award className="h-5 w-5" />} label={dictionary.detail.savings} value={formatPrice(bundle.regularPrice[locale] - bundle.price[locale], locale)} />
+        <MetaRow icon={<Award className="h-5 w-5" />} label={dictionary.detail.savings} value={formatPrice(bundle.regularPrice - bundle.price, currency)} />
       </dl>
     </aside>
   );

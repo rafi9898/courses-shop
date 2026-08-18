@@ -4,6 +4,7 @@ import { JsonLd } from "@/components/seo/json-ld";
 import { getPublishedBlogPostBySlug, parseBlogKeywords } from "@/lib/blog-data";
 import { getPublicCatalog } from "@/lib/catalog-data";
 import { getDictionary } from "@/lib/i18n/dictionaries";
+import { getServerCurrency } from "@/lib/i18n/server-config";
 import { isLocale, type Locale } from "@/lib/i18n/config";
 import { getBlogPostPath } from "@/lib/routes";
 import { createBlogPostingJsonLd, getBlogPostMetadata } from "@/lib/seo";
@@ -40,16 +41,17 @@ export default async function BlogPostRoutePage({
   if (!isLocale(rawLocale)) notFound();
 
   const locale = rawLocale as Locale;
+  const currency = await getServerCurrency(locale);
   const post = await getPublishedBlogPostBySlug(locale, slug);
   if (!post) notFound();
 
   const dictionary = getDictionary(locale);
-  const catalog = await getPublicCatalog(locale);
+  const catalog = await getPublicCatalog(locale, currency);
   const recommendedCourses = catalog.courses.slice(0, 3);
 
   return (
     <>
-      <BlogPostPage
+      <BlogPostPage currency={currency}
         locale={locale}
         post={post}
         dictionary={dictionary}
