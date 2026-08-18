@@ -238,7 +238,7 @@ function parseLocale(locale: string): Locale {
 }
 
 function formatOrderPrice(order: Order, locale: Locale) {
-  return formatPrice(Number(order.totalAmount), currency);
+  return formatPrice(Number(order.totalAmount), order.currency as Currency);
 }
 
 function formatDate(value: string, locale: Locale) {

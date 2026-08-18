@@ -76,7 +76,6 @@ export function ProductDetailPage({
       <JsonLd
         data={createProductJsonLd({
           locale,
-  currency,
           path: productPath,
           name: title,
           description: heroSubtitle || title,
@@ -131,7 +130,7 @@ export function ProductDetailPage({
 
             <div className="min-w-0">
               {isCourse ? (
-                <VideoPreview course={product} dictionary={dictionary} locale={locale} currency={currency} />
+                <VideoPreview course={product} dictionary={dictionary} locale={locale} />
               ) : (
                 <div className="overflow-hidden rounded-2xl shadow-card">
                   <div className="[&>div]:h-[280px] [&>div]:min-h-[280px] md:[&>div]:h-[360px] xl:[&>div]:h-[400px]">
@@ -148,7 +147,7 @@ export function ProductDetailPage({
               )}
 
               <div className="mt-8 md:-ml-8 lg:-ml-10">
-                <FeatureStrip locale={locale} currency={currency} />
+                <FeatureStrip locale={locale} />
               </div>
             </div>
           </div>
@@ -236,7 +235,7 @@ export function ProductDetailPage({
           </div>
 
           {isCourse ? (
-            <MetaCard course={product} locale={locale} currency={currency} dictionary={dictionary} />
+            <MetaCard course={product} locale={locale} dictionary={dictionary} />
           ) : (
             <BundleValueCard bundle={product} courses={bundleCourses} locale={locale} currency={currency} dictionary={dictionary} />
           )}

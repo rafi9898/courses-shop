@@ -288,6 +288,7 @@ function CourseCard({
 }) {
   const href = getCoursePath(course, locale);
   const { addItem, isInCart } = useCart();
+  const { currency } = useCurrency();
   const { showNotification }  = useNotification();
   const inCart = isInCart("course", course.id);
 
