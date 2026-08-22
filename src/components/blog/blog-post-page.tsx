@@ -53,6 +53,7 @@ export function BlogPostPage({
   const postPath = getBlogPostPath(locale, post.slug);
   const shareUrl = getAbsoluteUrl(postPath);
   const shareLinks = getShareLinks(shareUrl, post.title, copy[locale].emailSubject);
+  const htmlParts = splitHtmlAfterParagraph(post.contentHtml, 4);
 
   return (
     <article className="bg-white">
@@ -92,7 +93,18 @@ export function BlogPostPage({
 
       <div className="container-shell py-10 lg:py-14">
         <div className="mx-auto max-w-3xl">
-          <RichTextContent html={post.contentHtml} />
+          {htmlParts.bottom ? (
+            <>
+              <RichTextContent html={htmlParts.top} />
+              <div className="my-12">
+                <NewsletterForm locale={locale} />
+              </div>
+              <RichTextContent html={htmlParts.bottom} />
+            </>
+          ) : (
+            <RichTextContent html={post.contentHtml} />
+          )}
+
           <div className="mt-10 border-t border-border pt-6">
             <p className="text-sm font-black uppercase text-slate-500">{copy[locale].share}</p>
             <div className="mt-3 flex flex-wrap gap-2">
@@ -114,9 +126,12 @@ export function BlogPostPage({
               })}
             </div>
           </div>
-          <div className="mt-12">
-            <NewsletterForm locale={locale} />
-          </div>
+
+          {!htmlParts.bottom && (
+            <div className="mt-12">
+              <NewsletterForm locale={locale} />
+            </div>
+          )}
         </div>
       </div>
 
@@ -177,4 +192,28 @@ function formatDate(date: Date, locale: Locale) {
     month: "long",
     day: "numeric"
   }).format(date);
+}
+
+function splitHtmlAfterParagraph(html: string, pCount: number) {
+  let count = 0;
+  let splitIndex = -1;
+  const regex = /<\/p>/g;
+  let match;
+  
+  while ((match = regex.exec(html)) !== null) {
+    count++;
+    if (count === pCount) {
+      splitIndex = match.index + 4;
+      break;
+    }
+  }
+
+  if (splitIndex !== -1) {
+    return {
+      top: html.slice(0, splitIndex),
+      bottom: html.slice(splitIndex)
+    };
+  }
+
+  return { top: html, bottom: null };
 }
