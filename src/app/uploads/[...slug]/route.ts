@@ -37,7 +37,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         "Cache-Control": "public, max-age=31536000, immutable"
       }
     });
-  } catch (error) {
+  } catch {
     return new NextResponse("Not found", { status: 404 });
   }
 }

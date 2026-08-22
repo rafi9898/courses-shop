@@ -60,7 +60,7 @@ function calcLeft(end: Date) {
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
-const promoTexts: Record<Locale, any> = {
+const promoTexts: Record<Locale, Record<string, string>> = {
   pl: {
     badge: "🔥 PROMOCJA",
     title1: "Promocja na",
@@ -153,7 +153,6 @@ export function PromotionPage({
   const resultsRef               = useRef<HTMLDivElement>(null);
   const [promoEnd]               = useState(getPromoEnd);
   const [timeLeft, setTimeLeft]  = useState(calcLeft(promoEnd));
-  const { currency }             = useCurrency();
 
   useEffect(() => {
     const id = setInterval(() => setTimeLeft(calcLeft(promoEnd)), 1000);
