@@ -1,0 +1,107 @@
+generatedAt=2026-08-22T13:37:04Z
+hostname=vps-1fb23531
+hostnameIps=54.37.232.118 172.17.0.1 172.18.0.1 2001:41d0:601:1100::88d3 
+whoami=ubuntu
+
+== public health from VPS ==
+{"status":"ok","version":"810c5f1","timestamp":"2026-08-22T13:37:05.056Z"}
+
+== public health pinned to 54.37.232.118 from VPS ==
+{"status":"ok","version":"810c5f1","timestamp":"2026-08-22T13:37:05.091Z"}
+
+== public diagnostics file from VPS ==
+generatedAt=2026-08-22T13:28:16Z
+hostname=vps-1fb23531
+hostnameIps=54.37.232.118 172.17.0.1 172.18.0.1 2001:41d0:601:1100::88d3 
+pwd=/opt/courses-shop/app
+gitSha=810c5f1
+appImage=courses-shop-app:810c5f1
+appVersionEnv=810c5f1
+publicHealthVersionFromVps=810c5f1
+publicHealthBodyFromVps={"status":"ok","version":"810c5f1","timestamp":"2026-08-22T13:28:16.282Z"}
+publicHealthUrl=https://rafalpodraza.com/api/health?deploy=810c5f1
+composeAppContainer=7ce11c32c1e5e5cc79403b8e598d29f0744c9e50aa16360468138efefbfbd324
+composeCaddyContainer=07b575e36d87f088fe98c6418c191e14327b8db4cc7372273f61d743ce575211
+dockerPs=
+07b575e36d87 caddy:2-alpine app-caddy-1 0.0.0.0:80->80/tcp, [::]:80->80/tcp, 0.0.0.0:443->443/tcp, [::]:443->443/tcp, 0.0.0.0:443->443/udp, [::]:443->443/udp, 2019/tcp
+7ce11c32c1e5 courses-shop-app:810c5f1 app-app-1 3000/tcp
+3e2594e41160 postgres:16-alpine app-db-1 5432/tcp
+srvUploadsMounts=
+  07b575e36d87 /opt/courses-shop/app/public/uploads
+
+
+== /opt/courses-shop/app ==
+drwxr-xr-x  4 root   root   4096 Jun  8 18:20 /opt
+drwxr-xr-x  3 ubuntu ubuntu 4096 Jun  8 18:20 /opt/courses-shop
+drwxrwxr-x 10 ubuntu ubuntu 4096 Aug 14 16:20 /opt/courses-shop/app
+drwxrwxr-x  4 ubuntu ubuntu 4096 Jun 11 16:00 /opt/courses-shop/app/public
+drwxrwxr-x  5 ubuntu ubuntu 4096 Jun 11 15:48 /opt/courses-shop/app/public/uploads
+pwd=/opt/courses-shop/app
+gitSha=810c5f1
+
+== APP_DOMAIN from .env.production ==
+APP_DOMAIN=rafalpodraza.com
+
+== compose ps in /opt/courses-shop/app ==
+NAME          IMAGE                      COMMAND                  SERVICE   CREATED         STATUS                 PORTS
+app-app-1     courses-shop-app:810c5f1   "docker-entrypoint.s…"   app       8 minutes ago   Up 8 minutes           3000/tcp
+app-caddy-1   caddy:2-alpine             "caddy run --config …"   caddy     8 minutes ago   Up 8 minutes           0.0.0.0:80->80/tcp, [::]:80->80/tcp, 0.0.0.0:443->443/tcp, [::]:443->443/tcp, 0.0.0.0:443->443/udp, [::]:443->443/udp, 2019/tcp
+app-db-1      postgres:16-alpine         "docker-entrypoint.s…"   db        2 months ago    Up 6 weeks (healthy)   5432/tcp
+
+== docker ps ==
+07b575e36d87 caddy:2-alpine app-caddy-1 0.0.0.0:80->80/tcp, [::]:80->80/tcp, 0.0.0.0:443->443/tcp, [::]:443->443/tcp, 0.0.0.0:443->443/udp, [::]:443->443/udp, 2019/tcp
+7ce11c32c1e5 courses-shop-app:810c5f1 app-app-1 3000/tcp
+3e2594e41160 postgres:16-alpine app-db-1 5432/tcp
+
+== listeners on 80/443 ==
+State  Recv-Q Send-Q Local Address:Port Peer Address:PortProcess                                  
+LISTEN 0      4096         0.0.0.0:443       0.0.0.0:*    users:(("docker-proxy",pid=282472,fd=7))
+LISTEN 0      4096         0.0.0.0:80        0.0.0.0:*    users:(("docker-proxy",pid=282450,fd=7))
+LISTEN 0      4096            [::]:443          [::]:*    users:(("docker-proxy",pid=282478,fd=7))
+LISTEN 0      4096            [::]:80           [::]:*    users:(("docker-proxy",pid=282458,fd=7))
+
+== container details ==
+--- 07b575e36d87 app-caddy-1 caddy:2-alpine
+ports=80/tcp -> 0.0.0.0:80;80/tcp -> [::]:80;443/tcp -> 0.0.0.0:443;443/tcp -> [::]:443;443/udp -> 0.0.0.0:443;443/udp -> [::]:443;
+appVersionEnv=
+appDomainEnv=rafalpodraza.com
+mounts:
+   /opt/courses-shop/app/Caddyfile -> /etc/caddy/Caddyfile rw= false
+   /opt/courses-shop/app/public/uploads -> /srv/uploads rw= false
+   /var/lib/docker/volumes/app_caddy_data/_data -> /data rw= true
+   /var/lib/docker/volumes/app_caddy_config/_data -> /config rw= true
+
+
+--- 7ce11c32c1e5 app-app-1 courses-shop-app:810c5f1
+ports=
+appVersionEnv=810c5f1
+appDomainEnv=rafalpodraza.com
+mounts:
+   /opt/courses-shop/app/storage -> /app/storage rw= true
+   /opt/courses-shop/app/public/uploads -> /app/public/uploads rw= true
+
+
+--- 3e2594e41160 app-db-1 postgres:16-alpine
+ports=
+appVersionEnv=
+appDomainEnv=
+mounts:
+   /var/lib/docker/volumes/app_postgres_data/_data -> /var/lib/postgresql/data rw= true
+
+
+== current Caddyfile ==
+{$APP_DOMAIN} {
+  encode zstd gzip
+
+  handle_path /uploads/* {
+    root * /srv/uploads
+    file_server
+  }
+
+  reverse_proxy app:3000
+}
+
+www.{$APP_DOMAIN} {
+  encode zstd gzip
+  redir https://{$APP_DOMAIN}{uri} permanent
+}
