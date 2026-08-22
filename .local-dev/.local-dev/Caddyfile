@@ -1,0 +1,15 @@
+{$APP_DOMAIN} {
+  encode zstd gzip
+
+  handle_path /uploads/* {
+    root * /srv/uploads
+    file_server
+  }
+
+  reverse_proxy app:3000
+}
+
+www.{$APP_DOMAIN} {
+  encode zstd gzip
+  redir https://{$APP_DOMAIN}{uri} permanent
+}

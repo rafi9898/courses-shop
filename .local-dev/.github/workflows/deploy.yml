@@ -1,0 +1,311 @@
+name: Deploy production
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: true
+
+jobs:
+  preflight:
+    name: Preflight checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build
+
+  deploy:
+    name: Deploy to VPS
+    runs-on: ubuntu-latest
+    needs: preflight
+    steps:
+      - name: Deploy over SSH
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          set -euo pipefail
+
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "$VPS_HOST" >> ~/.ssh/known_hosts
+
+          ssh -i ~/.ssh/deploy_key "$VPS_USER@$VPS_HOST" <<'REMOTE'
+            set -euo pipefail
+            cd /opt/courses-shop/app
+            git fetch origin main
+            git reset --hard FETCH_HEAD
+            export APP_IMAGE_TAG="$(git rev-parse --short HEAD)"
+            DEPLOY_OVERRIDE_FILE="/tmp/courses-shop-deploy-${APP_IMAGE_TAG}.yml"
+            trap 'rm -f "$DEPLOY_OVERRIDE_FILE"' EXIT
+            {
+              printf 'services:\n'
+              printf '  app:\n'
+              printf '    image: courses-shop-app:%s\n' "$APP_IMAGE_TAG"
+              printf '    build:\n'
+              printf '      args:\n'
+              printf '        APP_VERSION: %s\n' "$APP_IMAGE_TAG"
+              printf '    environment:\n'
+              printf '      APP_VERSION: %s\n' "$APP_IMAGE_TAG"
+            } > "$DEPLOY_OVERRIDE_FILE"
+
+            compose() {
+              sudo env APP_IMAGE_TAG="$APP_IMAGE_TAG" docker compose --env-file .env.production -f docker-compose.prod.yml -f "$DEPLOY_OVERRIDE_FILE" "$@"
+            }
+
+            expected_image="courses-shop-app:${APP_IMAGE_TAG}"
+            echo "Deploying ${expected_image}"
+            echo "Docker disk usage before cleanup"
+            sudo docker system df || true
+            sudo docker builder prune -af || true
+            sudo docker image prune -af || true
+            sudo docker container prune -f || true
+            echo "Docker disk usage after cleanup"
+            sudo docker system df || true
+            compose build --no-cache app
+            compose up -d db
+
+            db_container_id="$(compose ps -q db)"
+            db_network="$(
+              sudo docker inspect --format '{{range $name, $_ := .NetworkSettings.Networks}}{{println $name}}{{end}}' "$db_container_id" |
+                sed -n '1p'
+            )"
+            if [ -z "$db_network" ]; then
+              echo "Deploy verification failed: could not detect Docker network for db"
+              compose ps
+              exit 1
+            fi
+
+            echo "Running migrations with ${expected_image} on network ${db_network}"
+            sudo docker run --rm \
+              --network "$db_network" \
+              --env-file .env.production \
+              -e "APP_VERSION=${APP_IMAGE_TAG}" \
+              "$expected_image" \
+              npm run prisma:migrate:deploy
+
+            echo "Recreating production app and caddy containers"
+            compose stop app caddy || true
+            compose rm -f app caddy || true
+            compose up -d --no-build --force-recreate --remove-orphans app caddy
+            compose ps
+
+            running_container_id="$(compose ps -q app)"
+            caddy_container_id="$(compose ps -q caddy)"
+            if [ -z "$running_container_id" ] || [ -z "$caddy_container_id" ]; then
+              echo "Deploy verification failed: app or caddy container is missing"
+              compose ps
+              exit 1
+            fi
+
+            running_image="$(sudo docker inspect --format '{{.Config.Image}}' "$running_container_id")"
+            if [ "$running_image" != "$expected_image" ]; then
+              echo "Deploy verification failed: expected ${expected_image}, got ${running_image}"
+              exit 1
+            fi
+
+            if ! sudo docker inspect --format '{{range .Config.Env}}{{println .}}{{end}}' "$running_container_id" |
+              grep -Fxq "APP_VERSION=${APP_IMAGE_TAG}"; then
+              echo "Deploy verification failed: app container APP_VERSION does not match ${APP_IMAGE_TAG}"
+              sudo docker inspect --format '{{range .Config.Env}}{{println .}}{{end}}' "$running_container_id" | grep '^APP_VERSION=' || true
+              exit 1
+            fi
+
+            app_version_env="$(
+              sudo docker inspect --format '{{range .Config.Env}}{{println .}}{{end}}' "$running_container_id" |
+                sed -n 's/^APP_VERSION=//p'
+            )"
+
+            for service in app caddy; do
+              status="$(sudo docker inspect --format '{{.State.Status}}' "$(compose ps -q "$service")")"
+              if [ "$status" != "running" ]; then
+                echo "Deploy verification failed: ${service} container status is ${status}"
+                compose logs --tail=80 "$service"
+                exit 1
+              fi
+            done
+
+            write_deploy_diagnostics() {
+              target_path="$1"
+              sudo mkdir -p "$(dirname "$target_path")"
+              {
+                printf 'generatedAt=%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+                printf 'hostname=%s\n' "$(hostname)"
+                printf 'hostnameIps=%s\n' "$(hostname -I 2>/dev/null || true)"
+                printf 'pwd=%s\n' "$PWD"
+                printf 'gitSha=%s\n' "$(git rev-parse --short HEAD)"
+                printf 'appImage=%s\n' "$running_image"
+                printf 'appVersionEnv=%s\n' "$app_version_env"
+                printf 'publicHealthVersionFromVps=%s\n' "${health_version:-unknown}"
+                printf 'publicHealthBodyFromVps=%s\n' "${health:-no-response}"
+                printf 'publicHealthUrl=%s\n' "$health_url"
+                printf 'composeAppContainer=%s\n' "$running_container_id"
+                printf 'composeCaddyContainer=%s\n' "$caddy_container_id"
+                printf 'dockerPs=\n'
+                sudo docker ps --format '  {{.ID}} {{.Image}} {{.Names}} {{.Ports}}' || true
+                printf 'srvUploadsMounts=\n'
+                for container_id in $(sudo docker ps -q); do
+                  sudo docker inspect --format '{{range .Mounts}}{{if eq .Destination "/srv/uploads"}}{{.Source}}{{"\n"}}{{end}}{{end}}' "$container_id" |
+                    while IFS= read -r upload_mount; do
+                      [ -n "$upload_mount" ] && printf '  %s %s\n' "$container_id" "$upload_mount"
+                    done
+                done
+              } | sudo tee "$target_path" >/dev/null
+            }
+
+            publish_deploy_diagnostics() {
+              write_deploy_diagnostics "public/uploads/deploy-status.txt"
+              for container_id in $(sudo docker ps -q); do
+                sudo docker inspect --format '{{range .Mounts}}{{if eq .Destination "/srv/uploads"}}{{.Source}}{{"\n"}}{{end}}{{end}}' "$container_id" |
+                  while IFS= read -r upload_mount; do
+                    [ -n "$upload_mount" ] && write_deploy_diagnostics "${upload_mount}/deploy-status.txt"
+                  done
+              done
+            }
+
+            health=""
+            health_url="https://rafalpodraza.com/api/health?deploy=${APP_IMAGE_TAG}"
+            for attempt in $(seq 1 30); do
+              if health="$(curl -fsSL -H "Cache-Control: no-cache" "$health_url" 2>/dev/null)"; then
+                health_version="$(printf '%s' "$health" | sed -n 's/.*"version":"\([^"]*\)".*/\1/p')"
+              else
+                health=""
+                health_version="no-response"
+              fi
+
+              mkdir -p public/uploads
+              publish_deploy_diagnostics || true
+              {
+                printf '{\n'
+                printf '  "generatedAt": "%s",\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+                printf '  "gitSha": "%s",\n' "$(git rev-parse --short HEAD)"
+                printf '  "appImage": "%s",\n' "$running_image"
+                printf '  "appVersionEnv": "%s",\n' "$app_version_env"
+                printf '  "publicHealthVersionFromVps": "%s",\n' "${health_version:-unknown}"
+                printf '  "publicHealthUrl": "%s",\n' "$health_url"
+                printf '  "appContainerId": "%s",\n' "$running_container_id"
+                printf '  "caddyContainerId": "%s"\n' "$caddy_container_id"
+                printf '}\n'
+              } > public/uploads/deploy-status.json
+
+              if [ "$health_version" = "$APP_IMAGE_TAG" ]; then
+                break
+              fi
+
+              if [ "$attempt" -eq 30 ]; then
+                echo "Deploy verification failed: expected health version ${APP_IMAGE_TAG}, got ${health:-no response}"
+                compose ps
+                compose logs --tail=80 app
+                compose logs --tail=80 caddy
+                exit 1
+              fi
+
+              sleep 5
+            done
+
+            sudo docker image prune -f
+          REMOTE
+
+      - name: Smoke test production
+        run: |
+          set -euo pipefail
+          expected_version="${GITHUB_SHA::7}"
+
+          health=""
+          health_url="https://rafalpodraza.com/api/health?deploy=${expected_version}&run=${GITHUB_RUN_ID}"
+          for attempt in {1..30}; do
+            if health="$(curl -fsSL -H "Cache-Control: no-cache" "$health_url" 2>/dev/null)" &&
+              grep -Fq "\"version\":\"${expected_version}\"" <<< "$health"; then
+              break
+            fi
+
+            if [ "$attempt" -eq 30 ]; then
+              echo "Smoke test failed: expected deployed version ${expected_version}, got ${health:-no response}"
+              exit 1
+            fi
+
+            sleep 5
+          done
+
+          for path in \
+            /pl \
+            /en \
+            /de \
+            /pl/kursy \
+            /pl/pakiety \
+            /pl/kategorie \
+            /pl/regulamin \
+            /pl/polityka-prywatnosci \
+            /en/terms \
+            /en/privacy-policy \
+            /de/agb \
+            /de/datenschutz \
+            /robots.txt \
+            /sitemap.xml; do
+            status="$(curl -L -s -o /dev/null -w '%{http_code}' "https://rafalpodraza.com${path}")"
+            if [ "$status" -lt 200 ] || [ "$status" -ge 400 ]; then
+              echo "Smoke test failed for ${path}: HTTP ${status}"
+              exit 1
+            fi
+          done
+
+          legal_page="$(curl -fsSL https://rafalpodraza.com/pl/regulamin)"
+          if ! grep -Fq "Regulamin sklepu" <<< "$legal_page"; then
+            echo "Smoke test failed: legal page content is missing"
+            exit 1
+          fi
+
+          home_page="$(curl -fsSL https://rafalpodraza.com/pl)"
+          for expected in \
+            "https://www.youtube.com/@RafalPodraza" \
+            "https://www.linkedin.com/in/rafalpodraza" \
+            "https://www.facebook.com/technikaprogramowania"; do
+            if ! grep -Fq "$expected" <<< "$home_page"; then
+              echo "Smoke test failed: missing footer link ${expected}"
+              exit 1
+            fi
+          done
+
+          headers="$(curl -fsSI https://rafalpodraza.com/pl)"
+          for expected_header in \
+            "x-frame-options: DENY" \
+            "x-content-type-options: nosniff" \
+            "referrer-policy: strict-origin-when-cross-origin"; do
+            if ! grep -Fqi "$expected_header" <<< "$headers"; then
+              echo "Smoke test failed: missing security header ${expected_header}"
+              exit 1
+            fi
+          done
+
+          if grep -Fqi "x-powered-by:" <<< "$headers"; then
+            echo "Smoke test failed: X-Powered-By header is still exposed"
+            exit 1
+          fi

@@ -1,0 +1,66 @@
+import { notFound } from "next/navigation";
+import { Suspense } from "react";
+import { CartProvider } from "@/components/cart/cart-provider";
+import { NotificationProvider } from "@/components/ui/notification";
+import { Footer } from "@/components/public/footer";
+import { Header } from "@/components/public/header";
+import { UTMTracker } from "@/components/public/utm-tracker";
+import { JsonLd } from "@/components/seo/json-ld";
+import { PromoBanner } from "@/components/public/promo-banner";
+import { getActiveDiscountCodes } from "@/lib/discount-code-data";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import { isLocale, type Locale } from "@/lib/i18n/config";
+import { createPersonJsonLd, createWebsiteJsonLd, getPublicPageMetadata } from "@/lib/seo";
+
+export function generateStaticParams() {
+  return [{ locale: "pl" }, { locale: "de" }, { locale: "en" }];
+}
+
+export async function generateMetadata({
+  params
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+
+  return isLocale(locale) ? getPublicPageMetadata(locale, "home") : {};
+}
+
+export default async function LocaleLayout({
+  children,
+  params
+}: Readonly<{
+  children: React.ReactNode;
+  params: Promise<{ locale: string }>;
+}>) {
+  const { locale: rawLocale } = await params;
+
+  if (!isLocale(rawLocale)) {
+    notFound();
+  }
+
+  const locale = rawLocale as Locale;
+  const dictionary = getDictionary(locale);
+  let discounts: Awaited<ReturnType<typeof getActiveDiscountCodes>> = [];
+  try {
+    discounts = await getActiveDiscountCodes();
+  } catch (error) {
+    console.error("Failed to fetch discounts:", error);
+  }
+
+  return (
+    <CartProvider locale={locale} discounts={discounts}>
+      <NotificationProvider>
+        <Suspense>
+          <UTMTracker />
+        </Suspense>
+        <PromoBanner locale={locale} />
+        <Header locale={locale} dictionary={dictionary} />
+        <main>{children}</main>
+        <JsonLd data={createWebsiteJsonLd(locale)} />
+        <JsonLd data={createPersonJsonLd(locale)} />
+        <Footer locale={locale} dictionary={dictionary} />
+      </NotificationProvider>
+    </CartProvider>
+  );
+}

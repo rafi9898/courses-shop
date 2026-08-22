@@ -53,7 +53,7 @@ export function BlogPostPage({
   const postPath = getBlogPostPath(locale, post.slug);
   const shareUrl = getAbsoluteUrl(postPath);
   const shareLinks = getShareLinks(shareUrl, post.title, copy[locale].emailSubject);
-  const htmlParts = splitHtmlAfterParagraph(post.contentHtml, 4);
+  const htmlParts = splitHtmlAfterParagraph(post.contentHtml, 6);
 
   return (
     <article className="bg-white">

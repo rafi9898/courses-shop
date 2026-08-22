@@ -60,6 +60,78 @@ function calcLeft(end: Date) {
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
+const promoTexts: Record<Locale, any> = {
+  pl: {
+    badge: "🔥 PROMOCJA",
+    title1: "Promocja na",
+    title2: "wszystkie kursy!",
+    sub: "Skorzystaj z niższych cen przez ograniczony czas.",
+    cta: "Zobacz kursy w promocji",
+    ctaNote: "Promocja obejmuje wszystkie kursy",
+    orbStrong: "Niższe ceny",
+    orbSpan: "na wszystkie kursy<br />tylko teraz!",
+    endPre: "Promocja",
+    endPost: "kończy się za:",
+    d: "DNI",
+    h: "GODZ.",
+    m: "MIN.",
+    s: "SEK.",
+    dontMiss: "Nie przegap okazji!",
+    searchPlh: "Szukaj kursów, pakietów, technologii...",
+    allCat: "Wszystkie kategorie",
+    searchBtn: "Szukaj",
+    empty: "Nie znaleziono kursów spełniających kryteria wyszukiwania.",
+    bestseller: "Bestseller",
+    copy: "Wszelkie prawa zastrzeżone."
+  },
+  en: {
+    badge: "🔥 PROMOTION",
+    title1: "Sale on",
+    title2: "all courses!",
+    sub: "Take advantage of lower prices for a limited time.",
+    cta: "See courses on sale",
+    ctaNote: "Promotion applies to all courses",
+    orbStrong: "Lower prices",
+    orbSpan: "on all courses<br />only now!",
+    endPre: "Sale",
+    endPost: "ends in:",
+    d: "DAYS",
+    h: "HRS",
+    m: "MIN",
+    s: "SEC",
+    dontMiss: "Don't miss out!",
+    searchPlh: "Search courses, bundles, technologies...",
+    allCat: "All categories",
+    searchBtn: "Search",
+    empty: "No courses found matching your criteria.",
+    bestseller: "Bestseller",
+    copy: "All rights reserved."
+  },
+  de: {
+    badge: "🔥 ANGEBOT",
+    title1: "Rabatt auf",
+    title2: "alle Kurse!",
+    sub: "Profitieren Sie für kurze Zeit von niedrigeren Preisen.",
+    cta: "Kurse im Angebot ansehen",
+    ctaNote: "Das Angebot gilt für alle Kurse",
+    orbStrong: "Niedrigere Preise",
+    orbSpan: "auf alle Kurse<br />nur jetzt!",
+    endPre: "Angebot",
+    endPost: "endet in:",
+    d: "TAGE",
+    h: "STD",
+    m: "MIN",
+    s: "SEK",
+    dontMiss: "Nicht verpassen!",
+    searchPlh: "Suchen Sie Kurse, Pakete, Technologien...",
+    allCat: "Alle Kategorien",
+    searchBtn: "Suchen",
+    empty: "Keine Kurse gefunden, die Ihren Kriterien entsprechen.",
+    bestseller: "Bestseller",
+    copy: "Alle Rechte vorbehalten."
+  }
+};
+
 /* ═══════════════════════════════════════════════════════════════════
    MAIN COMPONENT
 ═══════════════════════════════════════════════════════════════════ */
@@ -116,6 +188,8 @@ export function PromotionPage({
     );
   }, [page]);
 
+  const t = promoTexts[locale];
+
   return (
     <div className="pp">
 
@@ -130,22 +204,22 @@ export function PromotionPage({
 
             {/* badge */}
             <span className="pp-hero__badge">
-              🔥 PROMOCJA
+              {t.badge}
             </span>
 
             {/* headline */}
             <h1 className="pp-hero__title">
-              Promocja na<br />
-              <span className="pp-hero__title-purple">wszystkie kursy!</span>
+              {t.title1}<br />
+              <span className="pp-hero__title-purple">{t.title2}</span>
             </h1>
 
             <p className="pp-hero__sub">
-              Skorzystaj z niższych cen przez ograniczony czas.
+              {t.sub}
             </p>
 
             <div className="pp-hero__cta-row">
-              <a className="pp-hero__cta" href="#pp-search">Zobacz kursy w promocji</a>
-              <span className="pp-hero__cta-note">Promocja obejmuje wszystkie kursy</span>
+              <a className="pp-hero__cta" href="#pp-search">{t.cta}</a>
+              <span className="pp-hero__cta-note">{t.ctaNote}</span>
             </div>
 
           </div>
@@ -169,8 +243,8 @@ export function PromotionPage({
               <div className="pp-hero__badge-card">
                 <span className="pp-hero__badge-card-icon">%</span>
                 <div>
-                  <strong>Niższe ceny</strong>
-                  <span>na wszystkie kursy<br />tylko teraz!</span>
+                  <strong>{t.orbStrong}</strong>
+                  <span dangerouslySetInnerHTML={{ __html: t.orbSpan }} />
                 </div>
               </div>
             </div>
@@ -179,15 +253,15 @@ export function PromotionPage({
 
           <div className="pp-hero__bottom">
             <div className="pp-countdown">
-              <p className="pp-countdown__intro"><span>Promocja</span> kończy się za:</p>
+              <p className="pp-countdown__intro"><span>{t.endPre}</span> {t.endPost}</p>
               <div className="pp-countdown__units">
-                <CountUnit value={pad(timeLeft.days)}    label="DNI" />
-                <CountUnit value={pad(timeLeft.hours)}   label="GODZ." />
-                <CountUnit value={pad(timeLeft.minutes)} label="MIN." />
-                <CountUnit value={pad(timeLeft.seconds)} label="SEK." />
+                <CountUnit value={pad(timeLeft.days)}    label={t.d} />
+                <CountUnit value={pad(timeLeft.hours)}   label={t.h} />
+                <CountUnit value={pad(timeLeft.minutes)} label={t.m} />
+                <CountUnit value={pad(timeLeft.seconds)} label={t.s} />
               </div>
             </div>
-            <p className="pp-hero__note">Nie przegap okazji!</p>
+            <p className="pp-hero__note">{t.dontMiss}</p>
           </div>
         </section>
       </div>
@@ -203,7 +277,7 @@ export function PromotionPage({
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               className="pp-search__input"
-              placeholder="Szukaj kursów, pakietów, technologii..."
+              placeholder={t.searchPlh}
             />
           </label>
           <select
@@ -212,7 +286,7 @@ export function PromotionPage({
             className="pp-search__select"
             aria-label="Kategoria"
           >
-            <option value="all">Wszystkie kategorie</option>
+            <option value="all">{t.allCat}</option>
             {categories.map((cat) => (
               <option key={cat.id} value={cat.id}>{cat.label[locale]}</option>
             ))}
@@ -222,7 +296,7 @@ export function PromotionPage({
             className="pp-search__btn"
             onClick={() => setPage(1)}
           >
-            Szukaj
+            {t.searchBtn}
           </button>
         </div>
       </div>
@@ -240,12 +314,13 @@ export function PromotionPage({
                 locale={locale}
                 dictionary={dictionary}
                 catLabel={catLabels.get(course.categoryId) ?? ""}
+                bestsellerLabel={t.bestseller}
               />
             ))}
           </div>
         ) : (
           <div className="pp-empty">
-            Nie znaleziono kursów spełniających kryteria wyszukiwania.
+            {t.empty}
           </div>
         )}
 
@@ -257,7 +332,7 @@ export function PromotionPage({
       ════════════════════════════════════════════════════════════ */}
       <footer className="pp-footer">
         <div className="container-shell">
-          <p>© {new Date().getFullYear()} Rafał Podraza. Wszelkie prawa zastrzeżone.</p>
+          <p>© {new Date().getFullYear()} Rafał Podraza. {t.copy}</p>
         </div>
       </footer>
 
@@ -279,12 +354,13 @@ function CountUnit({ value, label }: { value: string; label: string }) {
 /* ─── CourseCard ─────────────────────────────────────────────────── */
 
 function CourseCard({
-  course, locale, dictionary, catLabel
+  course, locale, dictionary, catLabel, bestsellerLabel
 }: {
   course: Course;
   locale: Locale;
   dictionary: Dictionary;
   catLabel: string;
+  bestsellerLabel: string;
 }) {
   const href = getCoursePath(course, locale);
   const { addItem, isInCart } = useCart();
@@ -314,7 +390,7 @@ function CourseCard({
             </div>
           )}
           {course.isBestseller && (
-            <span className="pp-card__badge">Bestseller</span>
+            <span className="pp-card__badge">{bestsellerLabel}</span>
           )}
           <div className="pp-card__thumb-grad" />
         </div>
